@@ -1,8 +1,8 @@
 import Login from "@/pages/Login/Login";
-import MainLayout from "@/components/layout/MainLayout";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard/Dashboard";
 import AuthGuard from "@/components/auth/AuthGuard";
+import MainLayout from "@/components/layout/MainLayout";
 import Unauthorized from "@/pages/Unauthorized/Unauthorized";
 
 export const router = createBrowserRouter([
@@ -19,10 +19,10 @@ export const router = createBrowserRouter([
         element: <Unauthorized />
     },
     {
+        path: "/",
         element: <AuthGuard />,
         children: [
             {
-                path: "/",
                 element: <MainLayout />,
                 children: [
                     {
