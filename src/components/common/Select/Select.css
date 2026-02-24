@@ -1,0 +1,53 @@
+.select-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.select-base {
+    width: 100%;
+    padding: 10px 40px 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1e293b;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    appearance: none;
+    /* Hide default arrow */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-base:hover {
+    border-color: #cbd5e1;
+    background-color: #f1f5f9;
+}
+
+.select-base:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.select-base:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f1f5f9;
+}
+
+/* Custom Chevron Icon */
+.select-chevron {
+    position: absolute;
+    right: 14px;
+    pointer-events: none;
+    color: #64748b;
+    transition: transform 0.2s ease;
+}
+
+.select-base:focus+.select-chevron {
+    color: #6366f1;
+    transform: rotate(180deg);
+}

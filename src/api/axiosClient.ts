@@ -1,4 +1,4 @@
-import axios, {type AxiosError,type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -41,7 +41,10 @@ axiosClient.interceptors.response.use(
         };
         const isLoginPage = window.location.pathname === "/login";
 
-        if (error.response?.status === 401 && !isLoginPage) {
+        if (
+            (error.response?.status === 403 || error.response?.status === 401) &&
+            !isLoginPage
+        ) {
             if (originalRequest._retry) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
@@ -66,10 +69,16 @@ axiosClient.interceptors.response.use(
 
             try {
                 const res = await axiosClient.post("/api/auth/refresh-token");
-                const newToken = (res as any).token;
+                const newToken = (res as any).data.token;
                 localStorage.setItem("token", newToken);
                 axiosClient.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
                 processQueue(null, newToken);
+
+                if (!originalRequest.headers) {
+                    originalRequest.headers = {} as any;
+                }
+                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+
                 return axiosClient(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError, null);

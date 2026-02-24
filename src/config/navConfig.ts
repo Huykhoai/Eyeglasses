@@ -22,7 +22,7 @@ export const navButtons: NavButton[] = [
         children: [
             { name: 'Đơn hàng', url: '/orders' },
             { name: 'Hợp đồng', url: '/contracts' },
-            { name: 'Lịch giao hàng', url: '/delivery-schedule'}
+            { name: 'Lịch giao hàng', url: '/delivery-schedule' }
         ]
     },
     {

@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard/Dashboard";
 import AuthGuard from "@/components/auth/AuthGuard";
 import MainLayout from "@/components/layout/MainLayout";
+import Config from "@/pages/Config/Config";
 import Unauthorized from "@/pages/Unauthorized/Unauthorized";
 
 export const router = createBrowserRouter([
@@ -33,9 +34,9 @@ export const router = createBrowserRouter([
                         element: <AuthGuard requiredFeature="/xnk" />,
                         children: [
                             {
-                                path: "xnk",
-                                element: <div>Trang chính Xuất Nhập Khẩu</div>
-                            }
+                                path: "config",
+                                element: <Config />
+                            },
                         ]
                     },
                     {
