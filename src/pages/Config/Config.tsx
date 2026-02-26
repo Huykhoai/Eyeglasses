@@ -14,6 +14,9 @@ import axiosClient from '@/api/axiosClient';
 import { cleanParams } from '@/utils/cleanParams';
 import { IconButton, Typography } from '@mui/material';
 import DialogCreateConfig from './Component/DialogCreateConfig';
+import Loading from '@/components/ui/Loading/Loading';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import Select from '@/components/common/Select/Select';
 
 interface ConfigItem {
     id: number;
@@ -29,41 +32,49 @@ const Config: React.FC = () => {
     const { showNotification } = useNotification();
     const { generalCategory, specificCategory } = useConfigData();
 
-    const tabParam = searchParams.get('tab') as 'common' | 'specific' | null;
-    const configParam = searchParams.get('type');
+    const params = Object.fromEntries(searchParams);
+    const tabParam = params.tab as 'common' | 'specific' | null;
+    const { type: configParam, page: pageParam, search: searchParam } = params;
 
     const [activeTab, setActiveTab] = useState<'common' | 'specific'>(tabParam || 'common');
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(searchParam || '');
     const [openDialog, setOpenDialog] = useState(false);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(pageParam ? parseInt(pageParam) : 1);
     const [size, setSize] = useState(20);
+    const [isLoading, setIsLoading] = useState(false);
+    const [openConfigDialog, setOpenConfigDialog] = useState(false);
     const [selectedConfig, setSelectedConfig] = useState<ConfigCategoryItem | null>(null);
     const [selectedItem, setSelectedItem] = useState<ConfigItem | null>(null);
     const [columns, setColumns] = useState<string[]>(['cid', 'name', 'description']);
 
     useEffect(() => {
-        const params: any = { tab: activeTab };
-        if (selectedConfig) {
-            params.type = selectedConfig.url.replace('/', '');
-        }
-        setSearchParams(params, { replace: true });
-    }, [activeTab, selectedConfig, setSearchParams]);
+        const queryParams = new URLSearchParams();
+        queryParams.set('tab', activeTab);
+        if (selectedConfig) queryParams.set('type', selectedConfig.url.replace('/', ''));
+        if (page > 1) queryParams.set('page', page.toString());
+        if (search.trim()) queryParams.set('search', search);
+
+        setSearchParams(queryParams, { replace: true });
+    }, [activeTab, selectedConfig, search, page, setSearchParams]);
 
     useEffect(() => {
         if (configParam) {
-            const categories = activeTab === 'common' ? generalCategory : specificCategory;
-            for (const cat of categories) {
-                const item = cat.items.find(i => i.url === `/${configParam}`);
-                if (item) {
-                    setSelectedConfig(item);
-                    return;
-                }
-            }
+            const allItems = [...generalCategory, ...specificCategory].flatMap(cat => cat.items);
+            const found = allItems.find(i => i.url === `/${configParam}`);
+            if (found) setSelectedConfig(found);
         }
-    }, [configParam, activeTab, generalCategory, specificCategory]);
+
+        const p = pageParam ? parseInt(pageParam) : 1;
+        if (p !== page) setPage(p);
+
+        if (searchParam !== undefined && searchParam !== search) {
+            setSearch(searchParam);
+        }
+    }, [configParam, activeTab, generalCategory, specificCategory, pageParam, searchParam]);
 
     const [response, setResponse] = useState<{
         data: ConfigItem[],
+        hasData: boolean,
         dataAutocomplete: {
             groupType: ConfigItem[],
             frameType: ConfigItem[]
@@ -71,6 +82,7 @@ const Config: React.FC = () => {
         totalItems: number
     }>({
         data: [],
+        hasData: false,
         dataAutocomplete: {
             groupType: [],
             frameType: []
@@ -84,6 +96,14 @@ const Config: React.FC = () => {
 
     const handleSelectConfig = useCallback((config: ConfigCategoryItem) => {
         setSelectedConfig(config);
+        setPage(1);
+        setSearch('');
+        setSelectedItem(null);
+    }, []);
+
+    const handleCloseDialog = useCallback(() => {
+        setOpenDialog(false);
+        setSelectedItem(null);
     }, []);
 
     const handleSelectItem = useCallback((item: ConfigItem) => {
@@ -91,13 +111,16 @@ const Config: React.FC = () => {
         setOpenDialog(true);
     }, []);
 
-    const handleDeleteItem = useCallback((id: number) => {
+    const handleDeleteItem = useCallback(async () => {
         try {
-
-        } catch (error) {
-
+            const response = await axiosClient.delete(`/api${selectedConfig?.url}/delete/${selectedItem?.id}`);
+            showNotification('success', response.data.message, 'Successfully');
+            fetchConfigData();
+            setOpenConfigDialog(false);
+        } catch (error: any) {
+            showNotification('error', error.response.data.message || 'Delete failed', 'Error');
         }
-    }, []);
+    }, [selectedConfig, selectedItem]);
 
     useEffect(() => {
         fetchAutocompleteData();
@@ -111,25 +134,35 @@ const Config: React.FC = () => {
 
     const fetchConfigData = async () => {
         try {
+            setIsLoading(true);
             const cleanQuery = cleanParams({ search, size });
             const res = await axiosClient.get(`/api${selectedConfig?.url}/page/${page}`, { params: cleanQuery });
 
-            if (res.data.data?.length > 0) {
-                const firstItem = res.data.data[0];
-                const keys = Object.keys(firstItem);
-                setColumns(keys);
+            const firstItem = res.data.data[0];
+            const keys = Object.keys(firstItem);
+            setColumns(keys);
+            if (!firstItem.id) {
+                setResponse((prev) => ({
+                    ...prev,
+                    data: [],
+                    totalItems: 0
+                }));
+            } else {
+                setResponse((prev) => ({
+                    ...prev,
+                    data: res.data.data,
+                    totalItems: res.data.totalItems
+                }));
             }
-            setResponse((prev) => ({
-                ...prev,
-                data: res.data.data,
-                totalItems: res.data.totalItems
-            }));
-        } catch (error) {
-            showNotification('error', 'Lấy dữ liệu thất bại', 'Lỗi');
+        } catch (error: any) {
+            showNotification('error', error.response.data.message || 'Get data failed', 'Error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const fetchAutocompleteData = async () => {
+        if (response.hasData) return;
         try {
             const [groupTypeRes, frameTypeRes] = await Promise.all([
                 axiosClient.get('/api/group-type/all'),
@@ -137,13 +170,14 @@ const Config: React.FC = () => {
             ])
             setResponse((prev) => ({
                 ...prev,
+                hasData: true,
                 dataAutocomplete: {
                     groupType: groupTypeRes.data,
                     frameType: frameTypeRes.data
                 }
             }))
         } catch (error) {
-            showNotification('error', 'Lấy dữ liệu thất bại', 'Lỗi');
+            showNotification('error', 'Get data failed', 'Error');
         }
     }
     const columnsLabel: { [key: string]: string } = {
@@ -152,7 +186,9 @@ const Config: React.FC = () => {
         'description': 'Mô tả chi tiết',
         'modifiedAt': 'Thời gian',
         'value': 'Giá trị',
-        'type': 'Đơn vị'
+        'type': 'Đơn vị',
+        'taxRate': 'Thuế suất',
+        'groupTypeDto': 'Loại nhóm'
     };
 
     const columnsConfig = useMemo(() => {
@@ -166,6 +202,14 @@ const Config: React.FC = () => {
                         <span className='badge-chip badge-info'>
                             {item[column] || '-'}
                         </span>
+                    );
+                }
+
+                if (column === 'groupTypeDto') {
+                    return (
+                        <Typography variant="subtitle1" fontSize={12}>
+                            {item[column]?.name || '-'}
+                        </Typography>
                     );
                 }
 
@@ -193,6 +237,7 @@ const Config: React.FC = () => {
 
     return (
         <div className="config-page-wrapper">
+            {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
             <aside className="config-sidebar">
                 <h3 className="sidebar-group-title">Phân loại cấu hình</h3>
                 <div className="sidebar-menu">
@@ -231,6 +276,13 @@ const Config: React.FC = () => {
                                 />
                             </div>
 
+                            <div style={{ minWidth: "80px" }}>
+                                <Select
+                                    value={size}
+                                    options={[{ label: "20", value: 20 }, { label: "50", value: 50 }, { label: "100", value: 100 }]}
+                                    onChangeSize={(value: string | number) => setSize(Number(value))}
+                                />
+                            </div>
                             <div style={{ minWidth: "180px" }}>
                                 <TreeSelect
                                     data={currentCategory}
@@ -286,7 +338,10 @@ const Config: React.FC = () => {
                                                 <IconButton onClick={() => handleSelectItem(item)}>
                                                     <EditIcon fontSize='small' />
                                                 </IconButton>
-                                                <IconButton onClick={() => handleDeleteItem(item.id)}>
+                                                <IconButton onClick={() => {
+                                                    setSelectedItem(item);
+                                                    setOpenConfigDialog(true);
+                                                }}>
                                                     <DeleteIcon fontSize='small' color='error' />
                                                 </IconButton>
                                             </div>
@@ -312,8 +367,16 @@ const Config: React.FC = () => {
                     dataAutocomplete={response.dataAutocomplete}
                     selectedConfig={selectedConfig}
                     open={openDialog}
-                    onClose={() => setOpenDialog(false)}
+                    onClose={handleCloseDialog}
                     onSuccess={fetchConfigData}
+                />
+                <ConfirmDialog
+                    open={openConfigDialog}
+                    title="Xác nhận"
+                    content="Bạn có chắc chắn muốn xóa không?"
+                    onClose={() => setOpenConfigDialog(false)}
+                    onConfirm={handleDeleteItem}
+                    loading={isLoading}
                 />
             </main>
         </div>
