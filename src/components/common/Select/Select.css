@@ -54,7 +54,6 @@
     color: var(--select-primary);
 }
 
-/* Dropdown Menu */
 .select-dropdown {
     position: absolute;
     top: calc(100% + 8px);

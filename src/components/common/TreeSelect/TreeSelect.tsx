@@ -15,12 +15,19 @@ interface TreeSelectProps {
     data: ConfigCategory[];
     placeholder?: string;
     onSelect?: (item: ConfigCategoryItem) => void;
+    value?: ConfigCategoryItem | null;
 }
 
-const TreeSelect: React.FC<TreeSelectProps> = ({ data, placeholder = "Chọn danh mục", onSelect }) => {
+const TreeSelect: React.FC<TreeSelectProps> = ({ data, placeholder = "Chọn danh mục", onSelect, value }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
-    const [selectedItem, setSelectedItem] = useState<ConfigCategoryItem | null>(null);
+    const [selectedItem, setSelectedItem] = useState<ConfigCategoryItem | null>(value || null);
+
+    useEffect(() => {
+        if (value !== undefined) {
+            setSelectedItem(value);
+        }
+    }, [value]);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
