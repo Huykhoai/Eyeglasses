@@ -15,13 +15,16 @@ import Button from '@/components/common/Button/Button';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import axiosClient from '@/api/axiosClient';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import type { ConfigLimitResponse } from '@/types';
+import { useQueryClient } from '@tanstack/react-query';
+import type { ConfigCategoryItem } from '../hooks/useConfigData';
 
 interface DialogCreateConfigProps {
     data?: any;
     columns?: string[];
     columnsLabel?: { [key: string]: string };
-    dataAutocomplete?: any;
-    selectedConfig?: any;
+    dataAutocomplete?: ConfigLimitResponse[];
+    selectedConfig?: ConfigCategoryItem | null;
     open: boolean;
     onClose: () => void;
     onSuccess?: () => void;
@@ -32,6 +35,7 @@ const DialogCreateConfig: React.FC<DialogCreateConfigProps> = ({ data, columns, 
     const [formData, setFormData] = useState<{ [key: string]: any }>({});
     const [loading, setLoading] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (open) {
@@ -74,8 +78,13 @@ const DialogCreateConfig: React.FC<DialogCreateConfigProps> = ({ data, columns, 
             try {
                 await axiosClient.post(`/api${selectedConfig.url}/create`, formData);
                 showNotification('success', 'Add successfully', 'Successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [`${selectedConfig.url.substring(1)}`]
+                })
+
                 onSuccess?.();
                 onClose();
+                
             } catch (error: any) {
                 if (error.status === 400) {
                     const messages = error?.response?.data?.message?.split(",");
@@ -93,6 +102,9 @@ const DialogCreateConfig: React.FC<DialogCreateConfigProps> = ({ data, columns, 
             try {
                 await axiosClient.put(`/api${selectedConfig.url}/update/${formData.id}`, formData);
                 showNotification('success', 'Update successfully', 'Successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [`${selectedConfig.url.substring(1)}`]
+                })
                 onSuccess?.();
                 onClose();
             } catch (error: any) {
@@ -136,9 +148,8 @@ const DialogCreateConfig: React.FC<DialogCreateConfigProps> = ({ data, columns, 
                     )
                 }
 
-                if (["frameTypeDto", "groupTypeDto"].includes(key)) {
-                    const dataKey = key === "frameTypeDto" ? "frameType" : "groupType";
-                    const options = dataAutocomplete?.[dataKey] || [];
+                if (["groupTypeDto"].includes(key)) {
+                    const options = dataAutocomplete || [];
                     return (
                         <Autocomplete
                             options={options}

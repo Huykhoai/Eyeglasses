@@ -17,21 +17,17 @@ import DialogCreateConfig from './Component/DialogCreateConfig';
 import Loading from '@/components/ui/Loading/Loading';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Select from '@/components/common/Select/Select';
-
-interface ConfigItem {
-    id: number;
-    cid: string;
-    name: string;
-    description: string;
-    type?: string;
-    value?: string;
-}
+import { useQueryClient } from '@tanstack/react-query';
+import type { ConfigItem } from '@/types';
+import { useGroupType } from '@/hooks/UseAllData'
 
 const Config: React.FC = () => {
+    const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const { showNotification } = useNotification();
     const { generalCategory, specificCategory } = useConfigData();
-
+    const { data: groupTypes } = useGroupType()
+    
     const params = Object.fromEntries(searchParams);
     const tabParam = params.tab as 'common' | 'specific' | null;
     const { type: configParam, page: pageParam, search: searchParam } = params;
@@ -43,9 +39,18 @@ const Config: React.FC = () => {
     const [size, setSize] = useState(20);
     const [isLoading, setIsLoading] = useState(false);
     const [openConfigDialog, setOpenConfigDialog] = useState(false);
-    const [selectedConfig, setSelectedConfig] = useState<ConfigCategoryItem | null>(null);
+    const [selectedConfig, setSelectedConfig] = useState<ConfigCategoryItem | null>(generalCategory[0].items[0]);
     const [selectedItem, setSelectedItem] = useState<ConfigItem | null>(null);
     const [columns, setColumns] = useState<string[]>(['cid', 'name', 'description']);
+
+    const [response, setResponse] = useState<{
+        data: ConfigItem[],
+        totalItems: number
+    }>({
+        data: [],
+        totalItems: 0
+    });
+
 
     useEffect(() => {
         const queryParams = new URLSearchParams();
@@ -72,24 +77,7 @@ const Config: React.FC = () => {
         }
     }, [configParam, activeTab, generalCategory, specificCategory, pageParam, searchParam]);
 
-    const [response, setResponse] = useState<{
-        data: ConfigItem[],
-        hasData: boolean,
-        dataAutocomplete: {
-            groupType: ConfigItem[],
-            frameType: ConfigItem[]
-        },
-        totalItems: number
-    }>({
-        data: [],
-        hasData: false,
-        dataAutocomplete: {
-            groupType: [],
-            frameType: []
-        },
-        totalItems: 0
-    });
-
+    
     const currentCategory = useMemo(() =>
         activeTab === 'common' ? generalCategory : specificCategory,
         [activeTab, generalCategory, specificCategory]);
@@ -99,7 +87,7 @@ const Config: React.FC = () => {
         setPage(1);
         setSearch('');
         setSelectedItem(null);
-    }, []);
+    }, [selectedConfig]);
 
     const handleCloseDialog = useCallback(() => {
         setOpenDialog(false);
@@ -117,14 +105,13 @@ const Config: React.FC = () => {
             showNotification('success', response.data.message, 'Successfully');
             fetchConfigData();
             setOpenConfigDialog(false);
+            queryClient.invalidateQueries({
+                queryKey: [`${selectedConfig?.url.replace("/", "")}`]
+            })
         } catch (error: any) {
             showNotification('error', error.response.data.message || 'Delete failed', 'Error');
         }
     }, [selectedConfig, selectedItem]);
-
-    useEffect(() => {
-        fetchAutocompleteData();
-    }, []);
 
     useEffect(() => {
         if (selectedConfig) {
@@ -161,25 +148,6 @@ const Config: React.FC = () => {
         }
     };
 
-    const fetchAutocompleteData = async () => {
-        if (response.hasData) return;
-        try {
-            const [groupTypeRes, frameTypeRes] = await Promise.all([
-                axiosClient.get('/api/group-type/all'),
-                axiosClient.get('/api/frame-type/all')
-            ])
-            setResponse((prev) => ({
-                ...prev,
-                hasData: true,
-                dataAutocomplete: {
-                    groupType: groupTypeRes.data,
-                    frameType: frameTypeRes.data
-                }
-            }))
-        } catch (error) {
-            showNotification('error', 'Get data failed', 'Error');
-        }
-    }
     const columnsLabel: { [key: string]: string } = {
         'cid': 'Mã nhận diện',
         'name': 'Tên hiển thị',
@@ -287,6 +255,7 @@ const Config: React.FC = () => {
                                 <TreeSelect
                                     data={currentCategory}
                                     onSelect={handleSelectConfig}
+                                    value={selectedConfig}
                                     placeholder="Chọn danh mục..."
                                 />
                             </div>
@@ -364,7 +333,7 @@ const Config: React.FC = () => {
                     data={selectedItem}
                     columns={columns}
                     columnsLabel={columnsLabel}
-                    dataAutocomplete={response.dataAutocomplete}
+                    dataAutocomplete={groupTypes}
                     selectedConfig={selectedConfig}
                     open={openDialog}
                     onClose={handleCloseDialog}
