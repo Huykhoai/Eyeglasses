@@ -236,6 +236,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                     variant="standard"
                     sx={{
                         flex: 1,
+                        minWidth: '10vw',
                         '& .MuiInputBase-root': {
                             fontSize: { xs: '0.75rem', sm: '0.8125rem' },
                             padding: '4px 0',

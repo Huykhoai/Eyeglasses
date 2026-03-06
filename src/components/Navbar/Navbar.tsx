@@ -16,14 +16,25 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const renderNavItems = (items: NavButton[], isDropdown = false) => {
+    const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+
+    const handleLinkClick = () => {
+        setActiveIndex(null);
+    };
+
+    const renderNavItems = (items: NavButton[], isDropdown = false, parentIndex: string = '') => {
         return items.map((item, index) => {
             const hasChildren = item.children && item.children.length > 0;
+            const currentIndex = isDropdown ? `${parentIndex}-${index}` : `${index}`;
 
             if (isDropdown) {
                 return (
-                    <div key={index} className="dropdown-item">
-                        <Link to={item.url || '#'} className="dropdown-link">
+                    <div
+                        key={index}
+                        className="dropdown-item"
+                        onMouseEnter={() => !item.url && setActiveIndex(1000 as any)}
+                    >
+                        <Link to={item.url || '#'} className="dropdown-link" onClick={handleLinkClick}>
                             {item.name}
                             {hasChildren && (
                                 <svg className="chevron-icon" style={{ transform: 'rotate(-90deg)' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,16 +44,23 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                         </Link>
                         {hasChildren && (
                             <div className="dropdown-menu sub-dropdown">
-                                {renderNavItems(item.children || [], true)}
+                                {renderNavItems(item.children || [], true, currentIndex)}
                             </div>
                         )}
                     </div>
                 );
             }
 
+            const isOpen = activeIndex === index;
+
             return (
-                <li key={index} className="nav-item">
-                    <Link to={item.url || '#'} className="nav-link">
+                <li
+                    key={index}
+                    className={`nav-item ${isOpen ? 'is-open' : ''}`}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onMouseLeave={() => setActiveIndex(null)}
+                >
+                    <Link to={item.url || '#'} className="nav-link" onClick={handleLinkClick}>
                         {item.name}
                         {hasChildren && (
                             <svg className="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,8 +69,8 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                         )}
                     </Link>
                     {hasChildren && (
-                        <div className="dropdown-menu">
-                            {renderNavItems(item.children || [], true)}
+                        <div className={`dropdown-menu ${isOpen ? 'show' : ''}`}>
+                            {renderNavItems(item.children || [], true, currentIndex)}
                         </div>
                     )}
                 </li>
