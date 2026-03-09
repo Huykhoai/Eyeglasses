@@ -7,13 +7,27 @@ import { router } from '@/routers/index.tsx'
 import { RouterProvider } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext.tsx'
 import { NotificationProvider } from './components/ui/Notification/NotificationContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <NotificationProvider>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </NotificationProvider>
+    <QueryClientProvider client={queryClient}>
+      <NotificationProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </NotificationProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </StrictMode>,
 )

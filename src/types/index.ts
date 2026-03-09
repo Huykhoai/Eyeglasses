@@ -7,7 +7,6 @@ export interface User {
     avatar?: string;
 }
 
-// Auth types
 export interface LoginCredentials {
     email: string;
     password: string;
@@ -20,19 +19,6 @@ export interface AuthResponse {
     refreshToken?: string;
 }
 
-// Product types
-export interface Product {
-    id: string;
-    name: string;
-    code: string;
-    category: string;
-    price: number;
-    stock: number;
-    description?: string;
-    images?: string[];
-}
-
-// Customer types
 export interface Customer {
     id: string;
     name: string;
@@ -44,30 +30,11 @@ export interface Customer {
     totalSpent?: number;
 }
 
-// Order types
-export interface Order {
-    id: string;
-    customerId: string;
-    products: OrderItem[];
-    total: number;
-    status: 'pending' | 'processing' | 'completed' | 'cancelled';
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export interface OrderItem {
-    productId: string;
-    quantity: number;
-    price: number;
-    subtotal: number;
-}
-
-// API Response types
 export interface ApiResponse<T> {
-    success: boolean;
+    status: number
+    message: string;
     data?: T;
-    error?: string;
-    message?: string;
+    timestamp: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -75,5 +42,22 @@ export interface PaginatedResponse<T> {
     total: number;
     page: number;
     pageSize: number;
-    totalPages: number;
+}
+export interface ObjectType{
+    id: number;
+    name: string;
+}
+export interface ConfigLimitResponse {
+    id: number;
+    name: string;
+    type: ObjectType | null;
+}
+
+export interface ConfigItem {
+    id: number;
+    cid: string;
+    name: string;
+    description: string;
+    type?: string;
+    value?: string;
 }
