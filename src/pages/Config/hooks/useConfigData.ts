@@ -12,7 +12,7 @@ export interface ConfigCategory {
 
 export const useConfigData = () => {
     const generalCategory: ConfigCategory[] = useMemo(() => [
-        { name: "Hàng hóa", items: [{ name: "Bảo hành", url: "/warranty" }, { name: "Thương hiệu", url: "/brand" }, { name: "Nhóm", url: "/group" }, { name: "Loại nhóm", url: "/group-type" }] },
+        { name: "Hàng hóa", items: [{ name: "Bảo hành", url: "/warranty" }, { name: "Thương hiệu", url: "/brand" }, { name: "Nhóm", url: "/group" }] },
         { name: "Hệ thống", items: [{ name: "Thuế", url: "/tax" }, { name: "Quốc gia", url: "/country" }, { name: "Tiền tệ", url: "/currency" }] }
     ], []);
 

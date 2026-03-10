@@ -20,15 +20,44 @@ export interface FilterItem {
 interface MultiFilterBarProps {
     categories: FilterItem[];
     onFilterChange?: (values: Record<string, any>) => void;
+    initialFilters?: Record<string, any>;
 }
 
-const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterChange }) => {
+const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterChange, initialFilters }) => {
+    const PRIMARY_COLOR = import.meta.env.VITE_PRIMARY_COLOR;
     const [selectedCategories, setSelectedCategories] = useState<string[]>([])
     const [filters, setFilters] = useState<Record<string, any>>({});
     const [hasDropdown, setHasDropdown] = useState<boolean>(false);
     const [shouldApplyFilters, setShouldApplyFilters] = useState<boolean>(false);
     const [searchValue, setSearchValue] = useState<string>('');
     const [showSuggest, setShowSuggest] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!initialFilters || Object.keys(initialFilters).length === 0) return;
+
+        const newSelected: string[] = [];
+        const newFilters: Record<string, any> = {};
+
+        Object.entries(initialFilters).forEach(([key, value]) => {
+            const category = categories.find(c => c.key === key);
+            if (category) {
+                newSelected.push(key);
+                if (category.type === 'select' && category.options) {
+                    const option = category.options.find(opt => String(opt.id) === String(value));
+                    newFilters[key] = option || null;
+                } else if (category.type === 'checkbox') {
+                    newFilters[key] = value === 'true' || value === true;
+                } else {
+                    newFilters[key] = value;
+                }
+            }
+        });
+
+        if (newSelected.length > 0) {
+            setSelectedCategories(newSelected);
+            setFilters(newFilters);
+        }
+    }, [initialFilters, categories]);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +154,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                 justifyContent: "center",
                 alignItems: "flex-start",
             }}>
-            <Box className="search-bar" ref={dropdownRef} sx={{ gap: 0.5 }}>
+            <Box className="search-bar" ref={dropdownRef} sx={{ gap: 0.3 }}>
                 {categories.filter((category) => selectedCategories.includes(category.key))
                     .map((category) => (
                         <Box className="tag" key={category.key}>
@@ -239,7 +268,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                         minWidth: '10vw',
                         '& .MuiInputBase-root': {
                             fontSize: { xs: '0.75rem', sm: '0.8125rem' },
-                            padding: '4px 0',
+                            padding: '3px 0',
                         },
                         '& .MuiInputBase-input': {
                             padding: '4px 8px',
@@ -339,12 +368,12 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                         aria-expanded={shouldApplyFilters}
                         size="small"
                         sx={{
-                            backgroundColor: "#1a73e8",
-                            borderRadius: "40%",
+                            backgroundColor: PRIMARY_COLOR,
+                            borderRadius: "30%",
                             marginLeft: "2px",
                             color: "white",
                             "&:hover": {
-                                backgroundColor: "#6366f1",
+                                backgroundColor: "#3A5FCD",
                             },
                         }}>
                         <Search sx={{ color: "white" }} />

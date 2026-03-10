@@ -1,6 +1,12 @@
 import React from "react";
-
-const TextField = ({ name, value, onChange, placeholder, props }: { name: string, value: any, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder?: string, props?: React.InputHTMLAttributes<HTMLInputElement> }) => {
+interface TextFieldProps {
+    name: string;
+    value: any;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+    props?: React.InputHTMLAttributes<HTMLInputElement>;
+}
+const TextField = ({ name, value, onChange, placeholder, props }: TextFieldProps) => {
     return (
         <input
             className='form-control'
