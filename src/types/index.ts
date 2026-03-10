@@ -39,11 +39,9 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
     items: T[];
-    total: number;
-    page: number;
-    pageSize: number;
+    totalItems: number;
 }
-export interface ObjectType{
+export interface ObjectType {
     id: number;
     name: string;
 }
@@ -60,4 +58,10 @@ export interface ConfigItem {
     description: string;
     type?: string;
     value?: string;
+}
+export interface ColumnDef {
+    key: string;
+    header: string;
+    width?: string;
+    render?: (item: any) => React.ReactNode;
 }

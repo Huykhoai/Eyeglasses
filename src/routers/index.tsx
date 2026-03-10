@@ -5,6 +5,9 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import MainLayout from "@/components/layout/MainLayout";
 import Config from "@/pages/Config/Config";
 import Unauthorized from "@/pages/Unauthorized/Unauthorized";
+import Product from "@/pages/Product/Product";
+import FormProduct from "@/pages/Product/components/Add/FormProduct";
+import Supplier from "@/pages/Supplier/Supplier";
 
 export const router = createBrowserRouter([
     {
@@ -37,6 +40,14 @@ export const router = createBrowserRouter([
                                 path: "config",
                                 element: <Config />
                             },
+                            {
+                                path: "products",
+                                element: <Product />
+                            },
+                            {
+                                path: "suppliers",
+                                element: <Supplier />
+                            }
                         ]
                     },
                     {
@@ -47,6 +58,20 @@ export const router = createBrowserRouter([
                                 element: <div>Trang chính OTK</div>
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                path: "products",
+                element: <AuthGuard requiredFeature="/xnk" />,
+                children:[
+                    {
+                        path: "add",
+                        element: <FormProduct />
+                    },
+                    {
+                        path: "update/:id",
+                        element: <FormProduct />
                     }
                 ]
             }

@@ -268,7 +268,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                         minWidth: '10vw',
                         '& .MuiInputBase-root': {
                             fontSize: { xs: '0.75rem', sm: '0.8125rem' },
-                            padding: '3px 0',
+                            padding: '4px 0',
                         },
                         '& .MuiInputBase-input': {
                             padding: '4px 8px',
@@ -366,7 +366,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                         onClick={() => setShouldApplyFilters((prev) => !prev)}
                         aria-label="Apply filters"
                         aria-expanded={shouldApplyFilters}
-                        size="small"
+                        size="medium"
                         sx={{
                             backgroundColor: PRIMARY_COLOR,
                             borderRadius: "30%",
