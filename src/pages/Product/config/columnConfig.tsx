@@ -4,14 +4,24 @@ import type { ColumnDef } from '@/types';
 const url = import.meta.env.VITE_API_URL;
 const formatPrice = (value: number | null | undefined): string => {
     if (value == null) return '-';
-    return value.toLocaleString('vi-VN') + 'đ';
+    return value.toLocaleString('vi-VN');
 };
 
-const commonColumns: ColumnDef[] = [
+const commonColumns: (ColumnDef & { groupName?: string })[] = [
+    {
+        key: 'cid',
+        header: 'Mã Viết Tắt',
+        align: 'center',
+        groupName: 'Thông tin sản phẩm',
+        render: (item: Product) => (
+            <span className="badge-chip badge-info" style={{ fontSize: 10 }}>{item.cid}</span>
+        ),
+    },
     {
         key: 'imageUrl',
         header: 'Ảnh',
-        width: '60px',
+        align: 'center',
+        groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (
             <img
                 src={url + item.imageUrl}
@@ -31,42 +41,58 @@ const commonColumns: ColumnDef[] = [
         ),
     },
     {
-        key: 'cid',
-        header: 'Mã SP',
-        width: '120px',
-        render: (item: Product) => (
-            <span className="badge-chip badge-info">{item.cid}</span>
-        ),
-    },
-    {
         key: 'name',
-        header: 'Tên sản phẩm',
-        width: '200px',
+        header: 'Tên đầy đủ',
+        width: '20vw',
+        groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (
-            <div>
-                <Typography variant="subtitle2" fontSize={12} fontWeight={600} noWrap>
-                    {item.name}
-                </Typography>
-            </div>
-        ),
-    },
-    {
-        key: 'brand',
-        header: 'Thương hiệu',
-        render: (item: Product) => (
-            <Typography variant="body2" fontSize={12}>{item.brand?.name || '-'}</Typography>
+            <Typography variant="subtitle2" fontSize={12} fontWeight={600}
+                sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                }}>
+                {item.name}
+            </Typography>
         ),
     },
     {
         key: 'group',
         header: 'Nhóm',
+        align: 'center',
+        width: '6vw',
+        groupName: 'Thông tin chung',
         render: (item: Product) => (
-            <Typography variant="body2" fontSize={12}>{item.group?.name || '-'}</Typography>
+            <Typography variant="body2" fontSize={12} textAlign="left">{item.group?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'brand',
+        header: 'Thương hiệu',
+        align: 'center',
+        groupName: 'Thông tin chung',
+        render: (item: Product) => (
+            <Typography variant="body2" fontSize={12} textAlign="left">{item.brand?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'supplier',
+        header: 'Nha cung cấp',
+        align: 'center',
+        width: "13vw",
+        groupName: 'Thông tin chung',
+        render: (item: Product) => (
+            <Typography variant="body2" fontSize={12} textAlign="left">{item.supplier?.name || '-'}</Typography>
         ),
     },
     {
         key: 'country',
-        header: 'Xuất xứ',
+        header: 'Quốc gia',
+        align: 'center',
+        groupName: 'Thông tin chung',
         render: (item: Product) => (
             <Typography variant="body2" fontSize={12}>{item.country?.name || '-'}</Typography>
         ),
@@ -74,13 +100,32 @@ const commonColumns: ColumnDef[] = [
     {
         key: 'unit',
         header: 'Đơn vị',
+        align: 'center',
+        groupName: 'Thông tin chung',
         render: (item: Product) => (
             <Typography variant="body2" fontSize={12}>{item.unit || '-'}</Typography>
         ),
     },
     {
+        key: 'statusProduct',
+        header: 'Trạng thái',
+        align: 'center',
+        groupName: 'Thông tin chung',
+        render: (item: Product) => {
+            const name = item.statusProduct?.name || '-';
+            const status = item.statusProduct?.id === 1 ? 'success' : item.statusProduct?.id === 2 ? 'warning' : 'danger';
+            return (
+                <span className={`badge-chip badge-${status}`}>
+                    {name}
+                </span>
+            );
+        }
+    },
+    {
         key: 'originalPrice',
-        header: 'Giá gốc',
+        header: 'Nguyên tệ',
+        align: 'right',
+        groupName: 'Thông tin giá',
         render: (item: Product) => (
             <Typography variant="body2" fontSize={12} fontWeight={600} color="#16a34a">
                 {formatPrice(item.originalPrice)}
@@ -88,124 +133,188 @@ const commonColumns: ColumnDef[] = [
         ),
     },
     {
-        key: 'statusProduct',
-        header: 'Trạng thái',
-        render: (item: Product) => {
-            const status = item.statusProduct?.name || '-';
-            return <span className="badge-chip badge-success">{status}</span>;
-        },
+        key: 'currency',
+        header: 'Đơn vị',
+        align: 'center',
+        groupName: 'Thông tin giá',
+        render: (item: Product) => (
+            <Typography variant="body2" fontSize={12}>
+                {item.currency?.name || '-' }
+            </Typography>
+        ),
+    },
+    {
+        key: 'warrantySupplier',
+        header: 'BH Hãng',
+        width: '6vw',
+        groupName: 'Thông tin giá',
+        render: (item: Product) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.warrantySupplier?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'warranty',
+        header: 'BH Công ty',
+        groupName: 'Thông tin giá',
+        render: (item: Product) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.warranty?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'warrantyRetail',
+        header: 'BH Bán lẻ',
+        groupName: 'Thông tin giá',
+        render: (item: Product) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.warrantyRetail?.name || '-'}</Typography>
+        ),
     },
 ];
 
-const lensColumns: ColumnDef[] = [
+const lensColumns: (ColumnDef & { groupName?: string })[] = [
     {
-        key: 'refractiveIndex',
-        header: 'Chiết suất',
+        key: 'diameter',
+        header: 'Đường kính',
+        groupName: 'Kích thước',
         render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.lensAttribute?.refractiveIndex?.name || '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'sph',
-        header: 'SPH',
-        render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12} fontFamily="monospace">
-                {item.lensAttribute?.sph != null ? item.lensAttribute.sph.toFixed(2) : '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'cyl',
-        header: 'CYL',
-        render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12} fontFamily="monospace">
-                {item.lensAttribute?.cyl != null ? item.lensAttribute.cyl.toFixed(2) : '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'lenAdd',
-        header: 'ADD',
-        render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12} fontFamily="monospace">
-                {item.lensAttribute?.lenAdd != null ? item.lensAttribute.lenAdd.toFixed(2) : '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'design',
-        header: 'Thiết kế',
-        render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.lensAttribute?.design1?.name || '-'}
+            <Typography variant="body2" fontSize={12} align="center">
+                {item.lensAttribute?.diameter + 'mm' || '-'}
             </Typography>
         ),
     },
     {
         key: 'material',
         header: 'Vật liệu',
+        groupName: 'Chất liệu',
         render: (item: LensProduct) => (
-            <Typography variant="body2" fontSize={12}>
+            <Typography variant="body2" align='left' fontSize={11}>
                 {item.lensAttribute?.material?.name || '-'}
             </Typography>
         ),
     },
+    {
+        key: 'refractiveIndex',
+        header: 'Chiết suất',
+        groupName: 'Chất liệu',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>
+                {item.lensAttribute?.refractiveIndex?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'prescription',
+        header: 'Độ (S/C/A)',
+        groupName: 'Thông số',
+        render: (item: LensProduct) => {
+            const attr = item.lensAttribute;
+            if (!attr) return '-';
+            const parts = [];
+            if (attr.sph != null) parts.push(`S${attr.sph.toFixed(2)}`);
+            if (attr.cyl != null) parts.push(`C${attr.cyl.toFixed(2)}`);
+            if (attr.lenAdd != null) parts.push(`A${attr.lenAdd.toFixed(2)}`);
+            return <Typography variant="body2" fontSize={11} fontFamily="monospace">{parts.join('/') || '-'}</Typography>;
+        },
+    },
+    {
+        key: 'design1',
+        header: 'Thiết kế 1',
+        groupName: 'Thiết kế',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>
+                {item.lensAttribute?.design1?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'design2',
+        header: 'Thiết kế 2',
+        groupName: 'Thiết kế',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>
+                {item.lensAttribute?.design2?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'uv',
+        header: 'UV',
+        groupName: 'Tích hợp',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.uv?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'coating',
+        header: 'Lớp phủ',
+        groupName: 'Tích hợp',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.coating?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: "hmcColor",
+        header: "HMC",
+        groupName: 'Tích hợp',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.hmcColor?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: "phoColor",
+        header: "PHO",
+        groupName: 'Tích hợp',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.phoColor?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: "tintColor",
+        header: "Tint",
+        groupName: 'Tích hợp',
+        render: (item: LensProduct) => (
+            <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.tintColor?.name || '-'}</Typography>
+        ),
+    }
 ];
 
-const frameColumns: ColumnDef[] = [
+const frameColumns: (ColumnDef & { groupName?: string })[] = [
     {
         key: 'model',
         header: 'Model',
+        groupName: 'Kiểu dáng & Kích thước',
         render: (item: FrameProduct) => (
-            <span className="badge-chip badge-neutral">
+            <span className="badge-chip badge-neutral" style={{ fontSize: 10 }}>
                 {item.frameAttribute?.model || '-'}
             </span>
         ),
     },
     {
-        key: 'serial',
-        header: 'Serial',
+        key: 'colorCode',
+        header: 'Mã màu',
+        width: '6vw',
+        groupName: 'Kiểu dáng & Kích thước',
         render: (item: FrameProduct) => (
-            <Typography variant="body2" fontSize={12} fontFamily="monospace">
-                {item.frameAttribute?.serial || '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'shape',
-        header: 'Hình dạng',
-        render: (item: FrameProduct) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.frameAttribute?.shape?.name || '-'}
-            </Typography>
-        ),
-    },
-    {
-        key: 'frameType',
-        header: 'Loại gọng',
-        render: (item: FrameProduct) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.frameAttribute?.frameType?.name || '-'}
-            </Typography>
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.colorCode || '-'}</Typography>
         ),
     },
     {
         key: 'gender',
         header: 'Giới tính',
+        groupName: 'Kiểu dáng & Kích thước',
         render: (item: FrameProduct) => {
-            const isMale = item.frameAttribute?.gender;
-            return (
-                <span className={`badge-chip ${isMale ? 'badge-info' : 'badge-warning'}`}>
-                    {isMale ? 'Nam' : 'Nữ'}
-                </span>
-            );
+            const genderId = item.frameAttribute?.gender;
+            let label = '-';
+            let variant = 'badge-neutral';
+            if (genderId === 1) { label = 'Nam'; variant = 'badge-info'; }
+            else if (genderId === 2) { label = 'Nữ'; variant = 'badge-warning'; }
+            else if (genderId === 3) { label = 'Unisex'; variant = 'badge-success'; }
+            return <span className={`badge-chip ${variant}`} style={{ fontSize: 10 }}>{label}</span>;
         },
     },
     {
         key: 'dimensions',
         header: 'Kích thước',
+        groupName: 'Kiểu dáng & Kích thước',
         render: (item: FrameProduct) => {
             const attr = item.frameAttribute;
             if (!attr) return '-';
@@ -215,6 +324,138 @@ const frameColumns: ColumnDef[] = [
                 </Typography>
             );
         },
+    },
+    {
+        key: 'frame',
+        header: 'Kiểu gọng',
+        width: '6vw',
+        groupName: 'Kiểu dáng & Kích thước',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.frame?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'frameType',
+        header: 'Loại gọng',
+        width: '7vw',
+        groupName: 'Kiểu dáng & Kích thước',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.frameType?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'shape',
+        header: 'Hình dáng',
+        width: '6vw',
+        groupName: 'Kiểu dáng & Kích thước',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.shape?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: "ve",
+        header: "Ve",
+        width: "5vw",
+        groupName: "Chất liệu & thành phần",
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.ve?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: "temple",
+        header: "Càng kính",
+        groupName: "Chất liệu & thành phần",
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.temple?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: "coating",
+        header: "Lớp phủ",
+        width: "6vw",
+        groupName: "Chất liệu & thành phần",
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>
+                {item.frameAttribute?.coating?.name || '-'}
+            </Typography>
+        ),
+    },
+    {
+        key: 'materialFront',
+        header: 'Mặt trước',
+        width: '6vw',
+        groupName: 'Chất liệu & thành phần',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.materialFront?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'materialTemple',
+        header: 'Càng kính',
+        groupName: 'Chất liệu & thành phần',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.materialTemple?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'materialVe',
+        header: 'Ve',
+        groupName: 'Chất liệu & thành phần',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.materialVe?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'materialTempleTip',
+        header: 'Đuôi càng',
+        width: '6vw',
+        groupName: 'Chất liệu & thành phần',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.materialTempleTip?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'materialLens',
+        header: 'Mắt kính',
+        width: '6vw',
+        groupName: 'Chất liệu & thành phần',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.materialLens?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'colorFront',
+        header: 'Màu mặt',
+        groupName: 'Màu sắc',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.colorFront?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'colorTemple',
+        header: 'Màu càng',
+        groupName: 'Màu sắc',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.colorTemple?.name || '-'}</Typography>
+        ),
+    },
+    {
+        key: 'colorLens',
+        header: 'Màu mắt',
+        groupName: 'Màu sắc',
+        render: (item: FrameProduct) => (
+            <Typography variant="body2" fontSize={11}>{item.frameAttribute?.colorLens?.name || '-'}</Typography>
+        ),
     },
 ];
 

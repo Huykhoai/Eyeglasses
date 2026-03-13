@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { IconButton, Typography } from '@mui/material';
+import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MultiFilterBar, { type FilterItem } from '@/components/common/MultiFilterBar/MultiFilterBar';
@@ -15,6 +15,7 @@ import { getColumnsForType } from './config/columnConfig';
 import type { ProductType, Product as ProductItem } from './types/product';
 import './Product.css';
 import Button from '@/components/common/Button/Button';
+import { Tune } from '@mui/icons-material';
 
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
@@ -36,6 +37,25 @@ const Product: React.FC = () => {
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
     const { data: paginatedProducts, isLoading } = useProductData(productType, page, size, filters);
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const openMenu = Boolean(anchorEl);
+
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: ProductItem) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
+
+    const handleEditFromMenu = () => {
+        handleCloseMenu();
+    };
+
+    const handleDeleteFromMenu = () => {
+        handleCloseMenu();
+    };
 
     useEffect(() => {
         const qp = new URLSearchParams();
@@ -156,28 +176,57 @@ const Product: React.FC = () => {
                 </div>
 
                 {(paginatedProducts?.items?.length ?? 0) > 0 ? (
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 280px)' }}>
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 300px)' }}>
                         <table className="table-premium">
                             <thead>
-                                <tr>
-                                    <th style={{ width: '50px' }}>
-                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
-                                            STT
-                                        </Typography>
-                                    </th>
-                                    {columns.map((col) => (
-                                        <th key={col.key} style={{ maxWidth: col.width }}>
-                                            <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
-                                                {col.header}
-                                            </Typography>
-                                        </th>
-                                    ))}
-                                    <th style={{ width: '90px' }}>
-                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
-                                            Thao tác
-                                        </Typography>
-                                    </th>
-                                </tr>
+                                {(() => {
+                                    const groupedHeaders: { name: string; span: number }[] = [];
+                                    groupedHeaders.push({ name: '', span: 1 });
+
+                                    columns.forEach((col: any) => {
+                                        const groupName = col.groupName || 'Thông tin khác';
+                                        if (groupedHeaders.length > 0 && groupedHeaders[groupedHeaders.length - 1].name === groupName) {
+                                            groupedHeaders[groupedHeaders.length - 1].span++;
+                                        } else {
+                                            groupedHeaders.push({ name: groupName, span: 1 });
+                                        }
+                                    });
+
+                                    groupedHeaders.push({ name: 'Công cụ', span: 1 });
+
+                                    return (
+                                        <>
+                                            <tr className="group-header-row">
+                                                {groupedHeaders.map((group, idx) => (
+                                                    <th key={idx} colSpan={group.span} style={{ textAlign: 'center', backgroundColor: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
+                                                        <Typography variant="overline" fontSize={10} fontWeight={800} color="primary">
+                                                            {group.name}
+                                                        </Typography>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                            <tr>
+                                                <th style={{ width: '50px' }}>
+                                                    <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
+                                                        STT
+                                                    </Typography>
+                                                </th>
+                                                {columns.map((col) => (
+                                                    <th key={col.key} style={{ minWidth: col.width, textAlign: 'center' }}>
+                                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
+                                                            {col.header}
+                                                        </Typography>
+                                                    </th>
+                                                ))}
+                                                <th style={{ width: '90px' }}>
+                                                    <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
+                                                        Thao tác
+                                                    </Typography>
+                                                </th>
+                                            </tr>
+                                        </>
+                                    );
+                                })()}
                             </thead>
                             <tbody>
                                 {(paginatedProducts?.items ?? []).map((item, index) => (
@@ -188,7 +237,7 @@ const Product: React.FC = () => {
                                             </Typography>
                                         </td>
                                         {columns.map((col) => (
-                                            <td key={`${item.id}-${col.key}`} style={{ maxWidth: col.width }}>
+                                            <td key={`${item.id}-${col.key}`} style={{ maxWidth: col.width, textAlign: col.align || 'center' }}>
                                                 {col.render
                                                     ? col.render(item)
                                                     : <Typography variant="body2" fontSize={12}>{(item as any)[col.key] ?? '-'}</Typography>
@@ -197,11 +246,8 @@ const Product: React.FC = () => {
                                         ))}
                                         <td>
                                             <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                                                <IconButton size="small" onClick={() => handleEdit(item)}>
-                                                    <EditIcon fontSize="small" />
-                                                </IconButton>
-                                                <IconButton size="small" onClick={() => handleDelete(item)}>
-                                                    <DeleteIcon fontSize="small" color="error" />
+                                                <IconButton size="small" onClick={(e) => handleOpenMenu(e, item)}>
+                                                    <Tune fontSize="small" />
                                                 </IconButton>
                                             </div>
                                         </td>
@@ -233,6 +279,32 @@ const Product: React.FC = () => {
                     </div>
                 )}
             </div>
+            <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleCloseMenu}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                PaperProps={{
+                    sx: {
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        borderRadius: '8px',
+                        minWidth: '150px'
+                    }
+                }}>
+                <MenuItem onClick={handleEditFromMenu} sx={{ fontSize: '0.85rem' }}>
+                    <ListItemIcon>
+                        <EditIcon fontSize="small" color="info" />
+                    </ListItemIcon>
+                    Chỉnh sửa
+                </MenuItem>
+                <MenuItem onClick={handleDeleteFromMenu} sx={{ fontSize: '0.85rem', color: 'error.main' }}>
+                    <ListItemIcon>
+                        <DeleteIcon fontSize="small" color="error" />
+                    </ListItemIcon>
+                    Xóa
+                </MenuItem>
+            </Menu>
         </div>
     );
 };

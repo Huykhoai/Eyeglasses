@@ -11,6 +11,8 @@ export interface ProductBase {
     cid: string;
     name: string;
     originalPrice: number;
+    retailPrice: number;
+    costPrice: number;
     imageUrl: string;
     unit: string;
     note: string;
@@ -50,7 +52,7 @@ export interface FrameAttributeDto {
     season: string | null;
     model: string | null;
     serial: string | null;
-    gender: boolean | null;
+    gender: number | null;
     frame: NamedEntity | null;
     frameType: NamedEntity | null;
     shape: NamedEntity | null;
