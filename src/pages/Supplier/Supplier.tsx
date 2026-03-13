@@ -174,7 +174,7 @@ const Supplier: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {suppliers?.items.map((item, index) => (
+                            {(suppliers?.items ?? []).map((item, index) => (
                                 <tr key={item.id || index}>
                                     <td>
                                         <Typography variant="body2" align="center" fontSize={12}>
@@ -204,10 +204,10 @@ const Supplier: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                {suppliers && suppliers.totalItems > 20 && (
+                {(suppliers?.totalItems ?? 0) > 20 && (
                     <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
                         <Pagination
-                            totalItems={suppliers.totalItems}
+                            totalItems={suppliers?.totalItems ?? 0}
                             page={page}
                             size={size}
                             onChange={(p) => setPage(p)}

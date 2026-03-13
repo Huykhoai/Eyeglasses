@@ -38,8 +38,8 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-    items: T[];
-    totalItems: number;
+    items?: T[];
+    totalItems?: number;
 }
 export interface ObjectType {
     id: number;

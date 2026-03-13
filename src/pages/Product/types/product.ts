@@ -2,6 +2,7 @@ export type ProductType = 'LENS' | 'FRAME' | 'ACCESSORY';
 
 export interface NamedEntity {
     id: number;
+    cid: string;
     name: string;
 }
 

@@ -26,7 +26,6 @@ const Product: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { showNotification } = useNotification();
-    const { products, totalItems, isLoading, fetchProducts } = useProductData();
 
     const params = Object.fromEntries(searchParams);
     const typeParam = (params.type?.toUpperCase() as ProductType) || 'LENS';
@@ -36,6 +35,7 @@ const Product: React.FC = () => {
     const [page, setPage] = useState(pageParam);
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
+    const { data: paginatedProducts, isLoading } = useProductData(productType, page, size, filters);
 
     useEffect(() => {
         const qp = new URLSearchParams();
@@ -43,10 +43,6 @@ const Product: React.FC = () => {
         if (page > 1) qp.set('page', page.toString());
         setSearchParams(qp, { replace: true });
     }, [productType, page, setSearchParams]);
-
-    useEffect(() => {
-        fetchProducts(productType, page, size, filters);
-    }, [productType, page, size, filters, fetchProducts]);
 
     const columns = useMemo(() => getColumnsForType(productType), [productType]);
 
@@ -154,12 +150,12 @@ const Product: React.FC = () => {
                     <div className="info-left">
                         Danh sách <strong>{productTypeLabels[productType]}</strong>
                         <span className="product-count-badge">
-                            {totalItems} sản phẩm
+                            {paginatedProducts?.totalItems} sản phẩm
                         </span>
                     </div>
                 </div>
 
-                {products.length > 0 ? (
+                {(paginatedProducts?.items?.length ?? 0) > 0 ? (
                     <div className="table-scroll-container" style={{ height: 'calc(100vh - 280px)' }}>
                         <table className="table-premium">
                             <thead>
@@ -184,7 +180,7 @@ const Product: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {products.map((item, index) => (
+                                {(paginatedProducts?.items ?? []).map((item, index) => (
                                     <tr key={item.id || index}>
                                         <td>
                                             <Typography variant="body2" fontWeight={700} color="textSecondary" align="center" fontSize={12}>
@@ -226,11 +222,10 @@ const Product: React.FC = () => {
                     )
                 )}
 
-                {/* Pagination */}
-                {totalItems > 0 && (
+                {(paginatedProducts?.totalItems ?? 0) > 0 && (
                     <div className="product-pagination">
                         <Pagination
-                            totalItems={totalItems}
+                            totalItems={paginatedProducts?.totalItems ?? 0}
                             page={page}
                             size={size}
                             onChange={(value) => setPage(value)}

@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material';
 import type { ProductType, Product, LensProduct, FrameProduct } from '../types/product';
 import type { ColumnDef } from '@/types';
-
+const url = import.meta.env.VITE_API_URL;
 const formatPrice = (value: number | null | undefined): string => {
     if (value == null) return '-';
     return value.toLocaleString('vi-VN') + 'đ';
@@ -14,7 +14,7 @@ const commonColumns: ColumnDef[] = [
         width: '60px',
         render: (item: Product) => (
             <img
-                src={item.imageUrl}
+                src={url + item.imageUrl}
                 alt={item.name}
                 style={{
                     width: 40,
@@ -46,9 +46,6 @@ const commonColumns: ColumnDef[] = [
             <div>
                 <Typography variant="subtitle2" fontSize={12} fontWeight={600} noWrap>
                     {item.name}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" fontSize={10} noWrap>
-                    {item.engName}
                 </Typography>
             </div>
         ),
@@ -214,7 +211,7 @@ const frameColumns: ColumnDef[] = [
             if (!attr) return '-';
             return (
                 <Typography variant="body2" fontSize={11} fontFamily="monospace" whiteSpace="nowrap">
-                    {attr.eyeLength}□{attr.bridgeWidth}-{attr.templeLength}
+                    {attr.lensHeight}□{attr.lensWidth}-{attr.bridgeWidth}
                 </Typography>
             );
         },

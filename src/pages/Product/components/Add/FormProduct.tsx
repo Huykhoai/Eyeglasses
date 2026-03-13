@@ -183,7 +183,7 @@ const FormProduct: React.FC = () => {
         try {
             const response = await axiosClient.post("/api/product/save", payload);
             showNotification("success", response.data.message, "Thành công");
-            navigate("/products");
+            navigate(-1);
         } catch (error: any) {
             console.error("Lỗi khi handleSubmit:", error);
             const message = error?.response?.data?.message || error?.message || "Lỗi hệ thống";
@@ -201,7 +201,7 @@ const FormProduct: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 50 }}>
                         <Button
                             variant="outline"
-                            onClick={() => navigate('/products')}
+                            onClick={() => navigate(-1)}
                         >
                             Quay lại
                         </Button>
