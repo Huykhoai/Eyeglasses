@@ -184,6 +184,7 @@ const DialogCreateConfig: React.FC<DialogCreateConfigProps> = ({ data, columns, 
                         variant="outlined"
                         fullWidth
                         required={key !== "description"}
+                        disabled={key === "cid" && !!formData.id}
                     />
                 )
             }

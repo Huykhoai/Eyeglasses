@@ -47,8 +47,9 @@ export interface ObjectType {
 }
 export interface ConfigLimitResponse {
     id: number;
+    cid: string;
     name: string;
-    type: ObjectType | null;
+    typeInfo: ObjectType | null;
 }
 
 export interface ConfigItem {

@@ -88,13 +88,13 @@
 }
 
 .tree-cat-item:hover {
-    color: #714b67;
+    color: #6366f1;
     background: white;
 }
 
 .tree-cat-item.active {
     background: white;
-    color: #714b67;
+    color: #6366f1;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -105,7 +105,7 @@
     top: 25%;
     height: 50%;
     width: 3px;
-    background: #714b67;
+    background: #6366f1;
     border-radius: 0 4px 4px 0;
 }
 
@@ -133,7 +133,7 @@
 
 .tree-sub-item:hover {
     background: #f1f5f9;
-    color: #714b67;
+    color: #6366f1;
     padding-left: 22px;
 }
 

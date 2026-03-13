@@ -4,9 +4,10 @@ interface TextAreaProps {
     value: any;
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     placeholder?: string;
+    disabled?: boolean;
     props?: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 }
-const TextArea = ({ name, value, onChange, placeholder, props }: TextAreaProps) => {
+const TextArea = ({ name, value, onChange, placeholder, props, disabled }: TextAreaProps) => {
     return (
         <textarea
             className="form-control"
@@ -14,6 +15,7 @@ const TextArea = ({ name, value, onChange, placeholder, props }: TextAreaProps) 
             placeholder={placeholder}
             value={value}
             onChange={onChange}
+            disabled={disabled}
             rows={4}
             style={{ resize: "vertical" }}
             {...props}

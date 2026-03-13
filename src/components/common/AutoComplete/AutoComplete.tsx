@@ -66,6 +66,7 @@ interface AutoCompleteProps<T> {
     placeholder: string;
     props?: SxProps<Theme>;
     className?: string;
+    disabled?: boolean;
     getOptionLabel?: (option: T) => string;
     isOptionEqualToValue?: (option: T, value: T) => boolean;
 }
@@ -77,6 +78,7 @@ const AutoComplete = <T extends { name?: string; id?: any }>({
     placeholder,
     props,
     className,
+    disabled,
     getOptionLabel = (option: T) => option.name || "",
     isOptionEqualToValue = (option, val) => option.id === val?.id,
 }: AutoCompleteProps<T>) => {
@@ -90,10 +92,17 @@ const AutoComplete = <T extends { name?: string; id?: any }>({
             onChange={onChange}
             PaperComponent={StyledPaper}
             fullWidth
+            disabled={disabled}
             isOptionEqualToValue={isOptionEqualToValue}
             sx={{
                 width: '100%',
-                ...props
+                ...props,
+                "& .MuiInputBase-root.Mui-disabled": {
+                    backgroundColor: '#f8fafc',
+                    "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: '#94a3b8',
+                    }
+                }
             }}
             renderInput={(params) => (
                 <StyledTextField

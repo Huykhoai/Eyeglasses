@@ -56,8 +56,6 @@ export const useVe = () =>
 export const useColor = () =>
     useFetchAll<ConfigLimitResponse[]>(['color'], "/api/color/all")
 
-/* ─── Extra Related Hooks ─── */
-
 export const useSupplier = () =>
     useFetchAll<ConfigLimitResponse[]>(['supplier'], "/api/supplier/all")
 

@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
             {
                 path: "products",
                 element: <AuthGuard requiredFeature="/xnk" />,
-                children:[
+                children: [
                     {
                         path: "add",
                         element: <FormProduct />

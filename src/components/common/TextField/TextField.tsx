@@ -4,9 +4,10 @@ interface TextFieldProps {
     value: any;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
+    disabled?: boolean;
     props?: React.InputHTMLAttributes<HTMLInputElement>;
 }
-const TextField = ({ name, value, onChange, placeholder, props }: TextFieldProps) => {
+const TextField = ({ name, value, onChange, placeholder, props, disabled }: TextFieldProps) => {
     return (
         <input
             className='form-control'
@@ -15,6 +16,7 @@ const TextField = ({ name, value, onChange, placeholder, props }: TextFieldProps
             value={value ?? ""}
             onChange={onChange}
             placeholder={placeholder}
+            disabled={disabled}
             {...props}
         />
     );
