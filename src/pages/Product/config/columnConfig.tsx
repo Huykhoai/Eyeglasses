@@ -7,12 +7,16 @@ const formatPrice = (value: number | null | undefined): string => {
     return value.toLocaleString('vi-VN');
 };
 
-const commonColumns: (ColumnDef & { groupName?: string })[] = [
+const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left?: string, zIndex?: number })[] = [
     {
         key: 'cid',
         header: 'Mã Viết Tắt',
         align: 'center',
         groupName: 'Thông tin sản phẩm',
+        width: '9vw',
+        isSticky: true,
+        left: '42px',
+        zIndex: 12,
         render: (item: Product) => (
             <span className="badge-chip badge-info" style={{ fontSize: 10 }}>{item.cid}</span>
         ),
@@ -21,6 +25,10 @@ const commonColumns: (ColumnDef & { groupName?: string })[] = [
         key: 'imageUrl',
         header: 'Ảnh',
         align: 'center',
+        width: '5vw',
+        isSticky: true,
+        left: '11.744vw',
+        zIndex: 12,
         groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (
             <img
@@ -44,6 +52,9 @@ const commonColumns: (ColumnDef & { groupName?: string })[] = [
         key: 'name',
         header: 'Tên đầy đủ',
         width: '20vw',
+        isSticky: true,
+        left: '16.744vw',
+        zIndex: 12,
         groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (
             <Typography variant="subtitle2" fontSize={12} fontWeight={600}
@@ -80,7 +91,7 @@ const commonColumns: (ColumnDef & { groupName?: string })[] = [
     },
     {
         key: 'supplier',
-        header: 'Nha cung cấp',
+        header: 'Nhà cung cấp',
         align: 'center',
         width: "13vw",
         groupName: 'Thông tin chung',

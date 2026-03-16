@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Edit as EditIcon, Delete as DeleteIcon, SettingsEthernet as SettingsEthernetIcon, Tune } from '@mui/icons-material';
 import MultiFilterBar, { type FilterItem } from '@/components/common/MultiFilterBar/MultiFilterBar';
 import Select from '@/components/common/Select/Select';
 import Pagination from '@/components/common/Pagination/Pagination';
@@ -15,7 +14,7 @@ import { getColumnsForType } from './config/columnConfig';
 import type { ProductType, Product as ProductItem } from './types/product';
 import './Product.css';
 import Button from '@/components/common/Button/Button';
-import { Tune } from '@mui/icons-material';
+import { useTouchMoveTable } from '@/utils/touchMoveTable';
 
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
@@ -27,12 +26,14 @@ const Product: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { showNotification } = useNotification();
+    const { tableRef, handleMouseDown, handleMouseMove, handleMouseUp, handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchMoveTable();
 
     const params = Object.fromEntries(searchParams);
     const typeParam = (params.type?.toUpperCase() as ProductType) || 'LENS';
     const pageParam = params.page ? parseInt(params.page) : 1;
 
     const [productType, setProductType] = useState<ProductType>(typeParam);
+    const [showInfo, setShowInfo] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(pageParam);
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
@@ -40,6 +41,13 @@ const Product: React.FC = () => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
+
+    const handleToggleInfo = useCallback((key: string) => {
+        setShowInfo((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    }, [setShowInfo]);
 
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: ProductItem) => {
         setAnchorEl(event.currentTarget);
@@ -176,74 +184,178 @@ const Product: React.FC = () => {
                 </div>
 
                 {(paginatedProducts?.items?.length ?? 0) > 0 ? (
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 300px)' }}>
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 300px)' }}
+                        ref={tableRef}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         <table className="table-premium">
                             <thead>
                                 {(() => {
-                                    const groupedHeaders: { name: string; span: number }[] = [];
-                                    groupedHeaders.push({ name: '', span: 1 });
+                                    const groupedHeaders: { name: string; span: number, isSticky?: boolean, left?: string, zIndex?: number, icon?: boolean }[] = [];
+                                    groupedHeaders.push({ name: '', span: 1, isSticky: true, left: '0px', zIndex: 12 });
 
                                     columns.forEach((col: any) => {
                                         const groupName = col.groupName || 'Thông tin khác';
+                                        const isFolded = showInfo[groupName];
                                         if (groupedHeaders.length > 0 && groupedHeaders[groupedHeaders.length - 1].name === groupName) {
-                                            groupedHeaders[groupedHeaders.length - 1].span++;
+                                            if (!isFolded) {
+                                                groupedHeaders[groupedHeaders.length - 1].span++;
+                                            }
                                         } else {
-                                            groupedHeaders.push({ name: groupName, span: 1 });
+                                            const icon = groupName === "Thông tin sản phẩm" ? false : true;
+                                            groupedHeaders.push({ 
+                                                name: groupName, 
+                                                span: 1, 
+                                                isSticky: col.isSticky, 
+                                                left: col.left, 
+                                                zIndex: col.zIndex, 
+                                                icon: icon 
+                                            });
                                         }
                                     });
 
-                                    groupedHeaders.push({ name: 'Công cụ', span: 1 });
+                                    groupedHeaders.push({ name: 'Công cụ', span: 1, icon: false });
 
                                     return (
-                                        <>
-                                            <tr className="group-header-row">
-                                                {groupedHeaders.map((group, idx) => (
-                                                    <th key={idx} colSpan={group.span} style={{ textAlign: 'center', backgroundColor: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
-                                                        <Typography variant="overline" fontSize={10} fontWeight={800} color="primary">
-                                                            {group.name}
-                                                        </Typography>
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                            <tr>
-                                                <th style={{ width: '50px' }}>
-                                                    <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
-                                                        STT
+                                        <tr className="group-header-row">
+                                            {groupedHeaders.map((group, idx) => (
+                                                <th 
+                                                    key={idx} 
+                                                    colSpan={group.span} 
+                                                    style={{ 
+                                                        backgroundColor: '#f1f5f9', 
+                                                        borderBottom: '2px solid #e2e8f0', 
+                                                        position: group.isSticky ? 'sticky' : 'static',
+                                                        left: group.left,
+                                                        zIndex: group.zIndex,
+                                                    }}
+                                                >
+                                                    <Typography variant="overline" fontSize={10} fontWeight={800} color="primary" 
+                                                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                        {group.name}
+                                                        {group.icon && (
+                                                            <IconButton size="small" sx={{ p: 0}} onClick={() => handleToggleInfo(group.name)}>
+                                                                {showInfo[group.name] ? (
+                                                                    <VisibilityOffIcon fontSize="small" />
+                                                                ) : (
+                                                                    <VisibilityIcon fontSize="small" />
+                                                                )}
+                                                            </IconButton>
+                                                        )}
                                                     </Typography>
                                                 </th>
-                                                {columns.map((col) => (
-                                                    <th key={col.key} style={{ minWidth: col.width, textAlign: 'center' }}>
-                                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
-                                                            {col.header}
-                                                        </Typography>
-                                                    </th>
-                                                ))}
-                                                <th style={{ width: '90px' }}>
-                                                    <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
-                                                        Thao tác
-                                                    </Typography>
-                                                </th>
-                                            </tr>
-                                        </>
+                                            ))}
+                                        </tr>
                                     );
                                 })()}
+                                <tr>
+                                    <th style={{ width: '50px', position: 'sticky', left: '0px', zIndex: 12 }}>
+                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
+                                            STT
+                                        </Typography>
+                                    </th>
+                                    {(() => {
+                                        const visibleColumns: any[] = [];
+                                        let currentGroup = "";
+                                        columns.forEach((col: any) => {
+                                            const groupName = col.groupName || 'Thông tin khác';
+                                            if (showInfo[groupName]) {
+                                                if (groupName !== currentGroup) {
+                                                    visibleColumns.push({ ...col, header: "...", key: `folded-${groupName}`, isFolded: true });
+                                                }
+                                            } else {
+                                                visibleColumns.push(col);
+                                            }
+                                            currentGroup = groupName;
+                                        });
+                                        return visibleColumns.map((col: any) => (
+                                            <th 
+                                                key={col.key} 
+                                                style={{ 
+                                                    minWidth: col.isFolded ? '40px' : col.width, 
+                                                    textAlign: 'center', 
+                                                    position: col.isSticky ? 'sticky' : 'static',
+                                                    left: col.left,
+                                                    zIndex: col.zIndex,
+                                                }}
+                                            >
+                                                <div className="cell-animate-entrance">
+                                                    <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
+                                                        {col.header}
+                                                    </Typography>
+                                                </div>
+                                            </th>
+                                        ));
+                                    })()}
+                                    <th style={{ width: '90px' }}>
+                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
+                                            Thao tác
+                                        </Typography>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
                                 {(paginatedProducts?.items ?? []).map((item, index) => (
                                     <tr key={item.id || index}>
-                                        <td>
+                                        <td style={{ position: 'sticky', left: '0px', zIndex: 12 }}>
                                             <Typography variant="body2" fontWeight={700} color="textSecondary" align="center" fontSize={12}>
                                                 {(page - 1) * size + index + 1}
                                             </Typography>
                                         </td>
-                                        {columns.map((col) => (
-                                            <td key={`${item.id}-${col.key}`} style={{ maxWidth: col.width, textAlign: col.align || 'center' }}>
-                                                {col.render
-                                                    ? col.render(item)
-                                                    : <Typography variant="body2" fontSize={12}>{(item as any)[col.key] ?? '-'}</Typography>
+                                        {(() => {
+                                            const visibleRowContent: any[] = [];
+                                            let currentGroup = "";
+                                            columns.forEach((col: any) => {
+                                                const groupName = col.groupName || 'Thông tin khác';
+                                                if (showInfo[groupName]) {
+                                                    if (groupName !== currentGroup) {
+                                                        visibleRowContent.push({
+                                                            key: `folded-cell-${groupName}`,
+                                                            isFolded: true,
+                                                            isSticky: col.isSticky,
+                                                            left: col.left,
+                                                            zIndex: col.zIndex
+                                                        });
+                                                    }
+                                                } else {
+                                                    visibleRowContent.push(col);
                                                 }
-                                            </td>
-                                        ))}
+                                                currentGroup = groupName;
+                                            });
+
+                                            return visibleRowContent.map((col: any) => (
+                                                <td 
+                                                    key={`${item.id}-${col.key}`} 
+                                                    style={{ 
+                                                        maxWidth: col.isFolded ? '40px' : col.width, 
+                                                        textAlign: col.align || 'center', 
+                                                        position: col.isSticky ? 'sticky' : 'static',
+                                                        left: col.left,
+                                                        zIndex: col.zIndex,
+                                                    }}
+                                                >
+                                                    {col.isFolded ? (
+                                                        <div className="folded-icon-entrance" style={{ display: 'flex', justifyContent: 'center' }}>
+                                                            <SettingsEthernetIcon sx={{ color: '#94a3b8', fontSize: '1.2rem' }} />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="cell-animate-entrance">
+                                                            {col.render ? (
+                                                                col.render(item)
+                                                            ) : (
+                                                                <Typography variant="body2" fontSize={12}>{(item as any)[col.key] ?? '-'}</Typography>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            ));
+                                        })()}
                                         <td>
                                             <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                                                 <IconButton size="small" onClick={(e) => handleOpenMenu(e, item)}>
