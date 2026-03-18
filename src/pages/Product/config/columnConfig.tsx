@@ -257,6 +257,7 @@ const lensColumns: (ColumnDef & { groupName?: string })[] = [
     {
         key: 'coating',
         header: 'Lớp phủ',
+        width: '5vw',
         groupName: 'Tích hợp',
         render: (item: LensProduct) => (
             <Typography variant="body2" align='left' fontSize={11}>{item.lensAttribute?.coating?.name || '-'}</Typography>

@@ -15,6 +15,9 @@ import LensFields from './components/LensFields';
 import FrameFields from './components/FrameFields';
 import { useForm, FormProvider } from 'react-hook-form';
 import axiosClient from '@/api/axiosClient';
+import useGetProductById from './hooks/useGetProductById';
+import { useQueryClient } from '@tanstack/react-query';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 
 const FormProduct: React.FC = () => {
     const { id } = useParams();
@@ -22,24 +25,29 @@ const FormProduct: React.FC = () => {
     const { showNotification } = useNotification();
     const [searchParams, setSearchParams] = useSearchParams();
     const { data: groups = [] } = useGroup();
+    const { data: product, isLoading: isLoadingProduct } = useGetProductById(Number(id));
+    const queryClient = useQueryClient();
 
     const [isLoading, setLoading] = useState(false);
-    const [selectedGroup, setSelectedGroup] = useState<ConfigLimitResponse | null>(null);
+    const [openDialog, setOpenDialog] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const methods = useForm<Partial<Product>>({
         defaultValues: {
             id: id ? Number(id) : undefined,
             unit: "Chiếc"
-        }
+        },
+        values: {...product, group: groups.find(g => g.id === product?.group?.id) || undefined}
     });
-    const currentType = useMemo(() => GROUP_TYPE[selectedGroup?.typeInfo?.id ?? 0], [selectedGroup]);
+
+    const watchedGroup = methods.watch('group') as unknown as ConfigLimitResponse;
+    const currentType = useMemo(() => GROUP_TYPE[watchedGroup?.typeInfo?.id ?? 0], [watchedGroup]);
 
     useEffect(() => {
         if (groups.length === 0) return;
         if (id) return;
 
-        if (!selectedGroup) {
+        if (!watchedGroup) {
             let groupToSelect = groups[0];
             const groupFromUrl = searchParams.get('group');
 
@@ -52,23 +60,25 @@ const FormProduct: React.FC = () => {
                 setSearchParams({ group: groupToSelect.id.toString() }, { replace: true });
             }
 
-            setSelectedGroup(groupToSelect);
-            methods.reset({ id: id ? Number(id) : undefined, unit: "Chiếc" });
+            methods.setValue('group', groupToSelect);
+            methods.reset({ ...methods.getValues(), group: groupToSelect });
         }
-    }, [groups, id, searchParams, selectedGroup, setSearchParams, methods]);
+    }, [groups, id, searchParams, watchedGroup, setSearchParams, methods]);
 
     const handleChangeOption = useCallback((newGroup: ConfigLimitResponse) => {
-        setSelectedGroup(newGroup);
-
-        const oldType = GROUP_TYPE[selectedGroup?.typeInfo?.id ?? 0];
+        const oldType = currentType;
         const newType = GROUP_TYPE[newGroup?.typeInfo?.id ?? 0];
+    
         if (oldType !== newType) {
-            methods.reset({ id: id ? Number(id) : undefined, unit: "Chiếc" });
+            methods.reset({ id: id ? Number(id) : undefined, unit: "Chiếc", group: newGroup });
+        } else {
+            methods.setValue('group', newGroup);
         }
+
         if (!id) {
             setSearchParams({ group: newGroup.id?.toString() }, { replace: true });
         }
-    }, [id, selectedGroup, setSearchParams, methods]);
+    }, [id, currentType, setSearchParams, methods]);
 
     const handleImageChange = useCallback((file: File | null) => {
         setSelectedFile(file);
@@ -89,7 +99,7 @@ const FormProduct: React.FC = () => {
         if (!data.guide?.trim()) errors.push("Hướng dẫn sử dụng");
         if (!data.warning?.trim()) errors.push("Cảnh báo");
         if (!data.preserve?.trim()) errors.push("Bảo quản");
-        if (!selectedFile) errors.push("Ảnh sản phẩm");
+        if (!data.id && !selectedFile) errors.push("Ảnh sản phẩm");
         if (selectedFile && selectedFile.size > 1024 * 1024 * 3) errors.push("Ảnh sản phẩm phải nhỏ hơn 3MB");
 
         if (currentType === "LENS") {
@@ -163,7 +173,7 @@ const FormProduct: React.FC = () => {
         Object.entries(data).forEach(([key, value]) => {
             buildProductObject(productDto, key, value);
         })
-        if (selectedGroup) productDto.groupId = selectedGroup.id;
+        if (watchedGroup) productDto.groupId = watchedGroup.id;
 
         const errors = validation(productDto);
         if (errors.length > 0) {
@@ -182,10 +192,15 @@ const FormProduct: React.FC = () => {
         setLoading(true);
         try {
             const response = await axiosClient.post("/api/product/save", payload);
-            showNotification("success", response.data.message, "Thành công");
-            navigate(-1);
+            if (response.data.status === 400) {
+                showNotification("error", response.data.message, "Thất bại");
+            } else {
+                showNotification("success", response.data.message, "Thành công");
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                setOpenDialog(false);
+                navigate(-1);
+            }
         } catch (error: any) {
-            console.error("Lỗi khi handleSubmit:", error);
             const message = error?.response?.data?.message || error?.message || "Lỗi hệ thống";
             showNotification("error", message, "Thất bại");
         } finally {
@@ -196,7 +211,7 @@ const FormProduct: React.FC = () => {
     return (
         <FormProvider {...methods}>
             <div className='form-product-container'>
-                {isLoading && <Loading fullPage message='Đang lưu sản phẩm' />}
+                {(isLoading || isLoadingProduct) && <Loading fullPage message='Đang lưu sản phẩm' />}
                 <div className='form-product-header'>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 50 }}>
                         <Button
@@ -213,11 +228,11 @@ const FormProduct: React.FC = () => {
                     <div className='d-flex justify-content-center align-items-center gap-5'>
                         <SelectUltra
                             options={groups}
-                            value={selectedGroup || null}
+                            value={watchedGroup || null}
                             onChange={handleChangeOption} />
                         <Button
                             variant="primary"
-                            onClick={methods.handleSubmit(onSubmit)}
+                            onClick={() => setOpenDialog(true)}
                         >
                             {id ? 'Cập nhật' : 'Thêm sản phẩm'}
                         </Button>
@@ -227,7 +242,6 @@ const FormProduct: React.FC = () => {
                     <div className='form-product-body'>
                         <InformationProductLeft
                             onImageChange={handleImageChange}
-                            selectedGroup={selectedGroup}
                             currentType={currentType}
                         />
                         {currentType === "LENS" && <LensFields />}
@@ -238,6 +252,13 @@ const FormProduct: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <ConfirmDialog
+                open={openDialog}
+                onClose={() => setOpenDialog(false)}
+                title={"Xác nhận"}
+                content={`Bạn có chắc chắn muốn ${id ? 'cập nhật' : 'thêm'} sản phẩm này?`}
+                onConfirm={() => onSubmit(methods.getValues())}
+            />
         </FormProvider>
     );
 };

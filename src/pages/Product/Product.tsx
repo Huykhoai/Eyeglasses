@@ -41,6 +41,7 @@ const Product: React.FC = () => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
+    const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
 
     const handleToggleInfo = useCallback((key: string) => {
         setShowInfo((prev) => ({
@@ -49,21 +50,26 @@ const Product: React.FC = () => {
         }));
     }, [setShowInfo]);
 
-    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: ProductItem) => {
+    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>, item: ProductItem) => {
         setAnchorEl(event.currentTarget);
-    };
+        setSelectedProduct(item);
+    }, []);
 
-    const handleCloseMenu = () => {
+    const handleCloseMenu = useCallback(() => {
         setAnchorEl(null);
-    };
+        setSelectedProduct(null);
+    }, []);
 
-    const handleEditFromMenu = () => {
+    const handleEditFromMenu = useCallback(() => {
+        if (selectedProduct) {
+            navigate(`/products/update/${selectedProduct.id}`);
+        }
         handleCloseMenu();
-    };
+    }, [selectedProduct, navigate, handleCloseMenu]);
 
-    const handleDeleteFromMenu = () => {
+    const handleDeleteFromMenu = useCallback(() => {
         handleCloseMenu();
-    };
+    }, [selectedProduct, handleCloseMenu]);
 
     useEffect(() => {
         const qp = new URLSearchParams();
@@ -120,15 +126,6 @@ const Product: React.FC = () => {
         showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
     }, [showNotification]);
 
-    const handleEdit = useCallback((item: ProductItem) => {
-        console.log('Edit product:', item);
-        showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
-    }, [showNotification]);
-
-    const handleDelete = useCallback((item: ProductItem) => {
-        console.log('Delete product:', item);
-        showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
-    }, [showNotification]);
 
     return (
         <div className="product-page-wrapper">

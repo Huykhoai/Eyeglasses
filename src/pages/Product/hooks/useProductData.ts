@@ -10,7 +10,7 @@ export const useProductData = (productType: ProductType, page: number, size: num
     const { showNotification } = useNotification();
 
     return useQuery<PaginatedResponse<Product>>({
-        queryKey: ['product', "type", 'page', page, productType, size, filters],
+        queryKey: ['products', "type", 'page', page, productType, size, filters],
         queryFn: async () => {
             try {
                 const params = cleanParams({ ...filters, type: productType, size });

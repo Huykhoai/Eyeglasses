@@ -7,17 +7,18 @@ import { useFormContext, useWatch } from "react-hook-form";
 
 interface InformationProductProps {
     onImageChange: (file: File | null) => void;
-    selectedGroup?: any;
     currentType?: any;
+    selectedGroup?: any;
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-const GeneratedCidField: React.FC<{ selectedGroup: any; currentType: any }> = ({ selectedGroup, currentType }) => {
+const GeneratedCidField: React.FC<{ currentType: any }> = ({ currentType }) => {
     const { control, setValue } = useFormContext();
     const brand = useWatch({ control, name: 'brand' });
     const lensRefractiveIndex = useWatch({ control, name: 'lensAttribute.refractiveIndex' });
     const frameModel = useWatch({ control, name: 'frameAttribute.model' });
+    const selectedGroup = useWatch({ control, name: 'group' });
 
     useEffect(() => {
         if (!selectedGroup) return;
@@ -61,11 +62,12 @@ const GeneratedCidField: React.FC<{ selectedGroup: any; currentType: any }> = ({
     return <RHFTextField name="cid" props={{ disabled: true }} />;
 };
 
-const GeneratedNameField: React.FC<{ selectedGroup: any; currentType: any}> = ({ selectedGroup, currentType}) => {
+const GeneratedNameField: React.FC<{ currentType: any}> = ({ currentType}) => {
     const { control, setValue } = useFormContext();
 
     const brand = useWatch({ control, name: 'brand' });
-    
+    const selectedGroup = useWatch({ control, name: 'group' });
+
     const refractiveIndex = useWatch({ control, name: 'lensAttribute.refractiveIndex' });
     const lensMaterial = useWatch({ control, name: 'lensAttribute.material' });
     const uv = useWatch({ control, name: 'lensAttribute.uv' });
@@ -121,7 +123,7 @@ const GeneratedNameField: React.FC<{ selectedGroup: any; currentType: any}> = ({
     return <RHFTextField name="name" />;
 };
 
-const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChange, selectedGroup, currentType }) => {
+const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChange, currentType }) => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,9 +133,9 @@ const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChan
 
     useEffect(() => {
         if (imageUrl) {
-            const fullUrl = imageUrl.startsWith('/api/images/')
-                ? imageUrl
-                : `${BASE_URL}${imageUrl}`;
+            const fullUrl = imageUrl.startsWith('/images/')
+                ? `${BASE_URL}${imageUrl}`
+                : imageUrl;
             setPreviewUrl(fullUrl);
         } else {
             setPreviewUrl(null);
@@ -264,11 +266,11 @@ const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChan
             </LayoutGrid>
             <LayoutGrid>
                 <Label label="Kí hiệu viết tắt" />
-                <GeneratedCidField selectedGroup={selectedGroup} currentType={currentType} />
+                <GeneratedCidField currentType={currentType} />
             </LayoutGrid>
             <LayoutGrid>
                 <Label label="Tên đầy đủ" />
-                <GeneratedNameField selectedGroup={selectedGroup} currentType={currentType} />
+                <GeneratedNameField currentType={currentType} />
             </LayoutGrid>
             <LayoutGrid>
                 <Label label="Đơn vị" />
