@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
 import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Edit as EditIcon, Delete as DeleteIcon, SettingsEthernet as SettingsEthernetIcon, Tune } from '@mui/icons-material';
-import MultiFilterBar, { type FilterItem } from '@/components/common/MultiFilterBar/MultiFilterBar';
+import MultiFilterBar from '@/components/common/MultiFilterBar/MultiFilterBar';
 import Select from '@/components/common/Select/Select';
 import Pagination from '@/components/common/Pagination/Pagination';
 import Loading from '@/components/ui/Loading/Loading';
@@ -15,6 +15,10 @@ import type { ProductType, Product as ProductItem } from './types/product';
 import './Product.css';
 import Button from '@/components/common/Button/Button';
 import { useTouchMoveTable } from '@/utils/touchMoveTable';
+import useProductFilters from './config/useProductFilters';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import axiosClient from '@/api/axiosClient';
+import { useQueryClient } from '@tanstack/react-query';
 
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
@@ -27,6 +31,7 @@ const Product: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const { showNotification } = useNotification();
     const { tableRef, handleMouseDown, handleMouseMove, handleMouseUp, handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchMoveTable();
+    const queryClient = useQueryClient();
 
     const params = Object.fromEntries(searchParams);
     const typeParam = (params.type?.toUpperCase() as ProductType) || 'LENS';
@@ -36,12 +41,20 @@ const Product: React.FC = () => {
     const [showInfo, setShowInfo] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(pageParam);
     const [size, setSize] = useState(20);
-    const [filters, setFilters] = useState<Record<string, any>>({});
-    const { data: paginatedProducts, isLoading } = useProductData(productType, page, size, filters);
-
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [loadingDelete, setLoadingDelete] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+    const [filters, setFilters] = useState<Record<string, any>>(() => {
+        const params = Object.fromEntries(searchParams);
+        const { type: _t, page: _p, ...rest } = params;
+        return rest;
+    });
+
+    const { data: paginatedProducts, isLoading } = useProductData(productType, page, size, filters);
+    const filterCategories = useProductFilters(productType);
+    const columns = useMemo(() => getColumnsForType(productType), [productType]);
 
     const handleToggleInfo = useCallback((key: string) => {
         setShowInfo((prev) => ({
@@ -65,47 +78,43 @@ const Product: React.FC = () => {
             navigate(`/products/update/${selectedProduct.id}`);
         }
         handleCloseMenu();
-    }, [selectedProduct, navigate, handleCloseMenu]);
+    }, [selectedProduct, handleCloseMenu]);
 
     const handleDeleteFromMenu = useCallback(() => {
-        handleCloseMenu();
+        if (selectedProduct) {
+            setOpenDeleteDialog(true);
+        }
+    }, [selectedProduct]);
+
+    const handleDelete = useCallback(async () => {
+        if (!selectedProduct) return;
+        setLoadingDelete(true);
+        try {
+            const response = await axiosClient.delete(`/api/product/${selectedProduct.id}`);
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            showNotification('success', response.data.message, 'Thành công');
+            handleCloseMenu();
+            setOpenDeleteDialog(false);
+        } catch (error: any) {
+            const message = error?.response?.data?.message || error.message || "Đã có lỗi xảy ra";
+            showNotification('error', message, 'Lỗi hệ thống');
+        } finally {
+            setLoadingDelete(false);
+        }
     }, [selectedProduct, handleCloseMenu]);
 
     useEffect(() => {
         const qp = new URLSearchParams();
         qp.set('type', productType.toLowerCase());
         if (page > 1) qp.set('page', page.toString());
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                qp.set(key, value.toString());
+            }
+        })
         setSearchParams(qp, { replace: true });
-    }, [productType, page, setSearchParams]);
+    }, [productType, page, filters, setSearchParams]);
 
-    const columns = useMemo(() => getColumnsForType(productType), [productType]);
-
-    const filterCategories: FilterItem[] = useMemo(() => {
-        const base: FilterItem[] = [
-            { key: 'name', label: 'Tên', type: 'text' },
-            { key: 'cid', label: 'Mã SP', type: 'text' },
-            { key: 'engName', label: 'Tên tiếng Anh', type: 'text' },
-            { key: 'brand', label: 'Thương hiệu', type: 'select', options: [] },
-        ];
-
-        if (productType === 'LENS') {
-            return [
-                ...base,
-                { key: 'sph', label: 'SPH', type: 'number' },
-                { key: 'cyl', label: 'CYL', type: 'number' },
-            ];
-        }
-
-        if (productType === 'FRAME') {
-            return [
-                ...base,
-                { key: 'model', label: 'Model', type: 'text' },
-                { key: 'serial', label: 'Serial', type: 'text' },
-            ];
-        }
-
-        return base;
-    }, [productType]);
 
     const handleTypeChange = useCallback((type: ProductType) => {
         setProductType(type);
@@ -114,7 +123,17 @@ const Product: React.FC = () => {
     }, []);
 
     const handleFilterChange = useCallback((values: Record<string, any>) => {
-        setFilters(values);
+        let newFilter: Record<string, any> = {};
+        Object.entries(values).forEach(([key, value]) => {
+            if (value !== '') {
+                if (typeof value === 'object') {
+                    newFilter[key] = value?.id;
+                } else {
+                    newFilter[key] = value;
+                }
+            }
+        })
+        setFilters(newFilter);
         setPage(1);
     }, []);
 
@@ -129,7 +148,7 @@ const Product: React.FC = () => {
 
     return (
         <div className="product-page-wrapper">
-            {isLoading && <Loading fullPage message="Đang tải sản phẩm..." />}
+            {(isLoading || loadingDelete) && <Loading fullPage message="Đang tải sản phẩm..." />}
 
             <div className="product-header">
                 <Button
@@ -142,6 +161,7 @@ const Product: React.FC = () => {
                     <MultiFilterBar
                         categories={filterCategories}
                         onFilterChange={handleFilterChange}
+                        initialFilters={filters}
                     />
                 </div>
 
@@ -206,13 +226,13 @@ const Product: React.FC = () => {
                                             }
                                         } else {
                                             const icon = groupName === "Thông tin sản phẩm" ? false : true;
-                                            groupedHeaders.push({ 
-                                                name: groupName, 
-                                                span: 1, 
-                                                isSticky: col.isSticky, 
-                                                left: col.left, 
-                                                zIndex: col.zIndex, 
-                                                icon: icon 
+                                            groupedHeaders.push({
+                                                name: groupName,
+                                                span: 1,
+                                                isSticky: col.isSticky,
+                                                left: col.left,
+                                                zIndex: col.zIndex,
+                                                icon: icon
                                             });
                                         }
                                     });
@@ -222,22 +242,22 @@ const Product: React.FC = () => {
                                     return (
                                         <tr className="group-header-row">
                                             {groupedHeaders.map((group, idx) => (
-                                                <th 
-                                                    key={idx} 
-                                                    colSpan={group.span} 
-                                                    style={{ 
-                                                        backgroundColor: '#f1f5f9', 
-                                                        borderBottom: '2px solid #e2e8f0', 
+                                                <th
+                                                    key={idx}
+                                                    colSpan={group.span}
+                                                    style={{
+                                                        backgroundColor: '#f1f5f9',
+                                                        borderBottom: '2px solid #e2e8f0',
                                                         position: group.isSticky ? 'sticky' : 'static',
                                                         left: group.left,
                                                         zIndex: group.zIndex,
                                                     }}
                                                 >
-                                                    <Typography variant="overline" fontSize={10} fontWeight={800} color="primary" 
+                                                    <Typography variant="overline" fontSize={10} fontWeight={800} color="primary"
                                                         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                                                         {group.name}
                                                         {group.icon && (
-                                                            <IconButton size="small" sx={{ p: 0}} onClick={() => handleToggleInfo(group.name)}>
+                                                            <IconButton size="small" sx={{ p: 0 }} onClick={() => handleToggleInfo(group.name)}>
                                                                 {showInfo[group.name] ? (
                                                                     <VisibilityOffIcon fontSize="small" />
                                                                 ) : (
@@ -272,11 +292,11 @@ const Product: React.FC = () => {
                                             currentGroup = groupName;
                                         });
                                         return visibleColumns.map((col: any) => (
-                                            <th 
-                                                key={col.key} 
-                                                style={{ 
-                                                    minWidth: col.isFolded ? '40px' : col.width, 
-                                                    textAlign: 'center', 
+                                            <th
+                                                key={col.key}
+                                                style={{
+                                                    minWidth: col.isFolded ? '40px' : col.width,
+                                                    textAlign: 'center',
                                                     position: col.isSticky ? 'sticky' : 'static',
                                                     left: col.left,
                                                     zIndex: col.zIndex,
@@ -327,11 +347,11 @@ const Product: React.FC = () => {
                                             });
 
                                             return visibleRowContent.map((col: any) => (
-                                                <td 
-                                                    key={`${item.id}-${col.key}`} 
-                                                    style={{ 
-                                                        maxWidth: col.isFolded ? '40px' : col.width, 
-                                                        textAlign: col.align || 'center', 
+                                                <td
+                                                    key={`${item.id}-${col.key}`}
+                                                    style={{
+                                                        maxWidth: col.isFolded ? '40px' : col.width,
+                                                        textAlign: col.align || 'center',
                                                         position: col.isSticky ? 'sticky' : 'static',
                                                         left: col.left,
                                                         zIndex: col.zIndex,
@@ -414,6 +434,13 @@ const Product: React.FC = () => {
                     Xóa
                 </MenuItem>
             </Menu>
+            <ConfirmDialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+                onConfirm={handleDelete}
+                title="Xác nhận xóa"
+                content="Bạn có chắc chắn muốn xóa sản phẩm này?"
+            />
         </div>
     );
 };

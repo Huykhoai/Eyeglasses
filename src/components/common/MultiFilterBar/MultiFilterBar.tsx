@@ -186,7 +186,7 @@ const MultiFilterBar: React.FC<MultiFilterBarProps> = ({ categories, onFilterCha
                                         )}
                                         size="small"
                                         sx={{
-                                            minWidth: 100,
+                                            minWidth: '8vw',
                                             display: "inline-block",
                                             '& .MuiInputBase-root': {
                                                 padding: '0 !important',

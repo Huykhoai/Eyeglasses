@@ -291,6 +291,16 @@ const lensColumns: (ColumnDef & { groupName?: string })[] = [
 
 const frameColumns: (ColumnDef & { groupName?: string })[] = [
     {
+        key: 'serial',
+        header: 'Serial',
+        groupName: 'Kiểu dáng & Kích thước',
+        render: (item: FrameProduct) => (
+            <span className="badge-chip badge-neutral" style={{ fontSize: 10 }}>
+                {item.frameAttribute?.serial || '-'}
+            </span>
+        ),
+    },
+    {
         key: 'model',
         header: 'Model',
         groupName: 'Kiểu dáng & Kích thước',
