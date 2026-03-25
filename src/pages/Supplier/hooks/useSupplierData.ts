@@ -1,30 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { cleanParams } from "@/utils/cleanParams";
-import type { NamedEntity } from "@/pages/Product/types/product";
 import type { PaginatedResponse } from "@/types";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
+import type { Supplier } from "../config/type";
 
-export interface Supplier {
-    id: number;
-    cid: string;
-    name: string;
-    phone: string;
-    email: string;
-    address: string;
-    contact: string;
-    fax: string;
-    validFrom: string;
-    validTo: string;
-    advisingBank: string;
-    branchCode: string;
-    bankAddress: string;
-    accountNo: string;
-    swiftCode: string;
-    taxCode: string;
-    supplierId: number;
-    countryDto: NamedEntity;
-}
 
 export const useSupplierData = (page: number, size: number, filters: Record<string, any>) => {
     const { showNotification } = useNotification();

@@ -15,7 +15,7 @@ const AuthGuard = ({ requiredFeature }: AuthGuardProps) => {
     if (requiredFeature) {
         const hasPermission = user?.features?.includes(requiredFeature);
 
-        if (!hasPermission) {
+        if (!user?.roles.includes('ADMIN') && !hasPermission) {
             return <Navigate to="/unauthorized" replace />;
         }
     }

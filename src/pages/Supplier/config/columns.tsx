@@ -1,6 +1,6 @@
 import { Typography } from "@mui/material";
 import type { ColumnDef } from "@/types";
-import type { Supplier } from "../hooks/useSupplierData";
+import type { Supplier } from "./type";
 
 export const columns: ColumnDef[] = [
     {

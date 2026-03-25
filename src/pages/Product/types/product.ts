@@ -14,6 +14,7 @@ export interface ProductBase {
     retailPrice: number;
     costPrice: number;
     imageUrl: string;
+    tax: number;
     unit: string;
     note: string;
     uses: string;
@@ -28,7 +29,6 @@ export interface ProductBase {
     warranty: NamedEntity | null;
     warrantySupplier: NamedEntity | null;
     warrantyRetail: NamedEntity | null;
-    tax: NamedEntity;
     currency: NamedEntity | null;
 }
 

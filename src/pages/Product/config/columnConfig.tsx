@@ -155,6 +155,17 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         ),
     },
     {
+        key: 'tax',
+        header: 'Thuế',
+        align: 'center',
+        groupName: 'Thông tin giá',
+        render: (item: Product) => (
+            <Typography variant="body2" fontSize={12}>
+                {item.tax || '-'}%
+            </Typography>
+        ),
+    },
+    {
         key: 'warrantySupplier',
         header: 'BH Hãng',
         width: '6vw',

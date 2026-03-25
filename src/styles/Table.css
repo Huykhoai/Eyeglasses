@@ -13,6 +13,8 @@
     position: relative;
     scrollbar-gutter: stable;
     border-radius: 12px;
+    padding: 0 10px;
+    padding-right: 0;
 }
 
 .table-premium {

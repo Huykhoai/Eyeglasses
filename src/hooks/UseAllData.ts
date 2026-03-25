@@ -61,3 +61,9 @@ export const useSupplier = () =>
 
 export const useStatusProduct = () =>
     useFetchAll<ConfigLimitResponse[]>(['status-product'], "/api/status-product/all")
+
+export const useDepartmentAll = () =>
+    useFetchAll<ConfigLimitResponse[]>(['department-all'], "/api/department/all")
+
+export const useEmployeeAll = () =>
+    useFetchAll<ConfigLimitResponse[]>(['employee-all'], "/api/employee/all")

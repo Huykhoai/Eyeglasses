@@ -1,31 +1,26 @@
+import './Department.css';
 import React, { useCallback, useMemo, useState } from "react";
-import './Supplier.css';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "@/components/ui/Loading/Loading";
 import Button from "@/components/common/Button/Button";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import MultiFilterBar from "@/components/common/MultiFilterBar/MultiFilterBar";
-import { getFilterSupplier } from "./config/filterSupplier";
-import { useSupplierData } from "./hooks/useSupplierData";
-import { columns as useColumns } from "./config/columns";
-import { IconButton, Typography, Menu, MenuItem, ListItemIcon } from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useNotification } from "@/components/ui/Notification/NotificationContext";
-import Pagination from "@/components/common/Pagination/Pagination";
-import DialogSupplier from "./components/DialogSupplier";
-import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import axiosClient from "@/api/axiosClient";
-import { Tune } from "@mui/icons-material";
-import HistoryIcon from '@mui/icons-material/History';
-import DialogSupplierHistory from "./components/DialogSupplierHistory";
+import { getFilterDepartment } from "./config/filter";
 import Select from "@/components/common/Select/Select";
-import { useCountry } from "@/hooks/UseAllData";
-import type { Supplier } from "./config/type";
+import DialogDepartment from './components/DialogDepartment';
+import type { Department } from './config/type';
+import useDepartmentData from './hooks/useDepartmentData';
+import { useColumns } from "./config/columns";
+import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
+import { Tune } from '@mui/icons-material';
+import Pagination from '@/components/common/Pagination/Pagination';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import axiosClient from '@/api/axiosClient';
+import { useNotification } from '@/components/ui/Notification/NotificationContext';
 
-const Supplier: React.FC = () => {
+const Department: React.FC = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-
     const [searchParams, setSearchParams] = useSearchParams();
 
     const urlFilters = useMemo(() => {
@@ -41,51 +36,31 @@ const Supplier: React.FC = () => {
     const [size, setSize] = useState<number>(20);
 
     const [openDialog, setOpenDialog] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<Supplier | null>(null);
+    const [selectedItem, setSelectedItem] = useState<Department | null>(null);
     const [openConfirm, setOpenConfirm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
-    const [openHistory, setOpenHistory] = useState(false);
-
-    const { data: countries } = useCountry();
-    const categories = useMemo(() => getFilterSupplier(countries), [countries]);
+    const categories = useMemo(() => getFilterDepartment(), []);
     const columns = useMemo(() => useColumns, []);
-    const { data: suppliers, isLoading, refetch } = useSupplierData(page, size, filter);
+    const { data: departments, isLoading, refetch } = useDepartmentData(page, size, filter);
 
-    const handleFilterChange = useCallback((filter: Record<string, any>) => {
-        let mapperFilter: any = {};
-        Object.entries(filter).forEach(([key, value]) => {
+    const handleFilterChange = useCallback((filters: Record<string, any>) => {
+        let mapperFilter: Record<string, any> = {};
+        Object.entries(filters).forEach(([key, value]) => {
             if (typeof value === 'object') {
-                mapperFilter[key] = value.id
+                mapperFilter[key] = value.id;
             } else {
                 mapperFilter[key] = value;
             }
-        })
-
+        });
         setFilter(mapperFilter);
-        setSearchParams(mapperFilter, { replace: true })
+        setSearchParams(mapperFilter, { replace: true });
         setPage(1);
     }, [setSearchParams]);
 
-    const handleViewHistory = () => {
-        setOpenHistory(true);
-        handleCloseMenu();
-    };
-
-    const handleEditFromMenu = () => {
-        setOpenDialog(true);
-        handleCloseMenu();
-    };
-
-    const handleDeleteFromMenu = () => {
-        setOpenConfirm(true);
-        handleCloseMenu();
-    };
-
-    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: Supplier) => {
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: Department) => {
         setAnchorEl(event.currentTarget);
         setSelectedItem(item);
     };
@@ -94,12 +69,20 @@ const Supplier: React.FC = () => {
         setAnchorEl(null);
     };
 
+    const handleEditFromMenu = () => {
+        setOpenDialog(true);
+        handleCloseMenu();
+    };
+    const handleDeleteFromMenu = () => {
+        setOpenConfirm(true);
+        handleCloseMenu();
+    };
     const confirmDelete = async () => {
         if (!selectedItem) return;
         setSubmitting(true);
         try {
-            await axiosClient.delete(`/api/supplier/delete/${selectedItem.id}`);
-            showNotification('success', 'Xóa nhà cung cấp thành công', 'Thành công');
+            await axiosClient.delete(`/api/department/delete/${selectedItem.id}`);
+            showNotification('success', 'Xóa phòng ban thành công', 'Thành công');
             refetch();
             setOpenConfirm(false);
         } catch (error: any) {
@@ -108,23 +91,22 @@ const Supplier: React.FC = () => {
             setSubmitting(false);
         }
     };
-
     const handleAdd = () => {
         setSelectedItem(null);
         setOpenDialog(true);
     };
-    
+
     return (
-        <div className="supplier-page-wrapper">
+        <div className="department-page-wrapper">
             {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
-            <div className="supplier-header">
+            <div className="department-header">
                 <Button
                     variant="outline"
                     onClick={() => navigate('/dashboard')}
                 >
                     Quay lại
                 </Button>
-                <div className="supplier-filter-section">
+                <div className="department-filter-section">
                     <MultiFilterBar
                         categories={categories}
                         onFilterChange={handleFilterChange}
@@ -146,13 +128,12 @@ const Supplier: React.FC = () => {
                     variant="primary"
                     onClick={handleAdd}
                 >
-                    Thêm nhà cung cấp
+                    Thêm phòng ban
                 </Button>
-
             </div>
-            <div className="supplier-card">
-                <div className="table-scroll-container" style={{ minHeight: 'calc(100vh - 247px)' }}>
-                    <table className="table-premium">
+            <div className='department-card'>
+                <div className='table-scroll-container' style={{ minHeight: 'calc(100vh - 240px' }}>
+                    <table className='table-premium'>
                         <thead>
                             <tr>
                                 <th>
@@ -161,7 +142,7 @@ const Supplier: React.FC = () => {
                                     </Typography>
                                 </th>
                                 {columns.map((col) => (
-                                    <th key={col.key} style={{ width: col.width }}>
+                                    <th key={col.key}>
                                         <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
                                             {col.header}
                                         </Typography>
@@ -175,49 +156,51 @@ const Supplier: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {(suppliers?.items ?? []).map((item, index) => (
+                            {departments?.items?.map((item, index) => (
                                 <tr key={item.id || index}>
                                     <td>
-                                        <Typography variant="body2" align="center" fontSize={12}>
+                                        <Typography variant="body2" fontSize={11} align="center">
                                             {(page - 1) * size + index + 1}
                                         </Typography>
                                     </td>
                                     {columns.map((col) => (
-                                        <td key={col.key} style={{ width: col.width }}>
+                                        <td key={col.key}>
                                             {col.render ? (
                                                 col.render(item)
                                             ) : (
-                                                <Typography variant="body2" fontSize={12}>
+                                                <Typography variant="body2" fontSize={11}>
                                                     {(item as any)[col.key] || '-'}
                                                 </Typography>
                                             )}
                                         </td>
                                     ))}
                                     <td>
-                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <IconButton size="small" onClick={(e) => handleOpenMenu(e, item)}>
+                                        <Typography variant="body2" fontSize={11} align="center">
+                                            <IconButton
+                                                onClick={(e) => handleOpenMenu(e, item)}
+                                                size="small"
+                                            >
                                                 <Tune fontSize="small" />
                                             </IconButton>
-                                        </div>
+                                        </Typography>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-                {(suppliers?.totalItems ?? 0) > 20 && (
-                    <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
-                        <Pagination
-                            totalItems={suppliers?.totalItems ?? 0}
-                            page={page}
-                            size={size}
-                            onChange={(p) => setPage(p)}
-                        />
-                    </div>
-                )}
+                {/* {(departments?.items?.length || 0) > 20 && ( */}
+                <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
+                    <Pagination
+                        totalItems={departments?.totalItems || 0}
+                        page={page}
+                        size={size}
+                        onChange={(p) => setPage(p)}
+                    />
+                </div>
+                {/* )} */}
             </div>
-
-            <DialogSupplier
+            <DialogDepartment
                 open={openDialog}
                 data={selectedItem}
                 onClose={() => {
@@ -229,7 +212,14 @@ const Supplier: React.FC = () => {
                     setSelectedItem(null);
                 }}
             />
-
+            <ConfirmDialog
+                open={openConfirm}
+                title="Xác nhận xóa"
+                content={`Bạn có chắc chắn muốn xóa phòng ban "${selectedItem?.name}" không? Hành động này không thể hoàn tác.`}
+                onClose={() => setOpenConfirm(false)}
+                onConfirm={confirmDelete}
+                loading={submitting}
+            />
             <Menu
                 anchorEl={anchorEl}
                 open={openMenu}
@@ -244,12 +234,6 @@ const Supplier: React.FC = () => {
                     }
                 }}
             >
-                <MenuItem onClick={handleViewHistory} sx={{ fontSize: '0.85rem' }}>
-                    <ListItemIcon>
-                        <HistoryIcon fontSize="small" sx={{ color: '#7b4b68' }} />
-                    </ListItemIcon>
-                    Lịch sử thay đổi
-                </MenuItem>
                 <MenuItem onClick={handleEditFromMenu} sx={{ fontSize: '0.85rem' }}>
                     <ListItemIcon>
                         <EditIcon fontSize="small" color="info" />
@@ -264,26 +248,8 @@ const Supplier: React.FC = () => {
                 </MenuItem>
             </Menu>
 
-            <ConfirmDialog
-                open={openConfirm}
-                title="Xác nhận xóa"
-                content={`Bạn có chắc chắn muốn xóa nhà cung cấp "${selectedItem?.name}" không? Hành động này không thể hoàn tác.`}
-                onClose={() => setOpenConfirm(false)}
-                onConfirm={confirmDelete}
-                loading={submitting}
-            />
-
-            <DialogSupplierHistory
-                open={openHistory}
-                supplierId={selectedItem?.supplierId || null}
-                supplierName={selectedItem?.name || ""}
-                onClose={() => {
-                    setOpenHistory(false);
-                    setSelectedItem(null);
-                }}
-            />
         </div>
     );
 };
 
-export default React.memo(Supplier);
+export default Department;

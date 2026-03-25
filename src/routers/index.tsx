@@ -8,6 +8,9 @@ import Unauthorized from "@/pages/Unauthorized/Unauthorized";
 import Product from "@/pages/Product/Product";
 import FormProduct from "@/pages/Product/components/Add/FormProduct";
 import Supplier from "@/pages/Supplier/Supplier";
+import Quote from "@/pages/Quote/Quote";
+import Department from "@/pages/Department/Department";
+import Employee from "@/pages/Employee/Employee";
 
 export const router = createBrowserRouter([
     {
@@ -47,7 +50,11 @@ export const router = createBrowserRouter([
                             {
                                 path: "suppliers",
                                 element: <Supplier />
-                            }
+                            },
+                            {
+                                path: "orders/request-quote",
+                                element: <Quote />
+                            },
                         ]
                     },
                     {
@@ -56,6 +63,19 @@ export const router = createBrowserRouter([
                             {
                                 path: "otk",
                                 element: <div>Trang chính OTK</div>
+                            }
+                        ]
+                    },
+                    {
+                        element: <AuthGuard requiredFeature="/admin" />,
+                        children: [
+                            {
+                                path: "departments",
+                                element: <Department />
+                            },
+                            {
+                                path: "employees",
+                                element: <Employee />
                             }
                         ]
                     }

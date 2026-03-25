@@ -28,21 +28,10 @@ import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import Button from '@/components/common/Button/Button';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import axiosClient from '@/api/axiosClient';
-import type { Supplier } from '../hooks/useSupplierData';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCountry } from '@/hooks/UseAllData';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-
-interface DialogSupplierProps {
-    data?: Supplier | null;
-    open: boolean;
-    onClose: () => void;
-    onSuccess?: () => void;
-}
-
-interface FormErrors {
-    [key: string]: string;
-}
+import type { DialogSupplierProps, FormErrors } from '../config/type';
 
 const initialForm = {
     cid: '',
@@ -63,7 +52,8 @@ const initialForm = {
 };
 
 const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, onSuccess }) => {
-    const PRIMARY_COLOR = import.meta.env.VITE_PRIMARY_COLOR || '#7b4b68';
+    const PRIMARY_COLOR = import.meta.env.VITE_PRIMARY_COLOR;
+    const SECONDARY_COLOR = import.meta.env.VITE_SECOND_COLOR;
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
     const { data: countries } = useCountry();
@@ -192,7 +182,7 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                         '&:hover fieldset': { borderColor: PRIMARY_COLOR },
                         '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: PRIMARY_COLOR }
+                    '& .MuiInputLabel-root.Mui-focused': { color: SECONDARY_COLOR }
                 }}
             />
         </Box>
@@ -237,8 +227,8 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
 
                         <Box sx={{ border: '1px solid #e0e0e0', borderRadius: '12px', p: 3, position: 'relative' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                                <CorporateFareIcon sx={{ color: PRIMARY_COLOR }} />
-                                <Typography variant="h6" fontSize="1rem" fontWeight={600} color={PRIMARY_COLOR}>
+                                <CorporateFareIcon sx={{ color: SECONDARY_COLOR }} />
+                                <Typography variant="h6" fontSize="1rem" fontWeight={600} color={SECONDARY_COLOR}>
                                     Thông tin cơ bản
                                 </Typography>
                             </Box>
@@ -256,8 +246,8 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
 
                         <Box sx={{ border: '1px solid #e0e0e0', borderRadius: '12px', p: 3 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-                                <AccountBalanceIcon sx={{ color: PRIMARY_COLOR }} />
-                                <Typography variant="h6" fontSize="1.1rem" fontWeight={700} color={PRIMARY_COLOR}>
+                                <AccountBalanceIcon sx={{ color: SECONDARY_COLOR }} />
+                                <Typography variant="h6" fontSize="1.1rem" fontWeight={700} color={SECONDARY_COLOR}>
                                     Thông tin ngân hàng & liên hệ
                                 </Typography>
                             </Box>
@@ -301,10 +291,10 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                                                 }}
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {
-                                                        '&:hover fieldset': { borderColor: PRIMARY_COLOR },
-                                                        '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
+                                                        '&:hover fieldset': { borderColor: SECONDARY_COLOR },
+                                                        '&.Mui-focused fieldset': { borderColor: SECONDARY_COLOR },
                                                     },
-                                                    '& .MuiInputLabel-root.Mui-focused': { color: PRIMARY_COLOR }
+                                                    '& .MuiInputLabel-root.Mui-focused': { color: SECONDARY_COLOR }
                                                 }}
                                             />
                                         )}
@@ -330,7 +320,7 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <CloseIcon fontSize="small" />
-                            HỦY
+                            Hủy
                         </Box>
                     </Button>
                         <Button
@@ -347,7 +337,7 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                             }}
                         >
-                            LƯU
+                            Lưu lại
                         </Button>
                 </DialogActions>
             </Dialog>
