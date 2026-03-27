@@ -18,7 +18,7 @@ import axiosClient from '@/api/axiosClient';
 import useGetProductById from './hooks/useGetProductById';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-
+import { StatusProductEnum } from '@/utils/StatusProductEnum';
 const FormProduct: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -195,8 +195,11 @@ const FormProduct: React.FC = () => {
             if (response.data.status === 400) {
                 showNotification("error", response.data.message, "Thất bại");
             } else {
-                showNotification("success", response.data.message, "Thành công");
                 queryClient.invalidateQueries({ queryKey: ["products"] });
+                if (id) {
+                    queryClient.invalidateQueries({ queryKey: ['product', Number(id)] });
+                }
+                showNotification("success", response.data.message, "Thành công");
                 setOpenDialog(false);
                 navigate(-1);
             }
@@ -229,9 +232,11 @@ const FormProduct: React.FC = () => {
                         <SelectUltra
                             options={groups}
                             value={watchedGroup || null}
-                            onChange={handleChangeOption} />
+                            onChange={handleChangeOption}
+                            disabled={!!id} />
                         <Button
                             variant="primary"
+                            disabled={methods.getValues().statusProduct?.id === StatusProductEnum.INACTIVE}
                             onClick={() => setOpenDialog(true)}
                         >
                             {id ? 'Cập nhật' : 'Thêm sản phẩm'}

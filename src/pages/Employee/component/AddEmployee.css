@@ -1,0 +1,55 @@
+.add-employee-wrapper {
+    margin: 0 auto;
+    width: 100%;
+    padding: 15px;
+    min-height: calc(100vh - 100px);
+}
+
+.add-employee-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.employee-side-paper {
+    height: 100%;
+    background: white !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+    overflow: hidden;
+}
+
+.employee-main-paper {
+    background: white !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+    overflow: hidden;
+    padding-bottom: 20px;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root {
+    background-color: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover {
+    background-color: #fefefe;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(123, 75, 104, 0.1);
+}
+
+.section-title {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    word-spacing: 2px;
+}

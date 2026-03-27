@@ -1,10 +1,8 @@
-// User types
 export interface User {
-    id: string;
+    username: string;
     email: string;
-    name: string;
-    role: 'admin' | 'manager' | 'staff';
-    avatar?: string;
+    features: string[];
+    roles: string[];
 }
 
 export interface LoginCredentials {

@@ -8,7 +8,7 @@ import MultiFilterBar from "@/components/common/MultiFilterBar/MultiFilterBar";
 import { getFilterDepartment } from "./config/filter";
 import Select from "@/components/common/Select/Select";
 import DialogDepartment from './components/DialogDepartment';
-import type { Department } from './config/type';
+import type { DepartmentType } from './config/type';
 import useDepartmentData from './hooks/useDepartmentData';
 import { useColumns } from "./config/columns";
 import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
@@ -16,11 +16,13 @@ import { Tune } from '@mui/icons-material';
 import Pagination from '@/components/common/Pagination/Pagination';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import axiosClient from '@/api/axiosClient';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 
 const Department: React.FC = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
+    const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const urlFilters = useMemo(() => {
@@ -36,7 +38,7 @@ const Department: React.FC = () => {
     const [size, setSize] = useState<number>(20);
 
     const [openDialog, setOpenDialog] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<Department | null>(null);
+    const [selectedItem, setSelectedItem] = useState<DepartmentType | null>(null);
     const [openConfirm, setOpenConfirm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,7 +46,7 @@ const Department: React.FC = () => {
 
     const categories = useMemo(() => getFilterDepartment(), []);
     const columns = useMemo(() => useColumns, []);
-    const { data: departments, isLoading, refetch } = useDepartmentData(page, size, filter);
+    const { data: departments, isLoading } = useDepartmentData(page, size, filter);
 
     const handleFilterChange = useCallback((filters: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -60,7 +62,7 @@ const Department: React.FC = () => {
         setPage(1);
     }, [setSearchParams]);
 
-    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: Department) => {
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: DepartmentType) => {
         setAnchorEl(event.currentTarget);
         setSelectedItem(item);
     };
@@ -83,8 +85,9 @@ const Department: React.FC = () => {
         try {
             await axiosClient.delete(`/api/department/delete/${selectedItem.id}`);
             showNotification('success', 'Xóa phòng ban thành công', 'Thành công');
-            refetch();
             setOpenConfirm(false);
+            queryClient.invalidateQueries({ queryKey: ['department'] });
+            queryClient.invalidateQueries({ queryKey: ['department-all'] });
         } catch (error: any) {
             showNotification('error', error?.response?.data?.message || 'Xóa thất bại', 'Lỗi');
         } finally {
@@ -143,7 +146,7 @@ const Department: React.FC = () => {
                                 </th>
                                 {columns.map((col) => (
                                     <th key={col.key}>
-                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700}>
+                                        <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
                                             {col.header}
                                         </Typography>
                                     </th>
@@ -189,7 +192,7 @@ const Department: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                {/* {(departments?.items?.length || 0) > 20 && ( */}
+                {(departments?.items?.length || 0) > 20 && (
                 <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
                     <Pagination
                         totalItems={departments?.totalItems || 0}
@@ -198,7 +201,7 @@ const Department: React.FC = () => {
                         onChange={(p) => setPage(p)}
                     />
                 </div>
-                {/* )} */}
+                )}
             </div>
             <DialogDepartment
                 open={openDialog}
@@ -208,8 +211,8 @@ const Department: React.FC = () => {
                     setSelectedItem(null);
                 }}
                 onSuccess={() => {
-                    refetch();
                     setSelectedItem(null);
+                    setOpenDialog(false);
                 }}
             />
             <ConfirmDialog

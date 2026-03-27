@@ -1,7 +1,7 @@
 import type { NamedEntity } from "@/pages/Product/types/product";
 
-export interface Department {
-    id?: number;
+export interface DepartmentType {
+    id: number | null;
     cid: string;
     name: string;
     location: string;
@@ -10,7 +10,7 @@ export interface Department {
 }
 
 export interface DialogDepartmentProps {
-    data?: Department | null;
+    data?: DepartmentType | null;
     open: boolean;
     onClose: () => void;
     onSuccess?: () => void;

@@ -11,7 +11,7 @@ import Supplier from "@/pages/Supplier/Supplier";
 import Quote from "@/pages/Quote/Quote";
 import Department from "@/pages/Department/Department";
 import Employee from "@/pages/Employee/Employee";
-
+import AddEmployee from "@/pages/Employee/component/AddEmployee";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -92,6 +92,20 @@ export const router = createBrowserRouter([
                     {
                         path: "update/:id",
                         element: <FormProduct />
+                    }
+                ]
+            },
+            {
+                path: "employees",
+                element: <AuthGuard requiredFeature="/admin" />,
+                children: [
+                    {
+                        path: "add",
+                        element: <AddEmployee />
+                    },
+                    {
+                        path: "update/:id",
+                        element: <AddEmployee />
                     }
                 ]
             }

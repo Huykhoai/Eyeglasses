@@ -5,7 +5,7 @@ export const navButtons: NavButton[] = [
     {
         name: 'Sản phẩm',
         children: [
-            { name: 'Danh sách sản phẩm', url: '/products' },
+            { name: 'Danh sách sản phẩm', url: '/products?type=lens' },
             { name: 'Thêm sản phẩm mới', url: '/products/create' },
             {
                 name: 'Chuyên mục',
@@ -39,7 +39,7 @@ export const navButtons: NavButton[] = [
     { name: 'Phòng ban',
         children: [
             { name: 'Phòng ban', url: '/departments'},
-            { name: 'Nhân viên', url: '/employees'}
+            { name: 'Nhân sự', url: '/employees'}
         ]
     },
     { name: 'Cấu hình', url: '/config' }

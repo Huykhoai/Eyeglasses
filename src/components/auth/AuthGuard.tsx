@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { Roles } from "@/utils/roles";
 interface AuthGuardProps {
     requiredFeature?: string;
 }
@@ -15,7 +16,7 @@ const AuthGuard = ({ requiredFeature }: AuthGuardProps) => {
     if (requiredFeature) {
         const hasPermission = user?.features?.includes(requiredFeature);
 
-        if (!user?.roles.includes('ADMIN') && !hasPermission) {
+        if (!user?.roles.includes(Roles.ADMIN) && !hasPermission) {
             return <Navigate to="/unauthorized" replace />;
         }
     }

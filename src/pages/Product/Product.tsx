@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
 import { Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Edit as EditIcon, Delete as DeleteIcon, SettingsEthernet as SettingsEthernetIcon, Tune } from '@mui/icons-material';
@@ -19,13 +19,12 @@ import useProductFilters from './config/useProductFilters';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import axiosClient from '@/api/axiosClient';
 import { useQueryClient } from '@tanstack/react-query';
-
+import { StatusProductEnum } from '@/utils/StatusProductEnum';
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
     FRAME: 'Gọng kính',
     ACCESSORY: 'Phụ kiện',
 };
-
 const Product: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -103,27 +102,17 @@ const Product: React.FC = () => {
         }
     }, [selectedProduct, handleCloseMenu]);
 
-    useEffect(() => {
-        const qp = new URLSearchParams();
-        qp.set('type', productType.toLowerCase());
-        if (page > 1) qp.set('page', page.toString());
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && value !== '') {
-                qp.set(key, value.toString());
-            }
-        })
-        setSearchParams(qp, { replace: true });
-    }, [productType, page, filters, setSearchParams]);
-
-
     const handleTypeChange = useCallback((type: ProductType) => {
         setProductType(type);
         setPage(1);
         setFilters({});
-    }, []);
+        setSearchParams({ type: type.toLowerCase() }, { replace: true });
+    }, [setSearchParams]);
 
     const handleFilterChange = useCallback((values: Record<string, any>) => {
-        let newFilter: Record<string, any> = {};
+        let newFilter: Record<string, any> = {
+            type: productType.toLowerCase()
+        };
         Object.entries(values).forEach(([key, value]) => {
             if (value !== '') {
                 if (typeof value === 'object') {
@@ -134,8 +123,18 @@ const Product: React.FC = () => {
             }
         })
         setFilters(newFilter);
+        setSearchParams(newFilter, { replace: true });
         setPage(1);
-    }, []);
+    }, [setSearchParams, productType]);
+
+    const handlePageChange = useCallback((page: number) => {
+        setPage(page);
+        setSearchParams({ 
+            ...filters,
+            type: productType.toLowerCase(),
+            page: page.toString() 
+        }, { replace: true });
+    }, [filters, setSearchParams, productType]);
 
     const handleAdd = useCallback(() => {
         navigate('/products/add');
@@ -237,7 +236,7 @@ const Product: React.FC = () => {
                                         }
                                     });
 
-                                    groupedHeaders.push({ name: 'Công cụ', span: 1, icon: false });
+                                    groupedHeaders.push({ name: 'Công cụ', span: 1, icon: false, zIndex: 12 });
 
                                     return (
                                         <tr className="group-header-row">
@@ -248,8 +247,9 @@ const Product: React.FC = () => {
                                                     style={{
                                                         backgroundColor: '#f1f5f9',
                                                         borderBottom: '2px solid #e2e8f0',
-                                                        position: group.isSticky ? 'sticky' : 'static',
+                                                        position: group.isSticky || idx === groupedHeaders.length - 1 ? 'sticky' : 'static',
                                                         left: group.left,
+                                                        right: idx === groupedHeaders.length - 1 ? 0 : 'auto',
                                                         zIndex: group.zIndex,
                                                     }}
                                                 >
@@ -310,7 +310,7 @@ const Product: React.FC = () => {
                                             </th>
                                         ));
                                     })()}
-                                    <th style={{ width: '90px' }}>
+                                    <th style={{ width: '90px', position: 'sticky', right: 0, zIndex: 12 }}>
                                         <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
                                             Thao tác
                                         </Typography>
@@ -373,9 +373,13 @@ const Product: React.FC = () => {
                                                 </td>
                                             ));
                                         })()}
-                                        <td>
+                                        <td style={{ position: 'sticky', right: 0, zIndex: 12 }}>
                                             <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                                                <IconButton size="small" onClick={(e) => handleOpenMenu(e, item)}>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => handleOpenMenu(e, item)}
+                                                    disabled={item.statusProduct.id === StatusProductEnum.INACTIVE}
+                                                >
                                                     <Tune fontSize="small" />
                                                 </IconButton>
                                             </div>
@@ -403,7 +407,7 @@ const Product: React.FC = () => {
                             totalItems={paginatedProducts?.totalItems ?? 0}
                             page={page}
                             size={size}
-                            onChange={(value) => setPage(value)}
+                            onChange={handlePageChange}
                         />
                     </div>
                 )}

@@ -25,8 +25,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useDepartmentAll, useEmployeeAll } from '@/hooks/UseAllData';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-import type { Department, DialogDepartmentProps } from '../config/type';
-const initialForm: Department = {
+import type { DepartmentType, DialogDepartmentProps } from '../config/type';
+const initialForm: DepartmentType = {
+    id: null,
     cid: '',
     name: '',
     location: '',
@@ -43,7 +44,7 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
     const { data: departmentList } = useDepartmentAll();
     const { data: employeeList } = useEmployeeAll();
 
-    const methods = useForm<Department>({
+    const methods = useForm<DepartmentType>({
         defaultValues: initialForm,
         values: data || initialForm,
     });
@@ -53,7 +54,7 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
     const [loading, setLoading] = useState(false);
     const [openConfirm, setOpenConfirm] = useState(false);
 
-    const handleSave = async (formData: Department) => {
+    const handleSave = async (formData: DepartmentType) => {
         setLoading(true);
         const payload: Record<string, any> = {
             id: formData.id,
@@ -73,6 +74,7 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
 
             showNotification('success', response.data.message, 'Thành công');
             queryClient.invalidateQueries({ queryKey: ['department'] });
+            queryClient.invalidateQueries({ queryKey: ['department-all'] });
             onSuccess?.();
             onClose();
             setOpenConfirm(false);
@@ -91,7 +93,7 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
         }
     };
 
-    const renderTextField = (label: string, name: keyof Department, icon: React.ReactNode, rules: any = {}, gridSpan: any = { xs: 'span 12', md: 'span 6' }) => (
+    const renderTextField = (label: string, name: keyof DepartmentType, icon: React.ReactNode, rules: any = {}, gridSpan: any = { xs: 'span 12', md: 'span 6' }) => (
         <Box sx={{ gridColumn: gridSpan }}>
             <Controller
                 name={name}

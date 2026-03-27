@@ -37,10 +37,14 @@ const InformationProductRight: React.FC = () => {
                 />
             </div>
             <div className="body-card mt-2 gap-2">
-                <div className="d-flex justify-content-between gap-1">
+                <LayoutGrid>
+                    <Label label="Thuế" />
+                    <RHFTextField name="tax" placeholder="Nhập thuế" props={{ type: "number" }} />
+                </LayoutGrid>
+                <div className="d-flex justify-content-between ">
                     <div className={`d-grid gap-2`} style={{ gridTemplateColumns: '1fr 3fr', alignItems: 'center' }}>
                         <Label label="Giá nguyên tệ" />
-                        <RHFTextField name="originalPrice" placeholder="Nhập giá nguyên tệ" />
+                        <RHFTextField name="originalPrice" props={{ type: "number" }} placeholder="Nhập giá nguyên tệ" />
                     </div>
                     <RHFAutoComplete
                         options={currencies || []}
