@@ -74,7 +74,7 @@ const Product: React.FC = () => {
 
     const handleEditFromMenu = useCallback(() => {
         if (selectedProduct) {
-            navigate(`/products/update/${selectedProduct.id}`);
+            navigate(`/xnk/products/update/${selectedProduct.id}`);
         }
         handleCloseMenu();
     }, [selectedProduct, handleCloseMenu]);
@@ -137,7 +137,7 @@ const Product: React.FC = () => {
     }, [filters, setSearchParams, productType]);
 
     const handleAdd = useCallback(() => {
-        navigate('/products/add');
+        navigate('/xnk/products/add');
     }, []);
 
     const handleBulkAdd = useCallback(() => {

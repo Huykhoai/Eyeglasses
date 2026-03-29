@@ -37,44 +37,54 @@ export const router = createBrowserRouter([
                         element: <Dashboard />
                     },
                     {
+                        path: "xnk",
                         element: <AuthGuard requiredFeature="/xnk" />,
                         children: [
                             {
                                 path: "config",
+                                index: true,
                                 element: <Config />
                             },
                             {
                                 path: "products",
+                                index: true,
                                 element: <Product />
                             },
                             {
                                 path: "suppliers",
+                                index: true,
                                 element: <Supplier />
                             },
                             {
                                 path: "orders/request-quote",
+                                index: true,
                                 element: <Quote />
                             },
                         ]
                     },
                     {
+                        path: "otk",
                         element: <AuthGuard requiredFeature="/otk" />,
                         children: [
                             {
                                 path: "otk",
+                                index: true,
                                 element: <div>Trang chính OTK</div>
                             }
                         ]
                     },
                     {
+                        path: "admin",
                         element: <AuthGuard requiredFeature="/admin" />,
                         children: [
                             {
                                 path: "departments",
+                                index: true,
                                 element: <Department />
                             },
                             {
                                 path: "employees",
+                                index: true,
                                 element: <Employee />
                             }
                         ]
@@ -82,7 +92,7 @@ export const router = createBrowserRouter([
                 ]
             },
             {
-                path: "products",
+                path: "xnk/products",
                 element: <AuthGuard requiredFeature="/xnk" />,
                 children: [
                     {
@@ -96,7 +106,7 @@ export const router = createBrowserRouter([
                 ]
             },
             {
-                path: "employees",
+                path: "admin/employees",
                 element: <AuthGuard requiredFeature="/admin" />,
                 children: [
                     {

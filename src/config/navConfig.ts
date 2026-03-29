@@ -5,8 +5,8 @@ export const navButtons: NavButton[] = [
     {
         name: 'Sản phẩm',
         children: [
-            { name: 'Danh sách sản phẩm', url: '/products?type=lens' },
-            { name: 'Thêm sản phẩm mới', url: '/products/create' },
+            { name: 'Danh sách sản phẩm', url: '/xnk/products?type=lens' },
+            { name: 'Thêm sản phẩm mới', url: '/xnk/products/add' },
             {
                 name: 'Chuyên mục',
                 children: [
@@ -20,7 +20,7 @@ export const navButtons: NavButton[] = [
     {
         name: 'Đơn hàng',
         children: [
-            { name: 'Yêu cầu báo giá', url: '/orders/request-quote' },
+            { name: 'Yêu cầu báo giá', url: '/xnk/orders/request-quote' },
             { name: 'Đơn hàng', url: '/orders' },
             { name: 'Hợp đồng', url: '/contracts' },
             { name: 'Lịch giao hàng', url: '/delivery-schedule' }
@@ -34,13 +34,13 @@ export const navButtons: NavButton[] = [
             { name: 'Kiểm kê', url: '/warehouse/audit' }
         ]
     },
-    { name: 'Nhà cung cấp', url: '/suppliers' },
+    { name: 'Nhà cung cấp', url: '/xnk/suppliers' },
     { name: 'Khách hàng', url: '/customers' },
     { name: 'Phòng ban',
         children: [
-            { name: 'Phòng ban', url: '/departments'},
-            { name: 'Nhân sự', url: '/employees'}
+            { name: 'Phòng ban', url: '/admin/departments'},
+            { name: 'Nhân sự', url: '/admin/employees'}
         ]
     },
-    { name: 'Cấu hình', url: '/config' }
+    { name: 'Cấu hình', url: '/xnk/config' }
 ];

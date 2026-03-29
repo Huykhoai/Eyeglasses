@@ -49,6 +49,7 @@ const initialForm: EmployeeType = {
     cid: '',
     email: '',
     name: '',
+    hasAccount: false,
     statusEm: null,
     department: null,
     numberOfDependents: 0,
@@ -171,7 +172,7 @@ const AddEmployee: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['employee'] });
             queryClient.invalidateQueries({ queryKey: ['employee-all'] });
             queryClient.invalidateQueries({ queryKey: ['employee-log'] });
-            navigate('/employees');
+            navigate('/admin/employees');
         },
         onError: (error: any) => {
             showNotification('error', error?.response?.data?.message || 'Có lỗi xảy ra', 'Thất bại');
