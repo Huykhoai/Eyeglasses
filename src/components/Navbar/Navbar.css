@@ -187,5 +187,6 @@
   font-weight: 700;
   color: #64748b;
   border: 2px solid white;
+  cursor: pointer;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }

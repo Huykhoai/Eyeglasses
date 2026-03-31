@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Navbar.css';
 import { useAuth } from '@/context/AuthContext';
@@ -17,6 +17,10 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+
+    const imageLabel = useMemo(() => {
+        return user?.username?.substring(0, 2).toUpperCase();
+    }, [user]);
 
     const handleLinkClick = () => {
         setActiveIndex(null);
@@ -100,7 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>{user?.username}</span>
                         <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{user?.roles?.join(', ')}</span>
                     </div>
-                    <div className="profile-avatar">HK</div>
+                    <div className="profile-avatar" onClick={() => navigate('/profile')}>{imageLabel}</div>
                 </div>
             </div>
         </nav>

@@ -91,7 +91,7 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
                 ...data,
                 employeeId: employee?.id
             };
-            return axiosClient.post('/api/auth/register-account', payload);
+            return axiosClient.post('/api/employee/register-account', payload);
         },
         onSuccess: (response) => {
             if (response.data.status === 400) {

@@ -172,6 +172,7 @@ const AddEmployee: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['employee'] });
             queryClient.invalidateQueries({ queryKey: ['employee-all'] });
             queryClient.invalidateQueries({ queryKey: ['employee-log'] });
+            queryClient.invalidateQueries({ queryKey: ['my-profile', user?.username] });
             navigate('/admin/employees');
         },
         onError: (error: any) => {

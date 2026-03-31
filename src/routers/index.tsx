@@ -12,6 +12,7 @@ import Quote from "@/pages/Quote/Quote";
 import Department from "@/pages/Department/Department";
 import Employee from "@/pages/Employee/Employee";
 import AddEmployee from "@/pages/Employee/component/AddEmployee";
+import Profile from "@/pages/Profile/Profile";
 import { Roles } from "@/utils/roles";
 export const router = createBrowserRouter([
     {
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
                     {
                         path: "dashboard",
                         element: <Dashboard />
+                    },
+                    {
+                        path: "profile",
+                        element: <Profile />
                     },
                     {
                         path: "xnk",

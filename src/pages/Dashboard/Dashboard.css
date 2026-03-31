@@ -5,7 +5,6 @@
 
 .dashboard-main-content {
     padding: 96px 32px 32px;
-    /* Top padding to clear the fixed Navbar */
     max-width: 1440px;
     margin: 0 auto;
 }
