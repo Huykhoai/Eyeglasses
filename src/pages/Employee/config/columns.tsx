@@ -82,6 +82,17 @@ export const useColumns: (ColumnDef & { groupName?: string })[] = [
         )
     },
     {
+        key: 'hasAccount',
+        header: 'Tài khoản',
+        align: 'center',
+        groupName: 'Thông tin chung',
+        render: (item: EmployeeType) => (
+            <span className={`badge-chip badge-${item.hasAccount ? 'success' : 'danger'}`}>
+                {item.hasAccount ? 'Có' : 'Không'}
+            </span>
+        )
+    },
+    {
         key: 'status',
         header: 'Trạng thái',
         align: 'center',

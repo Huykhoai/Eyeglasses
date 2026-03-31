@@ -12,6 +12,7 @@ import Quote from "@/pages/Quote/Quote";
 import Department from "@/pages/Department/Department";
 import Employee from "@/pages/Employee/Employee";
 import AddEmployee from "@/pages/Employee/component/AddEmployee";
+import { Roles } from "@/utils/roles";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -93,7 +94,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "xnk/products",
-                element: <AuthGuard requiredFeature="/xnk" />,
+                element: <AuthGuard requiredFeature="/xnk" roles={[Roles.ADMIN, Roles.MANAGER]} />,
                 children: [
                     {
                         path: "add",
@@ -107,7 +108,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "admin/employees",
-                element: <AuthGuard requiredFeature="/admin" />,
+                element: <AuthGuard requiredFeature="/admin" roles={[Roles.ADMIN, Roles.MANAGER]} />,
                 children: [
                     {
                         path: "add",

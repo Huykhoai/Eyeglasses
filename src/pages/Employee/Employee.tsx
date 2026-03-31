@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Edit as EditIcon, History as HistoryIcon } from '@mui/icons-material';
+import { Edit as EditIcon, History as HistoryIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "@/components/ui/Loading/Loading";
 import Button from "@/components/common/Button/Button";
@@ -14,6 +14,7 @@ import { useEmployeeData } from './hooks/useEmployeeData';
 import { useDepartmentAll } from "@/hooks/UseAllData";
 import type { EmployeeType } from "./config/type";
 import DialogEmployeeLog from "./component/DialogEmployeeLog";
+import DialogCreateAccount from "./component/DialogCreateAccount";
 import { useTouchMoveTable } from "@/utils/touchMoveTable";
 import { useAuth } from "@/context/AuthContext";
 import { Roles } from "@/utils/roles";
@@ -41,12 +42,17 @@ const Employee: React.FC = () => {
 
     const [selectedItem, setSelectedItem] = useState<EmployeeType | null>(null);
     const [openHistory, setOpenHistory] = useState(false);
+    const [openCreateAccount, setOpenCreateAccount] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
     const categories = useMemo(() => getFilterEmployee(departments || []), [departments]);
     const columns = useMemo(() => useColumns, []);
     const { data: paginatedEmployees, isLoading } = useEmployeeData(page, size, filter);
+
+    const roleAccess = useMemo(() => {
+        return [Roles.ADMIN, Roles.MANAGER].some(role => user?.roles?.includes(role));
+    }, [user]);
 
     const handleFilterChange = useCallback((filters: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -78,31 +84,40 @@ const Employee: React.FC = () => {
 
     const handleEditFromMenu = () => {
         if (!selectedItem) return;
-        if (user?.roles.includes(Roles.ADMIN)) {
-            const hashId = encode(selectedItem?.id);
-            navigate(`/employees/update/${hashId}`);
-        } else {
-            showNotification('error', 'Bạn không có quyền sửa nhân viên', 'Thất bại');
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền sửa nhân viên', 'Thất bại');
+            return;
         }
+        const hashId = encode(selectedItem?.id);
+        navigate(`/admin/employees/update/${hashId}`);
         handleCloseMenu();
     };
 
     const handleViewHistory = () => {
-        if (user?.roles.includes(Roles.ADMIN)) {
-            setOpenHistory(true);
-        } else {
-            showNotification('error', 'Bạn không có quyền xem lịch sử nhân viên', 'Thất bại');
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền xem lịch sử nhân viên', 'Thất bại');
+            return;
         }
+        setOpenHistory(true);
         handleCloseMenu();
     };
     const handleAdd = () => {
-        if (user?.roles.includes(Roles.ADMIN)) {
-            navigate('/employees/add')
-        } else {
-            showNotification('error', 'Bạn không có quyền thêm nhân viên', 'Thất bại');
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm nhân viên', 'Thất bại');
+            return;
         }
+        navigate('/admin/employees/add')
     };
 
+    const handleCreateAccountFromMenu = () => {
+        if (!selectedItem) return;
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền tạo tài khoản nhân viên', 'Thất bại');
+            return;
+        }
+        setOpenCreateAccount(true);
+        handleCloseMenu();
+    };
     return (
         <div className="employee-page-wrapper">
             {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
@@ -296,10 +311,23 @@ const Employee: React.FC = () => {
                     </ListItemIcon>
                     <Typography variant="inherit">Chỉnh sửa</Typography>
                 </MenuItem>
+                {/* {!selectedItem?.hasAccount && ( */}
+                    <MenuItem onClick={handleCreateAccountFromMenu} sx={{ fontSize: '0.85rem' }}>
+                        <ListItemIcon>
+                            <PersonAddIcon fontSize="small" color="success"/>
+                        </ListItemIcon>
+                        <Typography variant="inherit">Tạo tài khoản</Typography>
+                    </MenuItem>
+                {/* )} */}
             </Menu>
             <DialogEmployeeLog
                 open={openHistory}
                 onClose={() => setOpenHistory(false)}
+                employee={selectedItem}
+            />
+            <DialogCreateAccount
+                open={openCreateAccount}
+                onClose={() => setOpenCreateAccount(false)}
                 employee={selectedItem}
             />
         </div>

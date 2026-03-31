@@ -1,11 +1,11 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Roles } from "@/utils/roles";
 interface AuthGuardProps {
     requiredFeature?: string;
+    roles?: string[]
 }
 
-const AuthGuard = ({ requiredFeature }: AuthGuardProps) => {
+const AuthGuard = ({ requiredFeature, roles }: AuthGuardProps) => {
     const { token, user } = useAuth();
     const location = useLocation();
 
@@ -16,7 +16,14 @@ const AuthGuard = ({ requiredFeature }: AuthGuardProps) => {
     if (requiredFeature) {
         const hasPermission = user?.features?.includes(requiredFeature);
 
-        if (!user?.roles.includes(Roles.ADMIN) && !hasPermission) {
+        if (!hasPermission) {
+            return <Navigate to="/unauthorized" replace />;
+        }
+    }
+
+    if (roles && roles.length > 0) {
+        const hasRequiredRole = user?.roles.some(role => roles.includes(role));
+        if (!hasRequiredRole) {
             return <Navigate to="/unauthorized" replace />;
         }
     }

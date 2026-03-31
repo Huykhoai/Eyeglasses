@@ -20,6 +20,8 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import axiosClient from '@/api/axiosClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { StatusProductEnum } from '@/utils/StatusProductEnum';
+import { useAuth } from '@/context/AuthContext';
+import { Roles } from '@/utils/roles';
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
     FRAME: 'Gọng kính',
@@ -31,6 +33,7 @@ const Product: React.FC = () => {
     const { showNotification } = useNotification();
     const { tableRef, handleMouseDown, handleMouseMove, handleMouseUp, handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchMoveTable();
     const queryClient = useQueryClient();
+    const { user } = useAuth();
 
     const params = Object.fromEntries(searchParams);
     const typeParam = (params.type?.toUpperCase() as ProductType) || 'LENS';
@@ -55,6 +58,10 @@ const Product: React.FC = () => {
     const filterCategories = useProductFilters(productType);
     const columns = useMemo(() => getColumnsForType(productType), [productType]);
 
+    const roleAccess = useMemo(() => {
+        return [Roles.ADMIN, Roles.MANAGER].some(role => user?.roles?.includes(role));
+    }, [user]);
+
     const handleToggleInfo = useCallback((key: string) => {
         setShowInfo((prev) => ({
             ...prev,
@@ -74,16 +81,24 @@ const Product: React.FC = () => {
 
     const handleEditFromMenu = useCallback(() => {
         if (selectedProduct) {
+            if (!roleAccess) {
+                showNotification('error', 'Chỉ có Admin và Manager mới có quyền sửa sản phẩm', 'Lỗi hệ thống');
+                return;
+            }
             navigate(`/xnk/products/update/${selectedProduct.id}`);
         }
         handleCloseMenu();
-    }, [selectedProduct, handleCloseMenu]);
+    }, [selectedProduct, handleCloseMenu, roleAccess]);
 
     const handleDeleteFromMenu = useCallback(() => {
         if (selectedProduct) {
+            if (!roleAccess) {
+                showNotification('error', 'Chỉ có Admin và Manager mới có quyền xóa sản phẩm', 'Lỗi hệ thống');
+                return;
+            }
             setOpenDeleteDialog(true);
         }
-    }, [selectedProduct]);
+    }, [selectedProduct, roleAccess]);
 
     const handleDelete = useCallback(async () => {
         if (!selectedProduct) return;
@@ -137,12 +152,20 @@ const Product: React.FC = () => {
     }, [filters, setSearchParams, productType]);
 
     const handleAdd = useCallback(() => {
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm sản phẩm', 'Lỗi hệ thống');
+            return;
+        }
         navigate('/xnk/products/add');
-    }, []);
+    }, [roleAccess]);
 
     const handleBulkAdd = useCallback(() => {
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm sản phẩm', 'Lỗi hệ thống');
+            return;
+        }
         showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
-    }, [showNotification]);
+    }, [roleAccess]);
 
 
     return (
