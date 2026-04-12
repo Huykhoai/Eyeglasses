@@ -23,7 +23,7 @@ import { useNotification } from '@/components/ui/Notification/NotificationContex
 import axiosClient from '@/api/axiosClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { useDepartmentAll, useEmployeeAll } from '@/hooks/UseAllData';
+import { useEmployeeAll } from '@/hooks/UseAllData';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import type { DepartmentType, DialogDepartmentProps } from '../config/type';
 const initialForm: DepartmentType = {
@@ -31,7 +31,6 @@ const initialForm: DepartmentType = {
     cid: '',
     name: '',
     location: '',
-    parent: null,
     manager: null
 };
 
@@ -41,7 +40,6 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
     
-    const { data: departmentList } = useDepartmentAll();
     const { data: employeeList } = useEmployeeAll();
 
     const methods = useForm<DepartmentType>({
@@ -61,7 +59,6 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
             cid: formData.cid,
             name: formData.name,
             location: formData.location,
-            parentId: formData.parent?.id,
             managerId: formData.manager?.id
         }
         try {
@@ -189,43 +186,6 @@ const DialogDepartment: React.FC<DialogDepartmentProps> = ({ data, open, onClose
                             <Typography variant="subtitle2" color={SECONDARY_COLOR} fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1, textTransform: 'uppercase', fontSize: '0.75rem' }}>
                                 <GroupIcon fontSize="small" /> Cơ cấu & Quản lý
                             </Typography>
-                        </Box>
-
-                        <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>
-                            <Controller
-                                name="parent"
-                                control={control}
-                                render={({ field }) => (
-                                    <Autocomplete
-                                        {...field}
-                                        size="small"
-                                        options={departmentList?.filter(d => d.id !== data?.id) || []}
-                                        getOptionLabel={(option) => {
-                                            if (!option) return '';
-                                            if (typeof option === 'string') return option;
-                                            return `[${option.cid}] ${option.name}`;
-                                        }}
-                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                        onChange={(_, value) => field.onChange(value)}
-                                        renderInput={(params) => (
-                                            <TextField 
-                                                {...params} 
-                                                label="Phòng ban cấp trên" 
-                                                placeholder="Chọn phòng ban cha"
-                                                InputProps={{
-                                                    ...params.InputProps,
-                                                    startAdornment: (
-                                                        <>
-                                                            <InputAdornment position="start"><CorporateFareIcon fontSize="small" /></InputAdornment>
-                                                            {params.InputProps.startAdornment}
-                                                        </>
-                                                    )
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                )}
-                            />
                         </Box>
 
                         <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 6' } }}>

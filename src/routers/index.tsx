@@ -13,7 +13,7 @@ import Department from "@/pages/Department/Department";
 import Employee from "@/pages/Employee/Employee";
 import AddEmployee from "@/pages/Employee/component/AddEmployee";
 import Profile from "@/pages/Profile/Profile";
-import { Roles } from "@/utils/roles";
+import { Position, Roles } from "@/utils/roles";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -44,7 +44,9 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "xnk",
-                        element: <AuthGuard requiredFeature="/xnk" />,
+                        element: <AuthGuard
+                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
+                            roles={[Roles.MANAGE_XNK, Roles.STAFF_VIEW]} />,
                         children: [
                             {
                                 path: "config",
@@ -70,7 +72,9 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "otk",
-                        element: <AuthGuard requiredFeature="/otk" />,
+                        element: <AuthGuard
+                            requiredPosition={[Position.MANAGER, Position.STAFF_OTK]}
+                            roles={[Roles.MANAGE_OTK, Roles.STAFF_VIEW]} />,
                         children: [
                             {
                                 path: "otk",
@@ -80,8 +84,10 @@ export const router = createBrowserRouter([
                         ]
                     },
                     {
-                        path: "admin",
-                        element: <AuthGuard requiredFeature="/admin" />,
+                        path: "hr",
+                        element: <AuthGuard
+                            requiredPosition={[Position.ADMIN, Position.MANAGER]}
+                            roles={[Roles.ADMIN, Roles.MANAGE_HR]} />,
                         children: [
                             {
                                 path: "departments",
@@ -99,21 +105,38 @@ export const router = createBrowserRouter([
             },
             {
                 path: "xnk/products",
-                element: <AuthGuard requiredFeature="/xnk" roles={[Roles.ADMIN, Roles.MANAGER]} />,
                 children: [
                     {
                         path: "add",
-                        element: <FormProduct />
+                        element: <AuthGuard
+                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
+                            roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD]} />,
+                        children: [
+                            {
+                                path: "add",
+                                element: <FormProduct />
+                            }
+                        ]
                     },
                     {
                         path: "update/:id",
-                        element: <FormProduct />
+                        element: <AuthGuard
+                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
+                            roles={[Roles.MANAGE_XNK, Roles.STAFF_EDIT]} />,
+                        children: [
+                            {
+                                path: "update/:id",
+                                element: <FormProduct />
+                            }
+                        ]
                     }
                 ]
             },
             {
-                path: "admin/employees",
-                element: <AuthGuard requiredFeature="/admin" roles={[Roles.ADMIN, Roles.MANAGER]} />,
+                path: "hr/employees",
+                element: <AuthGuard 
+                    requiredPosition={[Position.ADMIN, Position.MANAGER]} 
+                    roles={[Roles.ADMIN, Roles.MANAGE_HR]} />,
                 children: [
                     {
                         path: "add",

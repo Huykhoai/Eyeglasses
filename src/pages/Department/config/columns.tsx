@@ -31,15 +31,6 @@ export const useColumns: ColumnDef[] = [
         )
     },
     {
-        key: 'parent',
-        header: 'Trực thuộc',
-        render: (item: DepartmentType) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.parent?.name || '-'}
-            </Typography>
-        )
-    },
-    {
         key: 'manager',
         header: 'Trưởng phòng',
         render: (item: DepartmentType) => (

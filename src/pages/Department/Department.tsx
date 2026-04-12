@@ -192,7 +192,7 @@ const Department: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                {(departments?.items?.length || 0) > 20 && (
+                {(departments?.items?.length || 0) > 0 && (
                 <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
                     <Pagination
                         totalItems={departments?.totalItems || 0}

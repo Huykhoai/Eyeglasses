@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Edit as EditIcon, History as HistoryIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
+import { Edit as EditIcon, History as HistoryIcon, PersonAdd as PersonAddIcon, ManageAccounts as ManageAccountsIcon } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "@/components/ui/Loading/Loading";
 import Button from "@/components/common/Button/Button";
@@ -15,6 +15,7 @@ import { useDepartmentAll } from "@/hooks/UseAllData";
 import type { EmployeeType } from "./config/type";
 import DialogEmployeeLog from "./component/DialogEmployeeLog";
 import DialogCreateAccount from "./component/DialogCreateAccount";
+import DialogUpdateRolePosition from "./component/DialogUpdateRolePosition";
 import { useTouchMoveTable } from "@/utils/touchMoveTable";
 import { useAuth } from "@/context/AuthContext";
 import { Roles } from "@/utils/roles";
@@ -43,6 +44,7 @@ const Employee: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<EmployeeType | null>(null);
     const [openHistory, setOpenHistory] = useState(false);
     const [openCreateAccount, setOpenCreateAccount] = useState(false);
+    const [openUpdateRole, setOpenUpdateRole] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
 
@@ -51,7 +53,7 @@ const Employee: React.FC = () => {
     const { data: paginatedEmployees, isLoading } = useEmployeeData(page, size, filter);
 
     const roleAccess = useMemo(() => {
-        return [Roles.ADMIN, Roles.MANAGER].some(role => user?.roles?.includes(role));
+        return [Roles.ADMIN, Roles.MANAGE_HR].some(role => user?.roles?.includes(role));
     }, [user]);
 
     const handleFilterChange = useCallback((filters: Record<string, any>) => {
@@ -89,7 +91,7 @@ const Employee: React.FC = () => {
             return;
         }
         const hashId = encode(selectedItem?.id);
-        navigate(`/admin/employees/update/${hashId}`);
+        navigate(`/hr/employees/update/${hashId}`);
         handleCloseMenu();
     };
 
@@ -106,7 +108,7 @@ const Employee: React.FC = () => {
             showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm nhân viên', 'Thất bại');
             return;
         }
-        navigate('/admin/employees/add')
+        navigate('/hr/employees/add')
     };
 
     const handleCreateAccountFromMenu = () => {
@@ -118,6 +120,17 @@ const Employee: React.FC = () => {
         setOpenCreateAccount(true);
         handleCloseMenu();
     };
+
+    const handleUpdateRoleFromMenu = () => {
+        if (!selectedItem) return;
+        if (!roleAccess) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thay đổi role & chức vụ', 'Thất bại');
+            return;
+        }
+        setOpenUpdateRole(true);
+        handleCloseMenu();
+    };
+
     return (
         <div className="employee-page-wrapper">
             {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
@@ -162,7 +175,7 @@ const Employee: React.FC = () => {
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    style={{ minHeight: 'calc(100vh - 240px' }}>
+                    style={{ minHeight: 'calc(100vh - 249px)' }}>
                     <table className='table-premium'>
                         <thead>
                             {(() => {
@@ -311,14 +324,22 @@ const Employee: React.FC = () => {
                     </ListItemIcon>
                     <Typography variant="inherit">Chỉnh sửa</Typography>
                 </MenuItem>
-                {/* {!selectedItem?.hasAccount && ( */}
+                {!selectedItem?.hasAccount && (
                     <MenuItem onClick={handleCreateAccountFromMenu} sx={{ fontSize: '0.85rem' }}>
                         <ListItemIcon>
                             <PersonAddIcon fontSize="small" color="success"/>
                         </ListItemIcon>
                         <Typography variant="inherit">Tạo tài khoản</Typography>
                     </MenuItem>
-                {/* )} */}
+                )}
+                {selectedItem?.hasAccount && (
+                    <MenuItem onClick={handleUpdateRoleFromMenu} sx={{ fontSize: '0.85rem' }}>
+                        <ListItemIcon>
+                            <ManageAccountsIcon fontSize="small" color="secondary"/>
+                        </ListItemIcon>
+                        <Typography variant="inherit">Quyền & Chức vụ</Typography>
+                    </MenuItem>
+                )}
             </Menu>
             <DialogEmployeeLog
                 open={openHistory}
@@ -328,6 +349,11 @@ const Employee: React.FC = () => {
             <DialogCreateAccount
                 open={openCreateAccount}
                 onClose={() => setOpenCreateAccount(false)}
+                employee={selectedItem}
+            />
+            <DialogUpdateRolePosition 
+                open={openUpdateRole}
+                onClose={() => setOpenUpdateRole(false)}
                 employee={selectedItem}
             />
         </div>

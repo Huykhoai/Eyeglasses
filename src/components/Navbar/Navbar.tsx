@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Navbar.css';
 import { useAuth } from '@/context/AuthContext';
+import { positionLabel } from '@/utils/roles';
+
 export interface NavButton {
     name: string;
     url?: string;
@@ -20,6 +22,10 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
 
     const imageLabel = useMemo(() => {
         return user?.username?.substring(0, 2).toUpperCase();
+    }, [user]);
+
+    const positionLabelUser = useMemo(() => {
+        return user?.positions?.map(position => positionLabel[position]).join(', ');
     }, [user]);
 
     const handleLinkClick = () => {
@@ -102,7 +108,15 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                 <div className="nav-profile">
                     <div className="profile-info" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>{user?.username}</span>
-                        <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{user?.roles?.join(', ')}</span>
+                        <span style={{
+                            fontSize: '0.7rem',
+                            color: '#64748b',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>{positionLabelUser}</span>
                     </div>
                     <div className="profile-avatar" onClick={() => navigate('/profile')}>{imageLabel}</div>
                 </div>

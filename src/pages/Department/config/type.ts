@@ -5,7 +5,6 @@ export interface DepartmentType {
     cid: string;
     name: string;
     location: string;
-    parent?: NamedEntity | null;
     manager?: NamedEntity | null;
 }
 

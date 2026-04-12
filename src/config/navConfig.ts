@@ -7,14 +7,6 @@ export const navButtons: NavButton[] = [
         children: [
             { name: 'Danh sách sản phẩm', url: '/xnk/products?type=lens' },
             { name: 'Thêm sản phẩm mới', url: '/xnk/products/add' },
-            {
-                name: 'Chuyên mục',
-                children: [
-                    { name: 'Gọng kính', url: '/categories/frames' },
-                    { name: 'Tròng kính', url: '/categories/lenses' },
-                    { name: 'Kính áp tròng', url: '/categories/contacts' }
-                ]
-            }
         ]
     },
     {
@@ -38,8 +30,8 @@ export const navButtons: NavButton[] = [
     { name: 'Khách hàng', url: '/customers' },
     { name: 'Phòng ban',
         children: [
-            { name: 'Phòng ban', url: '/admin/departments'},
-            { name: 'Nhân sự', url: '/admin/employees'}
+            { name: 'Phòng ban', url: '/hr/departments'},
+            { name: 'Nhân sự', url: '/hr/employees'}
         ]
     },
     { name: 'Cấu hình', url: '/xnk/config' }

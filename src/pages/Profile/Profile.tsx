@@ -12,12 +12,13 @@ import {
     Security as SecurityIcon,
     PowerSettingsNew as PowerSettingsNewIcon,
 } from '@mui/icons-material';
-import { roleLabels, type EmployeeType } from '../Employee/config/type';
+import { type EmployeeType } from '../Employee/config/type';
 import DialogChangePassword from './components/DialogChangePassword';
 import './Profile.css';
 import { Tooltip } from '@mui/material';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
+import { positionLabel } from '@/utils/roles';
 const url = import.meta.env.VITE_API_URL;
 
 const Profile: React.FC = () => {
@@ -81,9 +82,9 @@ const Profile: React.FC = () => {
                         <span style={{ fontWeight: 600 }}>Mã NV: {profile?.cid || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="profile-status-badge">
-                        {user?.roles?.map(role => (
-                            <div key={role} className="role-chip">
-                                {roleLabels[role] || role}
+                        {user?.positions?.map(position => (
+                            <div key={position} className="role-chip">
+                                {positionLabel[position]}
                             </div>
                         ))}
                     </div>

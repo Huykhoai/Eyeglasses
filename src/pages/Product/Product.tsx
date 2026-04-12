@@ -59,7 +59,7 @@ const Product: React.FC = () => {
     const columns = useMemo(() => getColumnsForType(productType), [productType]);
 
     const roleAccess = useMemo(() => {
-        return [Roles.ADMIN, Roles.MANAGER].some(role => user?.roles?.includes(role));
+        return [Roles.ADMIN, Roles.MANAGE_XNK].some(role => user?.roles?.includes(role));
     }, [user]);
 
     const handleToggleInfo = useCallback((key: string) => {
@@ -223,7 +223,7 @@ const Product: React.FC = () => {
                 </div>
 
                 {(paginatedProducts?.items?.length ?? 0) > 0 ? (
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 300px)' }}
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 279px)' }}
                         ref={tableRef}
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}

@@ -205,7 +205,7 @@ const Supplier: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-                {(suppliers?.totalItems ?? 0) > 20 && (
+                {(suppliers?.totalItems ?? 0) > 0 && (
                     <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
                         <Pagination
                             totalItems={suppliers?.totalItems ?? 0}

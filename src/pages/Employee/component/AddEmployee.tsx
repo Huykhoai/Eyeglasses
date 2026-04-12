@@ -136,6 +136,11 @@ const AddEmployee: React.FC = () => {
         return diff;
     }, []);
 
+    const handlePrepareConfirm = async () => {
+        const isValid = await methods.trigger();
+        if (!isValid) return;
+        setConfirmDialog(true);
+    }
     const saveMutation = useMutation({
         mutationFn: async (formData: EmployeeType) => {
             const dataToSave = new FormData();
@@ -173,7 +178,7 @@ const AddEmployee: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['employee-all'] });
             queryClient.invalidateQueries({ queryKey: ['employee-log'] });
             queryClient.invalidateQueries({ queryKey: ['my-profile', user?.username] });
-            navigate('/admin/employees');
+            navigate('/hr/employees');
         },
         onError: (error: any) => {
             showNotification('error', error?.response?.data?.message || 'Có lỗi xảy ra', 'Thất bại');
@@ -181,8 +186,8 @@ const AddEmployee: React.FC = () => {
     });
 
     const onSubmit = (data: EmployeeType) => {
-        if (!user || !user.roles.includes(Roles.ADMIN)) {
-            showNotification('error', 'Chỉ có admin mới có quyền thêm nhân viên', 'Thất bại');
+        if (!user || ![Roles.ADMIN, Roles.MANAGE_HR].some(r => user.roles.includes(r))) {
+            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm nhân viên', 'Thất bại');
             return;
         }
         saveMutation.mutate(data);
@@ -243,7 +248,7 @@ const AddEmployee: React.FC = () => {
 
                     <Button
                         variant="primary"
-                        onClick={() => setConfirmDialog(true)}
+                        onClick={handlePrepareConfirm}
                         disabled={saveMutation.isPending}
                     >
                         <SaveIcon fontSize="small" />

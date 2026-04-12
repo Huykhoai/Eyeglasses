@@ -1,7 +1,7 @@
 export interface User {
     username: string;
     email: string;
-    features: string[];
+    positions: string[];
     roles: string[];
 }
 
