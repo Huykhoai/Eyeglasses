@@ -21,10 +21,13 @@ import DialogSupplierHistory from "./components/DialogSupplierHistory";
 import Select from "@/components/common/Select/Select";
 import { useCountry } from "@/hooks/UseAllData";
 import type { Supplier } from "./config/type";
+import { useAuth } from "@/context/AuthContext";
+import { Roles } from "@/utils/roles";
 
 const Supplier: React.FC = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
+    const { user } = useAuth();
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -55,6 +58,8 @@ const Supplier: React.FC = () => {
     const columns = useMemo(() => useColumns, []);
     const { data: suppliers, isLoading, refetch } = useSupplierData(page, size, filter);
 
+    const roleAccess = useMemo(() => user?.roles?.includes(Roles.ADMIN) || user?.roles?.includes(Roles.MANAGE_XNK), [user]);
+
     const handleFilterChange = useCallback((filter: Record<string, any>) => {
         let mapperFilter: any = {};
         Object.entries(filter).forEach(([key, value]) => {
@@ -71,16 +76,43 @@ const Supplier: React.FC = () => {
     }, [setSearchParams]);
 
     const handleViewHistory = () => {
+        const roleStaff = user?.positions?.includes(Roles.STAFF_VIEW);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền xem mới có quyền xem lịch sử thay đổi',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
         setOpenHistory(true);
         handleCloseMenu();
     };
 
     const handleEditFromMenu = () => {
+        const roleStaff = user?.positions?.includes(Roles.STAFF_EDIT);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa mới có quyền sửa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
         setOpenDialog(true);
         handleCloseMenu();
     };
 
     const handleDeleteFromMenu = () => {
+        const roleStaff = user?.positions?.includes(Roles.STAFF_DELETE);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
         setOpenConfirm(true);
         handleCloseMenu();
     };

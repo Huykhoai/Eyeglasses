@@ -1,6 +1,6 @@
 import './Department.css';
 import React, { useCallback, useMemo, useState } from "react";
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loading from "@/components/ui/Loading/Loading";
 import Button from "@/components/common/Button/Button";
@@ -18,12 +18,15 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import axiosClient from '@/api/axiosClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
+import { Roles } from '@/utils/roles';
 
 const Department: React.FC = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { user } = useAuth();
 
     const urlFilters = useMemo(() => {
         const obj: Record<string, any> = {};
@@ -47,6 +50,8 @@ const Department: React.FC = () => {
     const categories = useMemo(() => getFilterDepartment(), []);
     const columns = useMemo(() => useColumns, []);
     const { data: departments, isLoading } = useDepartmentData(page, size, filter);
+
+    const roleAccess = useMemo(() => user?.roles?.includes(Roles.ADMIN) || user?.roles?.includes(Roles.MANAGE_HR), [user]);
 
     const handleFilterChange = useCallback((filters: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -72,13 +77,22 @@ const Department: React.FC = () => {
     };
 
     const handleEditFromMenu = () => {
+        const roleStaff = user?.positions?.includes(Roles.STAFF_EDIT);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa mới có quyền sửa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
         setOpenDialog(true);
         handleCloseMenu();
     };
-    const handleDeleteFromMenu = () => {
-        setOpenConfirm(true);
-        handleCloseMenu();
-    };
+    // const handleDeleteFromMenu = () => {
+    //     setOpenConfirm(true);
+    //     handleCloseMenu();
+    // };
     const confirmDelete = async () => {
         if (!selectedItem) return;
         setSubmitting(true);
@@ -94,10 +108,10 @@ const Department: React.FC = () => {
             setSubmitting(false);
         }
     };
-    const handleAdd = () => {
-        setSelectedItem(null);
-        setOpenDialog(true);
-    };
+    // const handleAdd = () => {
+    //     setSelectedItem(null);
+    //     setOpenDialog(true);
+    // };
 
     return (
         <div className="department-page-wrapper">
@@ -127,12 +141,12 @@ const Department: React.FC = () => {
                         onChangeSize={(value) => setSize(Number(value))}
                     />
                 </div>
-                <Button
+                {/* <Button
                     variant="primary"
                     onClick={handleAdd}
                 >
                     Thêm phòng ban
-                </Button>
+                </Button> */}
             </div>
             <div className='department-card'>
                 <div className='table-scroll-container' style={{ minHeight: 'calc(100vh - 240px' }}>
@@ -243,12 +257,12 @@ const Department: React.FC = () => {
                     </ListItemIcon>
                     Chỉnh sửa
                 </MenuItem>
-                <MenuItem onClick={handleDeleteFromMenu} sx={{ fontSize: '0.85rem', color: 'error.main' }}>
+                {/* <MenuItem onClick={handleDeleteFromMenu} sx={{ fontSize: '0.85rem', color: 'error.main' }}>
                     <ListItemIcon>
                         <DeleteIcon fontSize="small" color="error" />
                     </ListItemIcon>
                     Xóa
-                </MenuItem>
+                </MenuItem> */}
             </Menu>
 
         </div>

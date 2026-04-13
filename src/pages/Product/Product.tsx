@@ -80,24 +80,33 @@ const Product: React.FC = () => {
     }, []);
 
     const handleEditFromMenu = useCallback(() => {
-        if (selectedProduct) {
-            if (!roleAccess) {
-                showNotification('error', 'Chỉ có Admin và Manager mới có quyền sửa sản phẩm', 'Lỗi hệ thống');
-                return;
-            }
-            navigate(`/xnk/products/update/${selectedProduct.id}`);
+        if (!selectedProduct) return;
+        const roleStaff = user?.roles?.includes(Roles.STAFF_EDIT);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error', 
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa mới có quyền sửa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
         }
+        navigate(`/xnk/products/update/${selectedProduct.id}`);
         handleCloseMenu();
     }, [selectedProduct, handleCloseMenu, roleAccess]);
 
     const handleDeleteFromMenu = useCallback(() => {
-        if (selectedProduct) {
-            if (!roleAccess) {
-                showNotification('error', 'Chỉ có Admin và Manager mới có quyền xóa sản phẩm', 'Lỗi hệ thống');
-                return;
-            }
-            setOpenDeleteDialog(true);
+        if (!selectedProduct) return;
+        const roleStaff = user?.roles?.includes(Roles.STAFF_DELETE);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error', 
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm', 
+                'Lỗi hệ thống'
+            );
+            return;
         }
+        setOpenDeleteDialog(true);
+        
     }, [selectedProduct, roleAccess]);
 
     const handleDelete = useCallback(async () => {
@@ -152,20 +161,30 @@ const Product: React.FC = () => {
     }, [filters, setSearchParams, productType]);
 
     const handleAdd = useCallback(() => {
-        if (!roleAccess) {
-            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm sản phẩm', 'Lỗi hệ thống');
+        const roleStaff = user?.positions?.includes(Roles.STAFF_ADD);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền thêm sản phẩm mới có quyền thêm sản phẩm',
+                'Lỗi hệ thống'
+            );
             return;
         }
         navigate('/xnk/products/add');
-    }, [roleAccess]);
+    }, [roleAccess, user]);
 
     const handleBulkAdd = useCallback(() => {
-        if (!roleAccess) {
-            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm sản phẩm', 'Lỗi hệ thống');
+        const roleStaff = user?.positions?.includes(Roles.STAFF_ADD);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền thêm sản phẩm mới có quyền thêm sản phẩm',
+                'Lỗi hệ thống'
+            );
             return;
         }
         showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
-    }, [roleAccess]);
+    }, [roleAccess, user]);
 
 
     return (

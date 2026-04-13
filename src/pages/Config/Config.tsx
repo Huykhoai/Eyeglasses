@@ -20,6 +20,8 @@ import Select from '@/components/common/Select/Select';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ConfigItem } from '@/types';
 import { useGroupType } from '@/hooks/UseAllData'
+import { useAuth } from '@/context/AuthContext';
+import { Roles } from '@/utils/roles';
 
 const Config: React.FC = () => {
     const queryClient = useQueryClient();
@@ -27,7 +29,8 @@ const Config: React.FC = () => {
     const { showNotification } = useNotification();
     const { generalCategory, specificCategory } = useConfigData();
     const { data: groupTypes } = useGroupType()
-    
+    const { user } = useAuth();
+
     const params = Object.fromEntries(searchParams);
     const tabParam = params.tab as 'common' | 'specific' | null;
     const { type: configParam, page: pageParam, search: searchParam } = params;
@@ -82,6 +85,8 @@ const Config: React.FC = () => {
         activeTab === 'common' ? generalCategory : specificCategory,
         [activeTab, generalCategory, specificCategory]);
 
+    const roleAccess = useMemo(() => user?.roles?.includes(Roles.ADMIN) || user?.roles?.includes(Roles.MANAGE_XNK), [user]);
+
     const handleSelectConfig = useCallback((config: ConfigCategoryItem) => {
         setSelectedConfig(config);
         setPage(1);
@@ -94,7 +99,31 @@ const Config: React.FC = () => {
         setSelectedItem(null);
     }, []);
 
+    const handleOpenDialogDelete = useCallback((item: ConfigItem) => {
+        if (!item) return;
+        const roleStaff = user?.positions?.includes(Roles.STAFF_DELETE);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
+        setSelectedItem(item);
+        setOpenConfigDialog(true);
+    }, []);
     const handleSelectItem = useCallback((item: ConfigItem) => {
+        if (!item) return;
+        const roleStaff = user?.positions?.includes(Roles.STAFF_EDIT);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa mới có quyền sửa sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
         setSelectedItem(item);
         setOpenDialog(true);
     }, []);
@@ -307,10 +336,7 @@ const Config: React.FC = () => {
                                                 <IconButton onClick={() => handleSelectItem(item)}>
                                                     <EditIcon fontSize='small' />
                                                 </IconButton>
-                                                <IconButton onClick={() => {
-                                                    setSelectedItem(item);
-                                                    setOpenConfigDialog(true);
-                                                }}>
+                                                <IconButton onClick={() => handleOpenDialogDelete(item)}>
                                                     <DeleteIcon fontSize='small' color='error' />
                                                 </IconButton>
                                             </div>

@@ -86,8 +86,9 @@ const Employee: React.FC = () => {
 
     const handleEditFromMenu = () => {
         if (!selectedItem) return;
-        if (!roleAccess) {
-            showNotification('error', 'Chỉ có Admin và Manager mới có quyền sửa nhân viên', 'Thất bại');
+        const roleStaff = user?.positions?.includes(Roles.STAFF_EDIT);
+        if (!roleAccess && !roleStaff) {
+            showNotification('error', 'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa nhân viên mới có quyền sửa nhân viên', 'Thất bại');
             return;
         }
         const hashId = encode(selectedItem?.id);
@@ -104,8 +105,9 @@ const Employee: React.FC = () => {
         handleCloseMenu();
     };
     const handleAdd = () => {
-        if (!roleAccess) {
-            showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm nhân viên', 'Thất bại');
+        const roleStaff = user?.positions?.includes(Roles.STAFF_ADD);
+        if (!roleAccess && !roleStaff) {
+            showNotification('error', 'Chỉ có Admin và Manager hoặc nhân viên có quyền thêm nhân viên mới có quyền thêm nhân viên', 'Thất bại');
             return;
         }
         navigate('/hr/employees/add')
