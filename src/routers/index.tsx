@@ -107,7 +107,6 @@ export const router = createBrowserRouter([
                 path: "xnk/products",
                 children: [
                     {
-                        path: "add",
                         element: <AuthGuard
                             requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
                             roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD]} />,
@@ -119,7 +118,6 @@ export const router = createBrowserRouter([
                         ]
                     },
                     {
-                        path: "update/:id",
                         element: <AuthGuard
                             requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
                             roles={[Roles.MANAGE_XNK, Roles.STAFF_EDIT]} />,
