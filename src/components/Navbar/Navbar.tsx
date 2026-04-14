@@ -65,7 +65,6 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                     <div
                         key={index}
                         className="dropdown-item"
-                        onMouseEnter={() => !item.url && setActiveIndex(1000 as any)}
                     >
                         <Link to={item.url || '#'} className="dropdown-link" onClick={handleLinkClick}>
                             {item.name}
@@ -77,7 +76,9 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                         </Link>
                         {hasChildren && (
                             <div className="dropdown-menu sub-dropdown">
-                                {renderNavItems(item.children || [], true, currentIndex)}
+                                <div className="sub-dropdown-content">
+                                    {renderNavItems(item.children || [], true, currentIndex)}
+                                </div>
                             </div>
                         )}
                     </div>

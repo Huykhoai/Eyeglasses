@@ -21,8 +21,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 16px;
+    height: 38px;
+    padding: 0 16px;
     font-size: 0.9rem;
+    line-height: 1;
     font-weight: 500;
     color: var(--select-text);
     background: var(--select-bg);

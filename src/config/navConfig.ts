@@ -6,7 +6,10 @@ export const navButtons: NavButton[] = [
         name: 'Sản phẩm',
         children: [
             { name: 'Danh sách sản phẩm', url: '/xnk/products?type=lens' },
-            { name: 'Thêm sản phẩm mới', url: '/xnk/products/add' },
+            { name: 'Thêm sản phẩm mới', children: [
+                { name: 'Thêm thủ công', url: '/xnk/products/add' },
+                { name: 'Thêm bằng Excel', url: '/xnk/products/add-by-excel' }
+            ] },
         ]
     },
     {

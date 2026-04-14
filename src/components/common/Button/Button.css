@@ -3,16 +3,19 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 0 16px;
+    height: 38px;
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
+    line-height: 1;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid transparent;
     white-space: nowrap;
     user-select: none;
     outline: none;
+    box-sizing: border-box;
 }
 
 .btn-primary {
@@ -31,7 +34,6 @@
     transform: translateY(0);
 }
 
-/* Outline Button */
 .btn-outline {
     background: transparent;
     border-color: #e2e8f0;
@@ -53,6 +55,16 @@
 .btn-loading {
     position: relative;
     color: transparent !important;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon svg {
+    font-size: 1.1rem !important;
 }
 
 .btn-loading::after {

@@ -92,12 +92,12 @@ const Config: React.FC = () => {
         setPage(1);
         setSearch('');
         setSelectedItem(null);
-    }, [selectedConfig]);
+    }, [setSelectedConfig, setPage, setSearch, setSelectedItem]);
 
     const handleCloseDialog = useCallback(() => {
         setOpenDialog(false);
         setSelectedItem(null);
-    }, []);
+    }, [setOpenDialog, setSelectedItem]);
 
     const handleOpenDialogDelete = useCallback((item: ConfigItem) => {
         if (!item) return;
@@ -113,6 +113,21 @@ const Config: React.FC = () => {
         setSelectedItem(item);
         setOpenConfigDialog(true);
     }, []);
+
+    const handleOpenDialogCreate = useCallback(() => {
+        const roleStaff = user?.positions?.includes(Roles.STAFF_ADD);
+        if (!roleAccess && !roleStaff) {
+            showNotification(
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền thêm mới mới có quyền thêm mới sản phẩm',
+                'Lỗi hệ thống'
+            );
+            return;
+        }
+        setSelectedItem(null);
+        setOpenDialog(true);
+    }, [setOpenDialog, setSelectedItem]);
+
     const handleSelectItem = useCallback((item: ConfigItem) => {
         if (!item) return;
         const roleStaff = user?.positions?.includes(Roles.STAFF_EDIT);
@@ -126,7 +141,7 @@ const Config: React.FC = () => {
         }
         setSelectedItem(item);
         setOpenDialog(true);
-    }, []);
+    }, [setSelectedItem, setOpenDialog]);
 
     const handleDeleteItem = useCallback(async () => {
         try {
@@ -289,11 +304,11 @@ const Config: React.FC = () => {
                                 />
                             </div>
 
-                            <Button onClick={() => setOpenDialog(true)} icon={<AddIcon fontSize='small' />}>Thêm mới</Button>
+                            <Button variant='primary' onClick={handleOpenDialogCreate} icon={<AddIcon fontSize='small' />}>Thêm mới</Button>
                         </div>
                     </header>
 
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 228px)' }}>
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 230px)' }}>
                         <table className="table-premium">
                             <thead>
                                 <tr>
