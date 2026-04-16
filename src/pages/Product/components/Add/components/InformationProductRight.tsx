@@ -54,6 +54,10 @@ const InformationProductRight: React.FC = () => {
                     />
                 </div>
                 <LayoutGrid>
+                    <Label label="Giá bán lẻ" />
+                    <RHFTextField name="retailPrice" placeholder="Nhập giá bán lẻ" props={{ type: "number" }} />
+                </LayoutGrid>
+                <LayoutGrid>
                     <Label label="Mô tả" />
                     <RHFTextArea name="note" placeholder="Nhập mô tả" />
                 </LayoutGrid>

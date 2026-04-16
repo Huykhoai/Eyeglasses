@@ -1,4 +1,4 @@
-import type { ConfigLimitResponse } from "@/types"
+import type { ConfigItem, ConfigLimitResponse } from "@/types"
 import { useFetchAll } from "./GenericAllData"
 
 
@@ -21,7 +21,7 @@ export const useCountry = () =>
     useFetchAll<ConfigLimitResponse[]>(['country'], "/api/country/all")
 
 export const useCurrency = () =>
-    useFetchAll<ConfigLimitResponse[]>(['currency'], "/api/currency/all")
+    useFetchAll<ConfigItem[]>(['currency'], "/api/currency/all")
 
 export const useMaterial = () =>
     useFetchAll<ConfigLimitResponse[]>(['material'], "/api/material/all")

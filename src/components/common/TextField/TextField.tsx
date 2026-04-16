@@ -5,13 +5,14 @@ interface TextFieldProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
     disabled?: boolean;
+    type?: React.HTMLInputTypeAttribute;
     props?: React.InputHTMLAttributes<HTMLInputElement>;
 }
-const TextField = ({ name, value, onChange, placeholder, props, disabled }: TextFieldProps) => {
+const TextField = ({ name, value, onChange, placeholder, props, disabled, type }: TextFieldProps) => {
     return (
         <input
             className='form-control'
-            type="text"
+            type={type ?? "text"}
             name={name}
             value={value ?? ""}
             onChange={onChange}

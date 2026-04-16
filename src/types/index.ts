@@ -63,5 +63,5 @@ export interface ColumnDef {
     header: string;
     width?: string;
     align?: 'left' | 'center' | 'right';
-    render?: (item: any) => React.ReactNode;
+    render?: (item: any, index?: number | null) => React.ReactNode;
 }

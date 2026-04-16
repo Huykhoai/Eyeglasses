@@ -1,11 +1,8 @@
 import { Typography } from '@mui/material';
 import type { ProductType, Product, LensProduct, FrameProduct } from '../types/product';
 import type { ColumnDef } from '@/types';
+import { formatPrice } from '@/utils/formatPrice';
 const url = import.meta.env.VITE_API_URL;
-const formatPrice = (value: number | null | undefined): string => {
-    if (value == null) return '-';
-    return value.toLocaleString('vi-VN');
-};
 
 const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left?: string, zIndex?: number })[] = [
     {

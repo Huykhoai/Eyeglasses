@@ -8,13 +8,15 @@ import Unauthorized from "@/pages/Unauthorized/Unauthorized";
 import Product from "@/pages/Product/Product";
 import FormProduct from "@/pages/Product/components/Add/FormProduct";
 import Supplier from "@/pages/Supplier/Supplier";
-import Quote from "@/pages/Quote/Quote";
+import Quote from "@/pages/Quote/QuotationRequest";
 import Department from "@/pages/Department/Department";
 import Employee from "@/pages/Employee/Employee";
 import AddEmployee from "@/pages/Employee/component/AddEmployee";
 import Profile from "@/pages/Profile/Profile";
 import { Position, Roles } from "@/utils/roles";
 import AddExcelProduct from "@/pages/Product/components/AddByExcel/AddExcelProduct";
+import QuotationRequest from "@/pages/Quote/QuotationRequest";
+import AddQuotationRequest from "@/pages/Quote/components/AddQuotationRequest";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -109,7 +111,7 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         element: <AuthGuard
-                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
+                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
                             roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD]} />,
                         children: [
                             {
@@ -124,7 +126,7 @@ export const router = createBrowserRouter([
                     },
                     {
                         element: <AuthGuard
-                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]} 
+                            requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
                             roles={[Roles.MANAGE_XNK, Roles.STAFF_EDIT]} />,
                         children: [
                             {
@@ -137,8 +139,8 @@ export const router = createBrowserRouter([
             },
             {
                 path: "hr/employees",
-                element: <AuthGuard 
-                    requiredPosition={[Position.ADMIN, Position.MANAGER]} 
+                element: <AuthGuard
+                    requiredPosition={[Position.ADMIN, Position.MANAGER]}
                     roles={[Roles.ADMIN, Roles.MANAGE_HR]} />,
                 children: [
                     {
@@ -148,6 +150,19 @@ export const router = createBrowserRouter([
                     {
                         path: "update/:id",
                         element: <AddEmployee />
+                    }
+                ]
+            },
+            {
+                path: "xnk/orders/quotation-request",
+                element: <AuthGuard
+                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
+                    roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD]}
+                />,
+                children: [
+                    {
+                        path: "add",
+                        element: <AddQuotationRequest />
                     }
                 ]
             }
