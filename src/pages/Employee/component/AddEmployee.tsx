@@ -42,7 +42,7 @@ import './AddEmployee.css';
 import { useAuth } from "@/context/AuthContext";
 import { Roles } from "@/utils/roles";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
-
+import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 
 const initialForm: EmployeeType = {
     id: null,
@@ -193,40 +193,6 @@ const AddEmployee: React.FC = () => {
         saveMutation.mutate(data);
     };
 
-    const renderTextField = (label: string, name: string, icon: React.ReactNode, rules: any = {}, type: string = "text") => (
-        <Controller
-            name={name as any}
-            control={control}
-            rules={rules}
-            render={({ field, fieldState: { error } }) => (
-                <TextField
-                    {...field}
-                    fullWidth
-                    size="small"
-                    type={type}
-                    label={label + (rules.required ? ' *' : '')}
-                    error={!!error}
-                    helperText={error?.message}
-                    InputProps={{
-                        startAdornment: icon ? (
-                            <InputAdornment position="start">
-                                {icon}
-                            </InputAdornment>
-                        ) : null,
-                        sx: { borderRadius: '10px' }
-                    }}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: PRIMARY_COLOR },
-                            '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': { color: PRIMARY_COLOR }
-                    }}
-                />
-            )}
-        />
-    );
-    
     return (
         <FormProvider {...methods}>
             <Box className="add-employee-wrapper">
@@ -348,15 +314,34 @@ const AddEmployee: React.FC = () => {
 
                                 <Grid container spacing={2.5}>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Mã nhân viên", "cid", <BadgeIcon fontSize="small" />, { required: 'Mã NV là bắt buộc' })}
+                                        <RHFTextField
+                                            name="cid"
+                                            rules={{ required: 'Mã NV là bắt buộc' }}
+                                            fullWidth
+                                            label="Mã nhân viên"
+                                            startAdornment={<InputAdornment position="start"><BadgeIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Họ và tên", "name", <PersonIcon fontSize="small" />, { required: 'Họ tên là bắt buộc' })}
+                                        <RHFTextField
+                                            name="name"
+                                            rules={{ required: 'Họ tên là bắt buộc' }}
+                                            fullWidth
+                                            label="Họ và tên"
+                                            startAdornment={<InputAdornment position="start"><PersonIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Email công việc", "email", <EmailIcon fontSize="small" />, {
-                                            pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Email không hợp lệ" }
-                                        })}
+                                        <RHFTextField
+                                            name="email"
+                                            rules={{
+                                                required: 'Email là bắt buộc',
+                                                pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Email không hợp lệ" }
+                                            }}
+                                            fullWidth
+                                            label="Email công việc"
+                                            startAdornment={<InputAdornment position="start"><EmailIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 6 }}>
                                         <Controller
@@ -371,7 +356,7 @@ const AddEmployee: React.FC = () => {
                                                     value={field.value ? 'true' : 'false'}
                                                     onChange={(e) => field.onChange(e.target.value === 'true')}
                                                     InputProps={{
-                                                        startAdornment: <InputAdornment position="start"><WcIcon fontSize="small" /></InputAdornment>,
+                                                        startAdornment: <InputAdornment position="start"><WcIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
                                                         sx: { borderRadius: '10px' }
                                                     }}
                                                 >
@@ -382,7 +367,14 @@ const AddEmployee: React.FC = () => {
                                         />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 6 }}>
-                                        {renderTextField("Ngày sinh", "employeeInformation.dateOfBirth", <CalendarIcon fontSize="small" />, { required: 'Ngày sinh là bắt buộc' }, "date")}
+                                        <RHFTextField
+                                            name="employeeInformation.dateOfBirth"
+                                            rules={{ required: 'Ngày sinh là bắt buộc' }}
+                                            fullWidth
+                                            label="Ngày sinh"
+                                            startAdornment={<InputAdornment position="start"><CalendarIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                            type="date"
+                                        />
                                     </Grid>
                                 </Grid>
                             </Box>
@@ -401,16 +393,40 @@ const AddEmployee: React.FC = () => {
 
                                 <Grid container spacing={2.5}>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Số điện thoại", "employeeInformation.phone", <PhoneIcon fontSize="small" />, { required: 'SĐT là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.phone"
+                                            rules={{ required: 'SĐT là bắt buộc' }}
+                                            fullWidth
+                                            label="Số điện thoại"
+                                            startAdornment={<InputAdornment position="start"><PhoneIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Email cá nhân", "employeeInformation.email", <EmailIcon fontSize="small" />, { required: 'Email cá nhân là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.email"
+                                            rules={{ required: 'Email cá nhân là bắt buộc' }}
+                                            fullWidth
+                                            label="Email cá nhân"
+                                            startAdornment={<InputAdornment position="start"><EmailIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Số CCCD", "employeeInformation.citizenIdentificationNumber", <IdCardIcon fontSize="small" />, { required: 'CCCD là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.citizenIdentificationNumber"
+                                            rules={{ required: 'CCCD là bắt buộc' }}
+                                            fullWidth
+                                            label="Số CCCD"
+                                            startAdornment={<InputAdornment position="start"><IdCardIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12 }}>
-                                        {renderTextField("Địa chỉ thường trú", "employeeInformation.address", <HomeIcon fontSize="small" />, { required: 'Địa chỉ là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.address"
+                                            rules={{ required: 'Địa chỉ là bắt buộc' }}
+                                            fullWidth
+                                            label="Địa chỉ thường trú"
+                                            startAdornment={<InputAdornment position="start"><HomeIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                 </Grid>
                             </Box>
@@ -429,13 +445,32 @@ const AddEmployee: React.FC = () => {
 
                                 <Grid container spacing={2.5}>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Tên ngân hàng", "employeeInformation.bankName", <BankIcon fontSize="small" />, { required: 'Tên NH là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.bankName"
+                                            rules={{ required: 'Tên NH là bắt buộc' }}
+                                            fullWidth
+                                            label="Tên ngân hàng"
+                                            startAdornment={<InputAdornment position="start"><BankIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Số tài khoản", "employeeInformation.accountNo", <CardIcon fontSize="small" />, { required: 'STK là bắt buộc' })}
+                                        <RHFTextField
+                                            name="employeeInformation.accountNo"
+                                            rules={{ required: 'STK là bắt buộc' }}
+                                            fullWidth
+                                            label="Số tài khoản"
+                                            startAdornment={<InputAdornment position="start"><CardIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                        />
                                     </Grid>
                                     <Grid size={{ xs: 12, md: 4 }}>
-                                        {renderTextField("Số người phụ thuộc", "numberOfDependents", <GroupsIcon fontSize="small" />, { required: 'Số người phụ thuộc là bắt buộc' }, "number")}
+                                        <RHFTextField
+                                            name="numberOfDependents"
+                                            rules={{ required: 'Số người phụ thuộc là bắt buộc' }}
+                                            fullWidth
+                                            label="Số người phụ thuộc"
+                                            startAdornment={<InputAdornment position="start"><GroupsIcon fontSize="small" sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                            type="number"
+                                        />
                                     </Grid>
                                 </Grid>
                             </Box>
