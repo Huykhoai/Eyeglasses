@@ -8,7 +8,7 @@ import { useNotification } from "@/components/ui/Notification/NotificationContex
 export const useFetchPurchaseQuotation = (page: number, size: number, filters: Record<string, any>) => {
     const { showNotification } = useNotification();
     return useQuery<PaginatedResponse<PurchaseQuotationType>>({
-        queryKey: ['purchase-quotation', page, size, filters],
+        queryKey: ['purchase-quotation', 'list', page, size, filters],
         queryFn: async () => {
             try {
                 const params = cleanParams({ ...filters, size });

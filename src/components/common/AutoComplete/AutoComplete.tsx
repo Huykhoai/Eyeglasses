@@ -71,7 +71,7 @@ interface AutoCompleteProps<T> {
     isOptionEqualToValue?: (option: T, value: T) => boolean;
 }
 
-const AutoComplete = <T extends { name?: string; id?: any }>({
+const AutoComplete = <T extends { cid?: string; name?: string; id?: any }>({
     options = [],
     value = null,
     onChange,
@@ -79,7 +79,7 @@ const AutoComplete = <T extends { name?: string; id?: any }>({
     props,
     className,
     disabled,
-    getOptionLabel = (option: T) => option.name || "",
+    getOptionLabel = (option: T) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name) || "",
     isOptionEqualToValue = (option, val) => option.id === val?.id,
 }: AutoCompleteProps<T>) => {
     return (

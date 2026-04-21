@@ -46,15 +46,19 @@ export const columns: ColumnDef[] = [
                     break;
                 case PurchaseQuotationStatus.PENDING:
                     status = 'Chờ duyệt';
-                    color = 'warning';
+                    color = 'info';
                     break;
                 case PurchaseQuotationStatus.REJECTED:
+                    status = 'Đã từ chối';
+                    color = 'warning';
+                    break;
+                case PurchaseQuotationStatus.CANCELLED:
                     status = 'Đã hủy';
                     color = 'danger';
                     break;
                 default:
                     status = 'Bản nháp';
-                    color = 'secondary';
+                    color = 'neutral';
                     break;
             }
             return (
@@ -65,12 +69,12 @@ export const columns: ColumnDef[] = [
         }
     },
     {
-        key: 'createdAt',
-        header: 'Ngày tạo',
+        key: 'requestDate',
+        header: 'Ngày yêu cầu',
         width: '10vw',
         render: (item: PurchaseQuotationType) => (
             <Typography variant="body2" fontSize={11} align="left">
-                {item.requestDate ? new Date(item.requestDate).toLocaleDateString('vi-VN') : '-'}
+                {item.requestDate ? new Date(item.requestDate).toLocaleString('vi-VN') : '-'}
             </Typography>
         )
     },
@@ -80,7 +84,7 @@ export const columns: ColumnDef[] = [
         width: '10vw',
         align: 'center',
         render: (item: PurchaseQuotationType) => (
-            <Typography className="badge-chip badge-info" fontSize={11} align="center">
+            <Typography className="badge-chip badge-neutral" fontSize={11} align="center">
                 {item?.currency?.cid || '-'}
             </Typography>
         )
@@ -106,4 +110,3 @@ export const columns: ColumnDef[] = [
         )
     }
 ];
-    

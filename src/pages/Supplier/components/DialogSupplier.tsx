@@ -267,7 +267,7 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                                     <Autocomplete
                                         size="small"
                                         options={countries || []}
-                                        getOptionLabel={(option) => option.name}
+                                        getOptionLabel={(option) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name) || ""}
                                         value={formData.countryDto}
                                         onChange={(_, value) => {
                                             setFormData(prev => ({ ...prev, countryDto: value }));
@@ -291,8 +291,8 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                                                 }}
                                                 sx={{
                                                     '& .MuiOutlinedInput-root': {
-                                                        '&:hover fieldset': { borderColor: SECONDARY_COLOR },
-                                                        '&.Mui-focused fieldset': { borderColor: SECONDARY_COLOR },
+                                                        '&:hover fieldset': { borderColor: PRIMARY_COLOR },
+                                                        '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
                                                     },
                                                     '& .MuiInputLabel-root.Mui-focused': { color: SECONDARY_COLOR }
                                                 }}

@@ -12,31 +12,39 @@ import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/mater
 import { columns } from "./config/columnTable";
 import { Tune, Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import Pagination from "@/components/common/Pagination/Pagination";
-
+import { useBase64 } from "@/utils/base64";
+import { useCurrency, useSupplier } from "@/hooks/UseAllData";
+import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axiosClient from "@/api/axiosClient";
+import { useNotification } from "@/components/ui/Notification/NotificationContext";
+import PurchaseQuotationStatus from "@/utils/PurchaseQuotationEnum";
 const Quote: React.FC = () => {
     const navigate = useNavigate();
+    const { encode } = useBase64();
+    const { showNotification } = useNotification();
+    const queryClient = useQueryClient();
+
     const [searchParams, setSearchParams] = useSearchParams();
+    const pageParam = searchParams.get('page') || 1;
 
-    const urlFilters = useMemo(() => {
-        const obj: Record<string, any> = {};
-        Object.entries(searchParams).forEach(([key, value]) => {
-            obj[key] = value;
-        })
-        return obj;
-    }, [searchParams]);
-
-    const [filter, setFilter] = useState<Record<string, any>>(urlFilters);
-    const [page, setPage] = useState<number>(1);
+    const [filter, setFilter] = useState<Record<string, any>>(() => {
+        const params = Object.fromEntries(searchParams);
+        const { page: _p, ...rest } = params;
+        return rest;
+    });
+    const [page, setPage] = useState<number>(Number(pageParam));
     const [size, setSize] = useState<number>(20);
-    const categories = useMemo(() => getFilterQuote(), []);
+
+    const { data: suppliers } = useSupplier();
+    const { data: currencies } = useCurrency();
+    const categories = useMemo(() => getFilterQuote((suppliers || []), (currencies || [])), [suppliers, currencies]);
     const columnOptions = useMemo(() => columns, []);
 
     const { data: purchaseQuotations, isLoading } = useFetchPurchaseQuotation(page, size, filter);
 
-    const [openDialog, setOpenDialog] = useState(false);
     const [selectedItem, setSelectedItem] = useState<PurchaseQuotationType | null>(null);
     const [openConfirm, setOpenConfirm] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
@@ -55,26 +63,62 @@ const Quote: React.FC = () => {
         setPage(1);
     }, [setSearchParams])
 
-    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, item: PurchaseQuotationType) => {
+    const handlePageChange = useCallback((page: number) => {
+        setPage(page);
+        setSearchParams({
+            ...filter,
+            page: page.toString()
+        }, { replace: true });
+    }, [setSearchParams, filter])
+
+    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>, item: PurchaseQuotationType) => {
         setSelectedItem(item);
         setAnchorEl(event.currentTarget);
-    }
+    }, [])
 
-    const handleCloseMenu = () => {
+    const handleCloseMenu = useCallback(() => {
         setAnchorEl(null);
-    }
+    }, [])
 
-    const handleEdit = () => {
-        navigate(`/xnk/orders/quotation-request/edit/${selectedItem?.id}`);
-    }
+    const handleEdit = useCallback(() => {
+        if (!selectedItem) return;
+        navigate(`/xnk/orders/quotation-request/update/${encode(selectedItem?.id.toString())}`);
+    }, [navigate, selectedItem])
 
-    const handleDelete = () => {
+    const handleDelete = useCallback(() => {
         setOpenConfirm(true);
-    }
+    }, [])
 
-    const handleAdd = () => {
+    const handleAdd = useCallback(() => {
         navigate('/xnk/orders/quotation-request/add');
-    }
+    }, [navigate])
+
+    const handleConfirmDelete = useCallback(() => {
+        if (!selectedItem) return;
+        createMutation.mutate(selectedItem.id);
+        setOpenConfirm(false);
+        setAnchorEl(null);
+    }, [selectedItem])
+
+    const createMutation = useMutation({
+        mutationFn: async (id: number) => {
+            return axiosClient.delete(`/api/purchase-quotation/${id}`);
+        },
+        onSuccess: (response: any) => {
+            const message = response?.data?.message;
+            if (response.status === 400) {
+                showNotification('error', message || 'Lỗi khi xóa báo giá', 'Thất bại');
+                return;
+            }
+            showNotification('success', message || 'Xóa báo giá thành công', 'Thành công');
+            queryClient.invalidateQueries({ queryKey: ['purchase-quotation'] });
+        },
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Lỗi khi xóa báo giá';
+            showNotification('error', message, 'Thất bại');
+        }
+    })
+
     return (
         <div className="quote-page-wapper">
             {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
@@ -89,7 +133,7 @@ const Quote: React.FC = () => {
                     <MultiFilterBar
                         categories={categories}
                         onFilterChange={handleFilterChange}
-                        initialFilters={urlFilters}
+                        initialFilters={filter}
                     />
                 </div>
                 <div style={{ minWidth: 80 }}>
@@ -155,7 +199,11 @@ const Quote: React.FC = () => {
                                     ))}
                                     <td>
                                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                            <IconButton size="small" onClick={(e) => handleOpenMenu(e, item)}>
+                                            <IconButton
+                                                disabled={createMutation.isPending || PurchaseQuotationStatus.CANCELLED.includes(item.status)}
+                                                size="small"
+                                                onClick={(e) => handleOpenMenu(e, item)}
+                                            >
                                                 <Tune fontSize="small" />
                                             </IconButton>
                                         </div>
@@ -171,7 +219,7 @@ const Quote: React.FC = () => {
                             totalItems={purchaseQuotations?.totalItems ?? 0}
                             page={page}
                             size={size}
-                            onChange={(p) => setPage(p)}
+                            onChange={handlePageChange}
                         />
                     </div>
                 )}
@@ -203,6 +251,14 @@ const Quote: React.FC = () => {
                     Xóa
                 </MenuItem>
             </Menu>
+            <ConfirmDialog
+                open={openConfirm}
+                onClose={() => setOpenConfirm(false)}
+                onConfirm={handleConfirmDelete}
+                title="Xác nhận xóa"
+                content="Bạn có chắc chắn muốn xóa báo giá này?"
+                loading={createMutation.isPending}
+            />
         </div>
     );
 };

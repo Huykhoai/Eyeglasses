@@ -1,5 +1,5 @@
-import { Box, Divider, Grid, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material";
-import React, { useMemo } from "react";
+import { Box, Divider, Grid, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
+import React, { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import {
     Description as FormIcon,
@@ -10,26 +10,23 @@ import {
 } from '@mui/icons-material';
 import { RHFAutoComplete } from "@/components/common/TextField/RHFComponents";
 import { useCurrency, useSupplier } from "@/hooks/UseAllData";
-import { useAuth } from "@/context/AuthContext";
+import type { EntityType } from "@/pages/Employee/config/type";
+import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 
 const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ generateCID }) => {
-    const { control, formState: { errors }, setValue } = useFormContext();
+    const { setValue, getValues } = useFormContext();
     const { data: suppliers } = useSupplier();
     const { data: currencies } = useCurrency();
-    const { user } = useAuth();
 
-    const userNameEmployeeRequest = useMemo(() => {
-        if (!user?.username) return '';
-        const username = user.username.split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-        return username;
-
-    }, [user]);
+    const getNameEmployee = useCallback((empl: EntityType) => {
+        if (!empl) return '--';
+        return empl?.name || '';
+    }, []);
 
     const handleRegenerateCID = () => {
         setValue('cid', generateCID(), { shouldValidate: true });
     };
+
     return (
         <>
             <Grid container spacing={3}>
@@ -41,69 +38,46 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
 
                     <Stack spacing={3} sx={{ px: 4, py: 2, borderRadius: '24px', border: '1px solid #f1f5f9', bgcolor: '#f8fafc' }}>
                         <Box>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Mã phiếu hệ thống</Typography>
-                            <TextField
-                                {...control.register('cid')}
-                                fullWidth
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Mã phiếu yêu cầu báo giá</Typography>
+                            <RHFTextField
+                                name='cid'
                                 placeholder='Nhập mã phiếu yêu cầu báo giá...'
-                                error={!!errors.cid}
-                                helperText={errors.cid?.message?.toString()}
-                                InputProps={{
-                                    startAdornment: <InputAdornment position="start"><RequestQuoteIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton onClick={handleRegenerateCID} size="small" sx={{ color: '#6366f1' }}>
-                                                <AutorenewIcon fontSize="small" />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                    sx: { height: '42px', borderRadius: '10px', bgcolor: '#f1f5f9', fontWeight: 700, fontSize: '0.875rem' }
-                                }}
+                                disabled={!!getValues('id')}
+                                startAdornment={<InputAdornment position="start"><RequestQuoteIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                endAdornment={
+                                    <IconButton onClick={handleRegenerateCID} disabled={!!getValues('id')} size="small" sx={{ color: '#6366f1' }}>
+                                        <AutorenewIcon fontSize="small" />
+                                    </IconButton>
+                                }
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Tên yêu cầu / Dự án *</Typography>
-                            <TextField
-                                {...control.register('name')}
-                                fullWidth
+                            <RHFTextField
+                                name='name'
                                 placeholder="Nhập tên yêu cầu báo giá..."
-                                error={!!errors.name}
-                                helperText={errors.name?.message?.toString()}
-                                InputProps={{
-                                    startAdornment: <InputAdornment position="start"><FormIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                                    sx: { height: '42px', borderRadius: '10px', fontSize: '0.875rem' }
-                                }}
+                                startAdornment={<InputAdornment position="start"><FormIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Ngày tạo phiếu</Typography>
-                            <TextField
-                                {...control.register('requestDate', { required: 'Vui lòng chọn ngày tạo phiếu' })}
+                            <RHFTextField
+                                name='requestDate'
                                 type="datetime-local"
-                                fullWidth
-                                error={!!errors.requestDate}
-                                helperText={errors.requestDate?.message?.toString()}
-                                InputProps={{
-                                    startAdornment: <InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                                    sx: { height: '42px', borderRadius: '10px', fontSize: '0.875rem' }
-                                }}
+                                rules={{ required: 'Vui lòng chọn ngày tạo phiếu' }}
+                                startAdornment={<InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Hạn cuối nhận báo giá</Typography>
-                            <TextField
-                                {...control.register('expectedDate', { required: 'Vui lòng chọn hạn cuối nhận báo giá' })}
+                            <RHFTextField
+                                name='expectedDate'
                                 type="date"
-                                fullWidth
-                                error={!!errors.expectedDate}
-                                helperText={errors.expectedDate?.message?.toString()}
-                                InputProps={{
-                                    startAdornment: <InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                                    sx: { height: '42px', borderRadius: '10px', fontSize: '0.875rem' }
-                                }}
+                                rules={{ required: 'Vui lòng chọn hạn cuối nhận báo giá' }}
+                                startAdornment={<InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
                     </Stack>
@@ -124,6 +98,9 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     options={suppliers || []}
                                     placeholder="Chọn nhà cung cấp"
                                     getOptionLabel={(option: any) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name)}
+                                    onChangeCallback={() => {
+                                        setValue('products', new Map(), { shouldValidate: true });
+                                    }}
                                 />
                             </Grid>
 
@@ -144,28 +121,20 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
 
                             <Grid size={{ xs: 12, md: 5 }}>
                                 <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Tỉ giá (Exchange Rate)</Typography>
-                                <TextField
-                                    {...control.register('currencyValue')}
-                                    type="number"
-                                    fullWidth
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start"><CurrencyIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                                        sx: { height: '42px', borderRadius: '10px', bgcolor: 'white', fontWeight: 700, fontSize: '0.875rem' }
-                                    }}
+                                <RHFTextField
+                                    name='currencyValue'
+                                    isNumber
+                                    startAdornment={<InputAdornment position="start"><CurrencyIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                                 />
                             </Grid>
 
                             <Grid size={{ xs: 12 }}>
                                 <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>Ghi chú điều khoản bổ sung</Typography>
-                                <TextField
-                                    {...control.register('note')}
+                                <RHFTextField
+                                    name='note'
                                     placeholder="VD: Điều kiện thanh toán, địa điểm giao hàng..."
                                     multiline
                                     rows={3}
-                                    fullWidth
-                                    InputProps={{
-                                        sx: { borderRadius: '12px', bgcolor: 'white', py: 1.5, fontSize: '0.875rem' }
-                                    }}
                                 />
                             </Grid>
                         </Grid>
@@ -176,13 +145,13 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                 <Box textAlign="right">
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>Người thực hiện</Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-                        <Typography variant="body2" fontWeight={700}>{userNameEmployeeRequest}</Typography>
+                        <Typography variant="body2" fontWeight={700}>{getNameEmployee(getValues('requestedBy') as EntityType)}</Typography>
                     </Box>
                 </Box>
                 <Divider orientation="vertical" flexItem sx={{ opacity: 0.5 }} />
                 <Box textAlign="right">
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>Người duyệt</Typography>
-                    <Typography variant="body2" fontWeight={700}>{userNameEmployeeRequest}</Typography>
+                    <Typography variant="body2" fontWeight={700}>{getNameEmployee(getValues('approvedBy') as EntityType)}</Typography>
                 </Box>
                 <Divider orientation="vertical" flexItem sx={{ opacity: 0.5 }} />
                 <Box textAlign="right">

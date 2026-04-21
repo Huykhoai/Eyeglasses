@@ -50,7 +50,7 @@ const InformationProductRight: React.FC = () => {
                         options={currencies || []}
                         name="currency"
                         placeholder="Đơn vị"
-                        props={{ maxWidth: "12vw" }}
+                        props={{ maxWidth: "13vw" }}
                     />
                 </div>
                 <LayoutGrid>

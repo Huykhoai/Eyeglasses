@@ -15,7 +15,6 @@ import AddEmployee from "@/pages/Employee/component/AddEmployee";
 import Profile from "@/pages/Profile/Profile";
 import { Position, Roles } from "@/utils/roles";
 import AddExcelProduct from "@/pages/Product/components/AddByExcel/AddExcelProduct";
-import QuotationRequest from "@/pages/Quote/QuotationRequest";
 import AddQuotationRequest from "@/pages/Quote/components/AddQuotationRequest";
 export const router = createBrowserRouter([
     {
@@ -162,6 +161,10 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         path: "add",
+                        element: <AddQuotationRequest />
+                    },
+                    {
+                        path: "update/:id",
                         element: <AddQuotationRequest />
                     }
                 ]

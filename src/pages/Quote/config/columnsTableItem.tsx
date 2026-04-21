@@ -6,6 +6,7 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 import TextField from "@/components/common/TextField/TextField";
 
 export const columns = (
+    productsMap: Map<number, any>,
     page: number,
     size: number,
     onUpdateQty: (id: number, qty: number) => void,
@@ -80,10 +81,10 @@ export const columns = (
             render: (item: SelectedProduct) => (
                 <TextField
                     name='requestQty'
-                    type="text"
-                    value={item.requestQty}
-                    onChange={(e) => onUpdateQty(item.id, Number(e.target.value) || 1)}
-                    props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                    isNumber
+                    value={productsMap.get(item.productId)?.requestQty || item.requestQty}
+                    onChange={(e) => onUpdateQty(item.productId, Number(e.target.value))}
+                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
                 />
             )
 
@@ -95,10 +96,10 @@ export const columns = (
             render: (item: SelectedProduct) => (
                 <TextField
                     name='expectedPrice'
-                    type="text"
-                    value={item.expectedPrice}
-                    onChange={(e) => onUpdatePrice(item.id, Number(e.target.value) || 0)}
-                    props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                    isNumber
+                    value={productsMap.get(item.productId)?.expectedPrice || item.expectedPrice}
+                    onChange={(e) => onUpdatePrice(item.productId, Number(e.target.value))}
+                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
                 />
             )
         },
@@ -109,9 +110,10 @@ export const columns = (
             render: (item: SelectedProduct) => (
                 <TextField
                     name='quotedQty'
-                    value={item.quotedQty}
-                    onChange={(e) => onUpdateQuoteQty(item.id, Number(e.target.value) || 0)}
-                    props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                    isNumber
+                    value={productsMap.get(item.productId)?.quotedQty || item.quotedQty}
+                    onChange={(e) => onUpdateQuoteQty(item.productId, Number(e.target.value))}
+                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
                 />
             )
         },
@@ -122,19 +124,20 @@ export const columns = (
             render: (item: SelectedProduct) => (
                 <TextField
                     name='quotedPrice'
-                    value={item.quotedPrice}
-                    onChange={(e) => onUpdateQuotePrice(item.id, Number(e.target.value) || 0)}
-                    props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                    isNumber
+                    value={productsMap.get(item.productId)?.quotedPrice || item.quotedPrice}
+                    onChange={(e) => onUpdateQuotePrice(item.productId, Number(e.target.value))}
+                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
                 />
             )
         },
         {
-            key: 'totalPrice',
+            key: 'lineTotal',
             header: 'Tổng tiền',
             align: 'right',
             render: (item: SelectedProduct) => (
                 <Typography variant="body2" fontSize={12} fontWeight={700} color="error">
-                    {`$${formatPrice((item.quotedPrice || 0) * (item.quotedQty || 0))}`}
+                    {`$${formatPrice((productsMap.get(item.productId)?.quotedPrice || item.quotedPrice) * (productsMap.get(item.productId)?.quotedQty || item.quotedQty))}`}
                 </Typography>
             ),
         },
@@ -146,7 +149,7 @@ export const columns = (
                 <IconButton
                     size="small"
                     color="error"
-                    onClick={() => onDelete(item.id)}
+                    onClick={() => onDelete(item.productId)}
                     sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } }}
                 >
                     <DeleteIcon fontSize="small" />

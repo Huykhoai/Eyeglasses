@@ -1,8 +1,10 @@
 import type { FilterItem } from "@/components/common/MultiFilterBar/MultiFilterBar";
+import type { ConfigItem, ConfigLimitResponse } from "@/types";
+import PurchaseQuotationStatus, { PurchaseQuotationStatusLabel } from "@/utils/PurchaseQuotationEnum";
 
-export const getFilterQuote = (): FilterItem[] => [
+export const getFilterQuote = (suppliers: ConfigLimitResponse[], currencies: ConfigItem[]): FilterItem[] => [
     {
-        key: 'code',
+        key: 'cid',
         label: 'Mã báo giá',
         type: 'text',
     },
@@ -12,18 +14,41 @@ export const getFilterQuote = (): FilterItem[] => [
         type: 'text',
     },
     {
-        key: 'phone',
-        label: 'Số điện thoại',
-        type: 'text',
+        key: 'supplier',
+        label: 'Nhà cung cấp',
+        type: 'select',
+        options: suppliers?.map((supplier) => ({
+            id: supplier.id,
+            label: supplier.name,
+        }))
     },
     {
-        key: 'email',
-        label: 'Email',
-        type: 'text',
+        key: 'status',
+        label: 'Trạng thái',
+        type: 'select',
+        options: Object.entries(PurchaseQuotationStatus).map(([_, value]) => ({
+            id: value,
+            label: PurchaseQuotationStatusLabel[value],
+        }))
     },
     {
-        key: 'address',
-        label: 'Địa chỉ',
-        type: 'text',
+        key: 'startDate',
+        label: 'Từ ngày',
+        type: 'date',
     },
+    {
+        key: 'endDate',
+        label: 'Đến ngày',
+        type: 'date',
+    },
+    {
+        key: 'currency',
+        label: 'Loại tiền',
+        type: 'select',
+        options: currencies?.map((currency) => ({
+            id: currency.id,
+            label: currency.name,
+        }))
+    }
+
 ]

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Box,
     Paper,
@@ -18,7 +18,7 @@ import { useNotification } from '@/components/ui/Notification/NotificationContex
 import Button from '@/components/common/Button/Button';
 import DialogSelectProduct from './DialogSelectProduct';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './AddQuotationRequest.css';
 import { Divider } from '@mui/material';
 import type { ConfigLimitResponse } from '@/types';
@@ -26,9 +26,12 @@ import AddQuotationRequestInfo from './components/AddQuotationRequestInfo';
 import AddQuotationRequestTable from './components/AddQuotationRequestTable';
 import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from '@/utils/PurchaseQuotationEnum';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-import type { SelectedProduct } from '../config/types';
+import { useFetchPurchaseQuotationById } from '../hooks/useFetchPurchaseQuotationById';
+import Loading from '@/components/ui/Loading/Loading';
+import { useBase64 } from '@/utils/base64';
 
 interface FormValues {
+    id?: number;
     cid: string;
     name: string;
     supplier: ConfigLimitResponse | null;
@@ -38,20 +41,32 @@ interface FormValues {
     status: PurchaseQuotationEnum | null;
     currency: ConfigLimitResponse | null;
     currencyValue: number | null;
-    products: Map<number, SelectedProduct>;
+    products: Map<number, any>;
 }
 
 const AddQuotationRequest: React.FC = () => {
     const { showNotification } = useNotification();
     const navigate = useNavigate();
+    const { decode } = useBase64();
     const queryClient = useQueryClient();
+
+    const { id: encodedId } = useParams();
+    const decodedId = decode(encodedId || '');
+
+    const { data: purchaseQuotation, isLoading } = useFetchPurchaseQuotationById(Number(decodedId));
 
     const [openProductDialog, setOpenProductDialog] = useState(false);
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [openConfirm, setOpenConfirm] = useState(false);
 
-    const generateCID = () => `RFQ-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const statusAccess = useMemo(() => 
+        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(purchaseQuotation?.status)
+    , [purchaseQuotation]);
+
+    const generateCID = useCallback(() => {
+        return `RFQ-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }, []);
 
     const methods = useForm<FormValues>({
         defaultValues: {
@@ -63,23 +78,31 @@ const AddQuotationRequest: React.FC = () => {
             note: '',
             currency: null,
             currencyValue: null,
-            products: new Map<number, SelectedProduct>(),
+            products: new Map<number, any>(),
             status: null
-        }
+        },
+        values: (decodedId && purchaseQuotation) ? {
+            ...purchaseQuotation,
+            products: new Map<number, any>(purchaseQuotation?.products?.map((item: any) => [
+                item.productId, {
+                    productId: item.productId,
+                    requestQty: item.requestQty,
+                    expectedPrice: item.expectedPrice,
+                    quotedQty: item.quotedQty,
+                    quotedPrice: item.quotedPrice,
+                }
+            ])
+            )
+        } : undefined
     });
 
-    const { handleSubmit, watch, setValue, getValues } = methods;
-
-
-    const handleAddProducts = (newMap: Map<number, SelectedProduct>) => {
-        const productsMap = getValues('products');
-        setValue('products', new Map([...productsMap, ...newMap]), { shouldValidate: true });
-    };
+    const { handleSubmit, watch } = methods;
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
-            const selectedProducts: SelectedProduct[] = Array.from(data.products.values());
+            const selectedProducts: any[] = Array.from(data.products.values());
             const payload = {
+                id: data.id,
                 cid: data.cid,
                 name: data.name,
                 supplierId: data.supplier?.id,
@@ -90,12 +113,10 @@ const AddQuotationRequest: React.FC = () => {
                 note: data.note,
                 status: data.status,
                 items: selectedProducts.map(p => ({
-                    productId: p.id,
+                    productId: p.productId,
                     requestQty: p.requestQty,
                     expectedPrice: p.expectedPrice,
                     quotedQty: p.quotedQty,
-                    tax: p.tax,
-                    unit: p.unit,
                     quotedPrice: p.quotedPrice,
                 }))
             };
@@ -107,7 +128,7 @@ const AddQuotationRequest: React.FC = () => {
                 return;
             }
             showNotification('success', response.data.message, 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['quotation-requests'] });
+            queryClient.invalidateQueries({ queryKey: ['purchase-quotation'] });
         },
         onError: (error: any) => {
             showNotification('error', error?.response?.data?.message || 'Lỗi khi lưu yêu cầu báo giá', 'Thất bại');
@@ -115,6 +136,11 @@ const AddQuotationRequest: React.FC = () => {
     });
 
     const onSubmit = (data: FormValues, status: PurchaseQuotationEnum) => {
+        if (!statusAccess) {
+            showNotification('error', 'Không thể chỉnh sửa yêu cầu báo giá đã được duyệt', 'Thất bại');
+            return;
+        }
+
         if (status !== PurchaseQuotationStatus.DRAFT && !validate(data)) {
             return;
         }
@@ -171,6 +197,7 @@ const AddQuotationRequest: React.FC = () => {
                     <Stack direction="row" spacing={2}>
                         <Button
                             variant="outline"
+                            disabled={!statusAccess}
                             onClick={handleSubmit((data) => onSubmit(data, PurchaseQuotationStatus.DRAFT))}
                             style={{ height: '40px', padding: '0 24px', borderColor: '#e2e8f0' }}
                         >
@@ -178,6 +205,7 @@ const AddQuotationRequest: React.FC = () => {
                         </Button>
                         <Button
                             variant="primary"
+                            disabled={!statusAccess}
                             icon={<SaveIcon fontSize="small" />}
                             onClick={handleSubmit((data) => {
                                 if (validate(data)) {
@@ -190,7 +218,7 @@ const AddQuotationRequest: React.FC = () => {
                         </Button>
                     </Stack>
                 </Box>
-
+                {isLoading && <Loading fullPage message='Đang tải dữ liệu...' />}
                 <Stack spacing={3}>
                     <Paper sx={{
                         p: 0,
@@ -248,14 +276,21 @@ const AddQuotationRequest: React.FC = () => {
                                     <Typography variant="caption" color="text.secondary">Chọn sản phẩm cần đề xuất báo giá</Typography>
                                 </Box>
                             </Box>
-                            <Button
-                                variant="primary"
-                                icon={<AddIcon fontSize="small" />}
-                                onClick={() => setOpenProductDialog(true)}
-                                style={{ borderRadius: '10px', padding: '0 24px', height: '40px' }}
-                            >
-                                Thêm sản phẩm
-                            </Button>
+                            {watch('supplier') ? (
+                                <Button
+                                    variant="primary"
+                                    disabled={!statusAccess}
+                                    icon={<AddIcon fontSize="small" />}
+                                    onClick={() => setOpenProductDialog(true)}
+                                    style={{ borderRadius: '10px', padding: '0 24px', height: '40px' }}
+                                >
+                                    Thêm sản phẩm
+                                </Button>
+                            ) : (
+                                <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 600, fontStyle: 'italic' }}>
+                                    * Vui lòng chọn nhà cung cấp trước khi thêm sản phẩm
+                                </Typography>
+                            )}
                         </Box>
                         <AddQuotationRequestTable
                             page={page}
@@ -269,7 +304,6 @@ const AddQuotationRequest: React.FC = () => {
                 <DialogSelectProduct
                     open={openProductDialog}
                     onClose={() => setOpenProductDialog(false)}
-                    onSelected={handleAddProducts}
                 />
             </Box>
             <ConfirmDialog
@@ -281,6 +315,7 @@ const AddQuotationRequest: React.FC = () => {
                 })}
                 title="Xác nhận phát hành"
                 content="Bạn có chắc chắn muốn phát hành báo giá này?"
+                loading={createMutation.isPending}
             />
         </FormProvider >
     );

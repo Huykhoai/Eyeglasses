@@ -11,7 +11,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import HistoryIcon from '@mui/icons-material/History';
 import Loading from "@/components/ui/Loading/Loading";
-import { useSupplierHistory, type Supplier } from '../hooks/useSupplierData';
+import { useSupplierHistory } from '../hooks/useSupplierData';
+import type { Supplier } from '../config/type';
 
 const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-';

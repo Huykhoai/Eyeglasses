@@ -1,0 +1,192 @@
+import { useMemo } from "react";
+import type { ColumnDef } from "@/types";
+import { formatPrice } from "@/utils/formatPrice";
+import { Box, Checkbox, Typography } from "@mui/material";
+import TextField from "@/components/common/TextField/TextField";
+import type { SelectedProduct } from "./types";
+
+export const columns = (productsMap: Map<number, SelectedProduct>, handleToggleSelect: (product: SelectedProduct) => void,
+    handleUpdateQty: (id: number, qty: number) => void, handleUpdatePrice: (id: number, price: number) => void,
+    handleUpdateQuoteQty: (id: number, qty: number) => void, handleUpdateQuotePrice: (id: number, price: number) => void
+): ColumnDef[] => useMemo(() => [
+    {
+        key: 'select',
+        header: '',
+        width: '4vw',
+        align: 'center',
+        render: (item: SelectedProduct) => (
+            <Checkbox
+                checked={!!productsMap.get(item.productId)}
+                onChange={() => handleToggleSelect(item)}
+            />
+        ),
+    },
+    {
+        key: 'cid',
+        header: 'Mã sản phẩm',
+        width: '10vw',
+        align: 'center',
+        render: (item: SelectedProduct) => (
+            <span className="badge-chip badge-info" style={{ fontSize: 10 }}>{item.cid}</span>
+        ),
+    },
+    {
+        key: 'name',
+        header: 'Tên đầy đủ',
+        width: '15vw',
+        render: (item: SelectedProduct) => (
+            <Typography variant="subtitle2" fontSize={12} fontWeight={600}
+                sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                }}>
+                {item.name}
+            </Typography>
+        ),
+    },
+    {
+        key: 'unit',
+        header: 'Đơn vị',
+        width: '10%',
+        align: 'center',
+        render: (item: SelectedProduct) => item.unit,
+    },
+    {
+        key: 'tax',
+        header: 'Thuế',
+        align: 'right',
+        render: (item: SelectedProduct) => (
+            <Typography variant="body2" fontSize={12} fontWeight={600} color="textSecondary">
+                {formatPrice(item.tax || 0)}%
+            </Typography>
+        ),
+    },
+    {
+        key: 'originalPrice',
+        header: 'Nguyên tệ',
+        align: 'right',
+        render: (item: SelectedProduct) => (
+            <Typography variant="body2" fontSize={12} fontWeight={600} color="#16a34a">
+                {formatPrice(item.originalPrice)}
+            </Typography>
+        ),
+    },
+    {
+        key: 'requestQty',
+        header: 'SL dự kiến',
+        align: 'right',
+        render: (item: SelectedProduct) => {
+            const isSelected = !!productsMap.get(item.productId);
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'right' }}>
+                    {isSelected ? (
+                        <TextField
+                            name='requestQty'
+                            type="text"
+                            value={productsMap.get(item.productId)?.requestQty}
+                            onChange={(e) => handleUpdateQty(item.productId, Number(e.target.value) || 1)}
+                            props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                        />
+                    ) : (
+                        <Typography variant="body2" fontSize={12} fontWeight={600}>
+                            {formatPrice(item.requestQty || 0)}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
+    },
+    {
+        key: 'expectedPrice',
+        header: 'Giá dự kiến',
+        align: 'right',
+        render: (item: SelectedProduct) => {
+            const isSelected = !!productsMap.get(item.productId);
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'right' }}>
+                    {isSelected ? (
+                        <TextField
+                            name='expectedPrice'
+                            type="text"
+                            value={productsMap.get(item.productId)?.expectedPrice}
+                            onChange={(e) => handleUpdatePrice(item.productId, Number(e.target.value) || 0)}
+                            props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                        />
+                    ) : (
+                        <Typography variant="body2" fontSize={12} fontWeight={600}>
+                            {formatPrice(item.expectedPrice || item.lastPurchasePrice || item.originalPrice || 0)}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
+    },
+    {
+        key: 'quotedQty',
+        header: 'SL báo giá',
+        align: 'right',
+        render: (item: SelectedProduct) => {
+            const isSelected = !!productsMap.get(item.productId);
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'right' }}>
+                    {isSelected ? (
+                        <TextField
+                            name='quotedQty'
+                            type="text"
+                            value={productsMap.get(item.productId)?.quotedQty}
+                            onChange={(e) => handleUpdateQuoteQty(item.productId, Number(e.target.value) || 0)}
+                            props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                        />
+                    ) : (
+                        <Typography variant="body2" fontSize={12} fontWeight={600}>
+                            {formatPrice(item.quotedQty || 0)}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
+    },
+    {
+        key: 'quotedPrice',
+        header: 'Giá báo giá',
+        align: 'right',
+        render: (item: SelectedProduct) => {
+            const isSelected = !!productsMap.get(item.productId);
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'right' }}>
+                    {isSelected ? (
+                        <TextField
+                            name='quotedPrice'
+                            type="text"
+                            value={productsMap.get(item.productId)?.quotedPrice}
+                            onChange={(e) => handleUpdateQuotePrice(item.productId, Number(e.target.value) || 0)}
+                            props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
+                        />
+                    ) : (
+                        <Typography variant="body2" fontSize={12} fontWeight={600}>
+                            {formatPrice(item.quotedPrice || item.lastPurchasePrice || item.originalPrice || 0)}
+                        </Typography>
+                    )}
+                </Box>
+            )
+        },
+    },
+    {
+        key: 'totalPrice',
+        header: 'Tổng tiền',
+        align: 'right',
+        render: (item: SelectedProduct) => {
+            const isSelected = productsMap.get(item.productId);
+            return (
+                <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
+                    {`$${formatPrice((isSelected?.quotedPrice || 0) * (isSelected?.quotedQty || 0))}`}
+                </Typography>
+
+            )
+        },
+    }
+], [productsMap])

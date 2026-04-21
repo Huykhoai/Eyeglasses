@@ -114,18 +114,12 @@
     color: #075985;
     border: 1px solid #bae6fd;
 }
-.badge-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
-}
 .badge-neutral {
     background: #f3f4f6;
     color: #374151;
     border: 1px solid #d1d5db;
 }
 
-/* Table Action Buttons */
 .table-action-btn {
     color: var(--table-text-muted);
     transition: all 0.2s ease;

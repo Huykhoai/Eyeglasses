@@ -7,7 +7,6 @@ import {
     Box,
     Typography,
     IconButton,
-    Checkbox,
 } from '@mui/material';
 import {
     Close as CloseIcon,
@@ -24,34 +23,35 @@ import ProductTypeTabs from '@/pages/Product/components/ProductTypeTabs';
 import type { ProductType } from '@/pages/Product/types/product';
 import Select from '@/components/common/Select/Select';
 import { cleanParams } from '@/utils/cleanParams';
-import type { ColumnDef, PaginatedResponse } from '@/types';
+import type { PaginatedResponse } from '@/types';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
-import { formatPrice } from '@/utils/formatPrice';
-import TextField from '@/components/common/TextField/TextField';
 import Pagination from '@/components/common/Pagination/Pagination';
 import type { SelectedProduct } from '../config/types';
+import { useFormContext } from 'react-hook-form';
+import { columns } from '../config/columnsTableDialog';
 
 interface DialogSelectProductProps {
     open: boolean;
     onClose: () => void;
-    onSelected: (products: Map<number, SelectedProduct>) => void;
 }
 
-const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose, onSelected }) => {
+const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose }) => {
     const filterOptions = useMemo(() => filterDialogProduct, []);
     const { showNotification } = useNotification();
+    const { watch, setValue } = useFormContext();
+    const supplier = watch('supplier');
+    const productsMap = watch('products') || new Map();
 
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
     const [productType, setProductType] = useState<ProductType>('LENS');
-    const [tempSelected, setTempSelected] = useState<Map<number, SelectedProduct>>(new Map());
 
     const { data, isLoading } = useQuery<PaginatedResponse<SelectedProduct>>({
-        queryKey: ['products-quotation', page, size, filters, productType],
+        queryKey: ['products-quotation', page, size, supplier?.id, productType],
         queryFn: async () => {
             try {
-                const params = cleanParams({ ...filters, type: productType, size });
+                const params = cleanParams({ ...filters,supplier: supplier?.id, type: productType, size });
                 const response = await axiosClient.get(`/api/purchase-quotation/products/${page}`, { params });
                 return { items: response.data.data, totalItems: response.data.totalItems } as PaginatedResponse<SelectedProduct>;
             } catch (error: any) {
@@ -60,7 +60,7 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                 throw error;
             }
         },
-        enabled: open,
+        enabled: !!open && !!supplier?.id,
         retry: false,
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
@@ -97,256 +97,67 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
         setPage(1);
         setSize(size);
     }, []);
+
     const handleToggleSelect = (product: SelectedProduct) => {
-        setTempSelected(prev => {
-            const newSelected = new Map(prev);
-            if (newSelected.has(product.id)) {
-                newSelected.delete(product.id);
+            const newSelected = new Map(productsMap);
+            if (newSelected.has(product.productId)) {
+                newSelected.delete(product.productId);
             } else {
-                newSelected.set(product.id, {
-                    ...product,
+                newSelected.set(product.productId, {
+                    productId: product.productId,
                     requestQty: 1,
                     expectedPrice: product.lastPurchasePrice || product.originalPrice || 0,
                     quotedQty: 1,
                     quotedPrice: product.lastPurchasePrice || product.originalPrice || 0,
                 });
             }
-            return newSelected;
-        });
+            setValue('products', newSelected, { shouldValidate: true });
     };
 
     const handleUpdateQty = (id: number, qty: number) => {
-        setTempSelected(prev => {
-            const newSelected = new Map(prev);
-            const item = newSelected.get(id);
-            if (item) {
-                newSelected.set(id, { ...item, requestQty: qty || 0, quotedQty: qty || 0 });
-            }
-            return newSelected;
-        });
+        const newSelected = new Map(productsMap);
+        const item = newSelected.get(id);
+        if (item) {
+            newSelected.set(id, { ...item, requestQty: qty || 0, quotedQty: qty || 0 });
+        }
+        setValue('products', newSelected, { shouldValidate: true });
     };
 
     const handleUpdatePrice = (id: number, price: number) => {
-        setTempSelected(prev => {
-            const newSelected = new Map(prev);
-            const item = newSelected.get(id);
-            if (item) {
-                newSelected.set(id, { ...item, expectedPrice: price, quotedPrice: price });
-            }
-            return newSelected;
-        });
+        const newSelected = new Map(productsMap);
+        const item = newSelected.get(id);
+        if (item) {
+            newSelected.set(id, { ...item, expectedPrice: price, quotedPrice: price });
+        }
+        setValue('products', newSelected, { shouldValidate: true });
     };
 
     const handleUpdateQuoteQty = (id: number, qty: number) => {
-        setTempSelected(prev => {
-            const newSelected = new Map(prev);
-            const item = newSelected.get(id);
-            if (item) {
-                newSelected.set(id, { ...item, quotedQty: qty || 0 });
-            }
-            return newSelected;
-        });
+        const newSelected = new Map(productsMap);
+        const item = newSelected.get(id);
+        if (item) {
+            newSelected.set(id, { ...item, quotedQty: qty || 0 });
+        }
+        setValue('products', newSelected, { shouldValidate: true });
     };
 
     const handleUpdateQuotePrice = (id: number, price: number) => {
-        setTempSelected(prev => {
-            const newSelected = new Map(prev);
-            const item = newSelected.get(id);
-            if (item) {
-                newSelected.set(id, { ...item, quotedPrice: price });
-            }
-            return newSelected;
-        });
+        const newSelected = new Map(productsMap);
+        const item = newSelected.get(id);
+        if (item) {
+            newSelected.set(id, { ...item, quotedPrice: price });
+        }
+        setValue('products', newSelected, { shouldValidate: true });
     };
 
     const handleSubmit = () => {
-        onSelected(tempSelected);
-        setTempSelected(new Map());
         onClose();
     };
 
-    const columns: ColumnDef[] = useMemo(() => [
-        {
-            key: 'select',
-            header: '',
-            width: '4vw',
-            align: 'center',
-            render: (item: SelectedProduct) => (
-                <Checkbox
-                    checked={!!tempSelected.get(item.id)}
-                    onChange={() => handleToggleSelect(item)}
-                />
-            ),
-        },
-        {
-            key: 'cid',
-            header: 'Mã sản phẩm',
-            width: '10vw',
-            align: 'center',
-            render: (item: SelectedProduct) => (
-                <span className="badge-chip badge-info" style={{ fontSize: 10 }}>{item.cid}</span>
-            ),
-        },
-        {
-            key: 'name',
-            header: 'Tên đầy đủ',
-            width: '15vw',
-            render: (item: SelectedProduct) => (
-                <Typography variant="subtitle2" fontSize={12} fontWeight={600}
-                    sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        textAlign: 'left',
-                    }}>
-                    {item.name}
-                </Typography>
-            ),
-        },
-        {
-            key: 'unit',
-            header: 'Đơn vị',
-            width: '10%',
-            align: 'center',
-            render: (item: SelectedProduct) => item.unit,
-        },
-        {
-            key: 'tax',
-            header: 'Thuế',
-            align: 'right',
-            render: (item: SelectedProduct) => (
-                <Typography variant="body2" fontSize={12} fontWeight={600} color="textSecondary">
-                    {formatPrice(item.tax || 0)}%
-                </Typography>
-            ),
-        },
-        {
-            key: 'originalPrice',
-            header: 'Nguyên tệ',
-            align: 'right',
-            render: (item: SelectedProduct) => (
-                <Typography variant="body2" fontSize={12} fontWeight={600} color="#16a34a">
-                    {formatPrice(item.originalPrice)}
-                </Typography>
-            ),
-        },
-        {
-            key: 'requestQty',
-            header: 'SL dự kiến',
-            align: 'right',
-            render: (item: SelectedProduct) => {
-                const isSelected = !!tempSelected.get(item.id);
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'right' }}>
-                        {isSelected ? (
-                            <TextField
-                                name='requestQty'
-                                type="text"
-                                value={tempSelected.get(item.id)?.requestQty}
-                                onChange={(e) => handleUpdateQty(item.id, Number(e.target.value) || 1)}
-                                props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
-                            />
-                        ) : (
-                            <Typography variant="body2" fontSize={12} fontWeight={600}>
-                                {formatPrice(item.requestQty || 0)}
-                            </Typography>
-                        )}
-                    </Box>
-                )
-            },
-        },
-        {
-            key: 'expectedPrice',
-            header: 'Giá dự kiến',
-            align: 'right',
-            render: (item: SelectedProduct) => {
-                const isSelected = !!tempSelected.get(item.id);
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'right' }}>
-                        {isSelected ? (
-                            <TextField
-                                name='expectedPrice'
-                                type="text"
-                                value={tempSelected.get(item.id)?.expectedPrice}
-                                onChange={(e) => handleUpdatePrice(item.id, Number(e.target.value) || 0)}
-                                props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
-                            />
-                        ) : (
-                            <Typography variant="body2" fontSize={12} fontWeight={600}>
-                                {formatPrice(item.expectedPrice || item.lastPurchasePrice || item.originalPrice || 0)}
-                            </Typography>
-                        )}
-                    </Box>
-                )
-            },
-        },
-        {
-            key: 'quotedQty',
-            header: 'SL báo giá',
-            align: 'right',
-            render: (item: SelectedProduct) => {
-                const isSelected = !!tempSelected.get(item.id);
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'right' }}>
-                        {isSelected ? (
-                            <TextField
-                                name='quotedQty'
-                                type="text"
-                                value={tempSelected.get(item.id)?.quotedQty}
-                                onChange={(e) => handleUpdateQuoteQty(item.id, Number(e.target.value) || 0)}
-                                props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
-                            />
-                        ) : (
-                            <Typography variant="body2" fontSize={12} fontWeight={600}>
-                                {formatPrice(item.quotedQty || 0)}
-                            </Typography>
-                        )}
-                    </Box>
-                )
-            },
-        },
-        {
-            key: 'quotedPrice',
-            header: 'Giá báo giá',
-            align: 'right',
-            render: (item: SelectedProduct) => {
-                const isSelected = !!tempSelected.get(item.id);
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'right' }}>
-                        {isSelected ? (
-                            <TextField
-                                name='quotedPrice'
-                                type="text"
-                                value={tempSelected.get(item.id)?.quotedPrice}
-                                onChange={(e) => handleUpdateQuotePrice(item.id, Number(e.target.value) || 0)}
-                                props={{ min: 1, style: { textAlign: 'center', width: '5vw', padding: '5px 10px' } }}
-                            />
-                        ) : (
-                            <Typography variant="body2" fontSize={12} fontWeight={600}>
-                                {formatPrice(item.quotedPrice || item.lastPurchasePrice || item.originalPrice || 0)}
-                            </Typography>
-                        )}
-                    </Box>
-                )
-            },
-        },
-        {
-            key: 'totalPrice',
-            header: 'Tổng tiền',
-            align: 'right',
-            render: (item: SelectedProduct) => {
-                const isSelected = tempSelected.get(item.id);
-                return (
-                    <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
-                        {`$${formatPrice((isSelected?.quotedPrice || 0) * (isSelected?.quotedQty || 0))}`}
-                    </Typography>
-
-                )
-            },
-        }
-    ], [tempSelected])
+    const columnsTable = columns(
+        productsMap, handleToggleSelect, handleUpdateQty, handleUpdatePrice, 
+        handleUpdateQuoteQty, handleUpdateQuotePrice
+    );
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth PaperProps={{ sx: { borderRadius: '16px', minWidth: '90vw', height: '90vh' } }}>
@@ -411,7 +222,7 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                             <table className="table-premium">
                                 <thead>
                                     <tr>
-                                        {columns.map((column) => (
+                                        {columnsTable.map((column) => (
                                             <th
                                                 key={column.key}
                                                 style={{
@@ -429,8 +240,8 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                                 <tbody>
                                     {products.map((product: SelectedProduct) => {
                                         return (
-                                            <tr key={product.id}>
-                                                {columns.map((column) => (
+                                            <tr key={product.productId}>
+                                                {columnsTable.map((column) => (
                                                     <td key={column.key} align={column.align} style={{ maxWidth: column.width }}>
                                                         {column.render
                                                             ? column.render(product)
@@ -459,10 +270,10 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                     <Button
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={tempSelected.size === 0}
+                        disabled={productsMap.size === 0}
                         icon={<AddIcon fontSize="small" />}
                     >
-                        Thêm ({tempSelected.size}) sản phẩm
+                        Thêm ({productsMap.size}) sản phẩm
                     </Button>
                 </Box>
             </DialogActions>

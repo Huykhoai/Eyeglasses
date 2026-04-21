@@ -6,24 +6,52 @@ import Select from "@/components/common/Select/Select";
 import Pagination from "@/components/common/Pagination/Pagination";
 import type { SelectedProduct } from "../../config/types";
 import { formatPrice } from '@/utils/formatPrice';
+import { useQuery } from "@tanstack/react-query";
+import { useNotification } from "@/components/ui/Notification/NotificationContext";
+import axiosClient from "@/api/axiosClient";
 
 const AddQuotationRequestTable = ({
-    page,
-    size,
-    setPage,
-    setSize,
+    page, size,
+    setPage, setSize,
 }: { page: number, size: number, setPage: (page: number) => void, setSize: (size: number) => void }) => {
     const { setValue, watch } = useFormContext();
+    const { showNotification } = useNotification();
 
-    const productsMap = watch('products');
-    const selectedProducts: SelectedProduct[] = useMemo(() => Array.from(productsMap.values()), [productsMap]);
-    const displayedProducts = useMemo(() => {
+    const productsMap = watch('products') || new Map();
+    const selectedProducts: any[] = useMemo(() => Array.from(productsMap.values()), [productsMap])
+
+    const displayProducts = useMemo(() => {
         return selectedProducts.slice((page - 1) * size, page * size);
     }, [selectedProducts, page, size]);
+
+    const idString = useMemo(() =>
+        displayProducts.map((item: any) => item.productId).join(',')
+        , [displayProducts]);
+
+    const { data: displayedProducts } = useQuery<SelectedProduct[]>({
+        queryKey: ['items-detail-quotation', page, size, idString],
+        queryFn: async () => {
+            try {
+                const response = await axiosClient.post(`/api/purchase-quotation/items-detail`, displayProducts);
+                return response.data;
+            } catch (error: any) {
+                const message = error?.response?.data?.message || 'Lỗi khi lấy danh sách sản phẩm';
+                showNotification('error', message, 'Thất bại');
+                throw error;
+            }
+        },
+        enabled: !!idString,
+        retry: false
+    });
+
+    const currency = watch('currency');
+    const currencyValue = watch('currencyValue') || 1;
 
     const totalAmount = useMemo(() => {
         return selectedProducts.reduce((sum, item) => sum + ((item.quotedQty || 0) * (item.quotedPrice || 0)), 0);
     }, [selectedProducts]);
+
+    const convertedTotal = useMemo(() => totalAmount * currencyValue, [totalAmount, currencyValue]);
 
     const handleRemoveProduct = (id: number) => {
         const newMap = new Map(productsMap);
@@ -35,7 +63,8 @@ const AddQuotationRequestTable = ({
         const newMap = new Map(productsMap);
         const item = newMap.get(id);
         if (item) {
-            newMap.set(id, { ...item, requestQty: qty || 0, quotedQty: qty || 0 });
+            const quantity = qty > 0 ? qty : 1;
+            newMap.set(id, { ...item, requestQty: quantity, quotedQty: quantity });
             setValue('products', newMap, { shouldValidate: true });
         }
     };
@@ -44,7 +73,8 @@ const AddQuotationRequestTable = ({
         const newMap = new Map(productsMap);
         const item = newMap.get(id);
         if (item) {
-            newMap.set(id, { ...item, expectedPrice: price, quotedPrice: price });
+            const priceValue = price > 0 ? price : 1;
+            newMap.set(id, { ...item, expectedPrice: priceValue, quotedPrice: priceValue });
             setValue('products', newMap, { shouldValidate: true });
         }
     };
@@ -53,7 +83,8 @@ const AddQuotationRequestTable = ({
         const newMap = new Map(productsMap);
         const item = newMap.get(id);
         if (item) {
-            newMap.set(id, { ...item, quotedQty: qty || 0 });
+            const quantity = qty > 0 ? qty : 1;
+            newMap.set(id, { ...item, quotedQty: quantity });
             setValue('products', newMap, { shouldValidate: true });
         }
     };
@@ -62,15 +93,16 @@ const AddQuotationRequestTable = ({
         const newMap = new Map(productsMap);
         const item = newMap.get(id);
         if (item) {
-            newMap.set(id, { ...item, quotedPrice: price });
+            const priceValue = price > 0 ? price : 1;
+            newMap.set(id, { ...item, quotedPrice: priceValue });
             setValue('products', newMap, { shouldValidate: true });
         }
     };
     const columnsTable = useMemo(() => columns(
-        page, size, handleUpdateQty, handleUpdatePrice, handleUpdateQuoteQty,
+        productsMap, page, size, handleUpdateQty, handleUpdatePrice, handleUpdateQuoteQty,
         handleUpdateQuotePrice, handleRemoveProduct
     ), [
-        page, size, handleUpdateQty, handleUpdatePrice,
+        productsMap, page, size, handleUpdateQty, handleUpdatePrice,
         handleUpdateQuoteQty, handleUpdateQuotePrice, handleRemoveProduct
     ]);
 
@@ -96,19 +128,19 @@ const AddQuotationRequestTable = ({
                         </tr>
                     </thead>
                     <tbody>
-                        {displayedProducts.length === 0 ? (
+                        {((displayedProducts as any[])?.length || 0) === 0 ? (
                             <tr>
                                 <td colSpan={12} align="center" style={{ padding: '0 10px' }}>
                                     <Typography variant="body2" color="text.secondary">Chưa có sản phẩm nào được chọn.</Typography>
                                 </td>
                             </tr>
-                        ) : displayedProducts.map((item, index) => (
-                            <tr key={item.id}>
-                                {columnsTable.map((col) => (
+                        ) : (displayedProducts || []).map((item: any, index: number) => (
+                            <tr key={item.id || index}>
+                                {(columnsTable || []).map((col) => (
                                     <td key={col.key} align={col.align} style={{ maxWidth: col.width }}>
                                         {col.render
                                             ? col.render(item, index)
-                                            : <Typography variant="body2" fontSize={12}>{(item as any)[col.key] ?? '-'}</Typography>}
+                                            : (item as any)[col.key] || '-'}
                                     </td>
                                 ))}
                             </tr>
@@ -129,23 +161,30 @@ const AddQuotationRequestTable = ({
                     />
                 </Box>
                 <Pagination
-                    totalItems={selectedProducts.length}
+                    totalItems={selectedProducts?.length || 0}
                     page={page}
                     size={size}
                     onChange={(page) => setPage(page)}
                 />
-                <Stack spacing={1} sx={{ minWidth: 250, justifyContent: 'center' }}>
+                <Stack spacing={0.5} sx={{ minWidth: 300, justifyContent: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary" textAlign={"center"}>Tổng cộng:</Typography>
+                        <Typography variant="caption" color="text.secondary">Thành tiền ({currency?.cid || 'USD'}):</Typography>
                         <Typography color="error" fontSize={15} fontWeight={700}>
-                            ${formatPrice(totalAmount)}
+                            {formatPrice(totalAmount || 0)} {currency?.cid || '$'}
                         </Typography>
                     </Box>
+                    {currencyValue > 1 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1.5px dashed #e2e8f0', pt: 0.5 }}>
+                            <Typography variant="caption" color="text.secondary">Quy đổi (VND):</Typography>
+                            <Typography color="primary" fontSize={14} fontWeight={600}>
+                                {formatPrice(convertedTotal || 0)} VND
+                            </Typography>
+                        </Box>
+                    )}
                 </Stack>
             </Box>
         </>
-
-    )
+    );
 }
 
 export default AddQuotationRequestTable;

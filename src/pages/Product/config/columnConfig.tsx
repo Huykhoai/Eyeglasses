@@ -123,9 +123,9 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
             const name = item.statusProduct?.name || '-';
             const status = item.statusProduct?.id === 1 ? 'success' : item.statusProduct?.id === 2 ? 'warning' : 'danger';
             return (
-                <span className={`badge-chip badge-${status}`}>
+                <Typography className={`badge-chip badge-${status}`} variant="body2" fontSize={9}>
                     {name}
-                </span>
+                </Typography>
             );
         }
     },
@@ -146,8 +146,8 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         align: 'center',
         groupName: 'Thông tin giá',
         render: (item: Product) => (
-            <Typography variant="body2" fontSize={12}>
-                {item.currency?.name || '-' }
+            <Typography className="badge-chip badge-neutral" variant="body2" fontSize={9}>
+                {item.currency?.cid || '-' }
             </Typography>
         ),
     },

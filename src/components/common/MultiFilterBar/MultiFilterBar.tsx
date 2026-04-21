@@ -6,7 +6,7 @@ import './MultiFilterBar.css';
 export type FilterType = 'text' | 'select' | 'checkbox' | 'date' | 'number';
 
 export interface FilterOption {
-    id: number;
+    id: number | string;
     label: string;
 }
 
