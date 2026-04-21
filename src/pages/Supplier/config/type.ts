@@ -18,7 +18,7 @@ export interface Supplier {
     swiftCode: string;
     taxCode: string;
     supplierId: number;
-    countryDto: NamedEntity;
+    country: NamedEntity;
 }
 
 export interface DialogSupplierProps {

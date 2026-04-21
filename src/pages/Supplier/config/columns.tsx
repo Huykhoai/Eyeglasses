@@ -73,12 +73,12 @@ export const columns: ColumnDef[] = [
         ),
     },
     {
-        key: 'countryDto',
+        key: 'country',
         header: 'Quốc gia',
         width: '6vw',
         render: (item: Supplier) => (
             <Typography variant="body2" fontSize={12}>
-                {item.countryDto.name}
+                {item.country.name}
             </Typography>
         ),
     },

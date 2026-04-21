@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
-    TextField,
     Box,
     IconButton,
     Typography,
-    Autocomplete,
     InputAdornment
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -22,16 +20,18 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CodeIcon from '@mui/icons-material/Code';
-import FlagIcon from '@mui/icons-material/Flag';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 
 import Button from '@/components/common/Button/Button';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import axiosClient from '@/api/axiosClient';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCountry } from '@/hooks/UseAllData';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-import type { DialogSupplierProps, FormErrors } from '../config/type';
+import type { DialogSupplierProps, Supplier } from '../config/type';
+import { FormProvider, useForm } from 'react-hook-form';
+import { RHFTextField } from '@/components/common/TextField/RHFTextField';
+import { RHFAutoComplete } from '@/components/common/TextField/RHFComponents';
 
 const initialForm = {
     cid: '',
@@ -48,7 +48,7 @@ const initialForm = {
     swiftCode: '',
     taxCode: '',
     supplierId: 0,
-    countryDto: null as any
+    country: null as any
 };
 
 const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, onSuccess }) => {
@@ -58,138 +58,72 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
     const queryClient = useQueryClient();
     const { data: countries } = useCountry();
 
-    const [formData, setFormData] = useState(initialForm);
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [loading, setLoading] = useState(false);
     const [openConfirm, setOpenConfirm] = useState(false);
 
-    useEffect(() => {
+    const methods = useForm<Supplier>({
+        defaultValues: initialForm,
+        values: data ? { ...data } : undefined,
+    });
+
+    const { handleSubmit, trigger, getValues, reset } = methods;
+
+    React.useEffect(() => {
         if (open) {
-            if (data) {
-                setFormData({
-                    ...initialForm,
-                    ...data,
-                });
-            } else {
-                setFormData(initialForm);
-            }
-            setErrors({});
+            reset(data ? { ...data } : initialForm);
         }
-    }, [open, data]);
-    
-    const labelMapper: Record<string, string> = {
-        cid: 'Mã nhà cung cấp',
-        name: 'Tên nhà cung cấp',
-        email: 'Email',
-        phone: 'Số điện thoại',
-        contact: 'Liên hệ',
-        address: 'Địa chỉ',
-        fax: 'Fax',
-        advisingBank: 'Ngân hàng',
-        branchCode: 'Mã chi nhánh',
-        bankAddress: 'Địa chỉ ngân hàng',
-        accountNo: 'Số tài khoản',
-        swiftCode: 'Mã SWIFT',
-        taxCode: 'Mã số thuế',
-        countryDto: 'Quốc gia'
-    };
+    }, [open, data, reset]);
 
-    const validate = () => {
-        const newErrors: FormErrors = {};
-
-        Object.entries(formData).forEach(([key, value]) => {
-            if (key === "supplierId" || key === "id") return;
-
-            if (!value && labelMapper[key]) {
-                newErrors[key] = `${labelMapper[key]} không được để trống`;
-            }
-        });
-
-        if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Email không hợp lệ';
-        }
-
-        if (formData.phone && !/^(0[2|3|5|7|8|9])+([0-9]{8,9})$/.test(formData.phone)) {
-            newErrors.phone = 'Số điện thoại không hợp lệ';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => {
-                const updated = { ...prev };
-                delete updated[name];
-                return updated;
-            });
-        }
-    };
-
-    const handleSave = async () => {
-        if (!validate()){
+    const onSubmit = async (data: Supplier) => {
+        const isValid = await trigger();
+        if (!isValid) {
             setOpenConfirm(false)
             return;
         };
+        createMutation.mutate(data)
+    };
 
-        setLoading(true);
-        try {
-            if (data?.id) {
-                await axiosClient.put(`/api/supplier/update/${data.id}`, formData);
-                showNotification('success', 'Cập nhật nhà cung cấp thành công', 'Thành công');
-            } else {
-                await axiosClient.post('/api/supplier/create', formData);
-                showNotification('success', 'Thêm nhà cung cấp thành công', 'Thành công');
-            }
-
+    const createMutation = useMutation({
+        mutationFn: async (data: Supplier) => {
+            if (data?.id) return await axiosClient.put(`/api/supplier/update/${data.id}`, data);
+            return await axiosClient.post('/api/supplier/create', data);
+        },
+        onSuccess: () => {
+            showNotification('success', data?.id
+                ? 'Cập nhật nhà cung cấp thành công'
+                : 'Thêm nhà cung cấp thành công', 'Thành công');
             queryClient.invalidateQueries({ queryKey: ['supplier'] });
             onSuccess?.();
             onClose();
             setOpenConfirm(false)
-        } catch (error: any) {
+        },
+        onError: (error: any) => {
             const message = error?.response?.data?.message || 'Có lỗi xảy ra';
             showNotification('error', message, 'Lỗi');
-        } finally {
-            setLoading(false);
         }
-    };
+    })
 
-    const renderTextField = (label: string, name: string, icon: React.ReactNode, gridSpan: any = { xs: 'span 12', md: 'span 4' }, required: boolean = false, disabled: boolean = false) => (
+    const renderTextField = (
+        label: string, name: string, icon: React.ReactNode, gridSpan: any = { xs: 'span 12', md: 'span 4' },
+        required: boolean = false, disabled: boolean = false, rules?: any
+    ) => (
         <Box sx={{ gridColumn: gridSpan }}>
-            <TextField
+            <RHFTextField
+                rules={rules}
                 fullWidth
-                size="small"
                 label={label + (required ? ' *' : '')}
                 name={name}
                 disabled={disabled}
-                value={(formData as any)[name] || ''}
-                onChange={handleChange}
-                error={!!errors[name]}
-                helperText={errors[name]}
-                InputProps={{
-                    startAdornment: icon ? (
-                        <InputAdornment position="start">
-                            {icon}
-                        </InputAdornment>
-                    ) : null,
-                    sx: { borderRadius: '6px' }
-                }}
-                sx={{
-                    '& .MuiOutlinedInput-root': {
-                        '&:hover fieldset': { borderColor: PRIMARY_COLOR },
-                        '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: SECONDARY_COLOR }
-                }}
+                startAdornment={icon ? (
+                    <InputAdornment position="start">
+                        {icon}
+                    </InputAdornment>
+                ) : null}
             />
         </Box>
     );
 
     return (
-        <div>
+        <FormProvider {...methods}>
             <Dialog
                 open={open}
                 onClose={onClose}
@@ -234,13 +168,63 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                             </Box>
 
                             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 3 }}>
-                                {renderTextField("Mã nhà cung cấp", "cid", <BusinessIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true, data?.id ? true : false)}
-                                {renderTextField("Tên nhà cung cấp", "name", <PersonIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Số điện thoại", "phone", <PhoneIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' })}
+                                {renderTextField(
+                                    "Mã nhà cung cấp", "cid", <BusinessIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, data?.id ? true : false,
+                                    {
+                                        required: "Mã nhà cung cấp là bắt buộc",
+                                        maxLength: { value: 50, message: "Mã nhà cung cấp không được vượt quá 50 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Tên nhà cung cấp", "name", <PersonIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Tên nhà cung cấp là bắt buộc",
+                                        maxLength: { value: 250, message: "Tên nhà cung cấp không được vượt quá 250 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Số điện thoại", "phone", <PhoneIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Số điện thoại là bắt buộc",
+                                        maxLength: { value: 15, message: "Số điện thoại không được vượt quá 15 ký tự" },
+                                        pattern: {
+                                            value: /^(0[2|3|5|7|8|9])+([0-9]{8,9})$/,
+                                            message: "Số điện thoại không hợp lệ"
+                                        }
+                                    }
+                                )}
 
-                                {renderTextField("Email", "email", <EmailIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Địa chỉ", "address", <LocationOnIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Fax", "fax", <PrintIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
+                                {renderTextField(
+                                    "Email", "email", <EmailIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Email là bắt buộc",
+                                        maxLength: { value: 255, message: "Email không được vượt quá 255 ký tự" },
+                                        pattern: {
+                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                            message: "Email không hợp lệ"
+                                        }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Địa chỉ", "address", <LocationOnIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Địa chỉ là bắt buộc",
+                                        maxLength: { value: 500, message: "Địa chỉ không được vượt quá 500 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Fax", "fax", <PrintIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Fax là bắt buộc",
+                                        maxLength: { value: 100, message: "Fax không được vượt quá 100 ký tự" }
+                                    }
+                                )}
                             </Box>
                         </Box>
 
@@ -253,51 +237,64 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                             </Box>
 
                             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 3 }}>
-                                {renderTextField("Người liên hệ", "contact", <PersonIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Mã số thuế", "taxCode", <AssignmentIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Ngân hàng", "advisingBank", <AccountBalanceIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
+                                {renderTextField(
+                                    "Người liên hệ", "contact", <PersonIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Người liên hệ là bắt buộc",
+                                        maxLength: { value: 100, message: "Người liên hệ không được vượt quá 100 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Mã số thuế", "taxCode", <AssignmentIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Mã số thuế là bắt buộc",
+                                        maxLength: { value: 100, message: "Mã số thuế không được vượt quá 100 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Ngân hàng", "advisingBank", <AccountBalanceIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Ngân hàng là bắt buộc",
+                                        maxLength: { value: 255, message: "Ngân hàng không được vượt quá 100 ký tự" }
+                                    }
+                                )}
 
-                                {renderTextField("Địa chỉ ngân hàng", "bankAddress", <LocationOnIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Số tài khoản", "accountNo", <CreditCardIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
-                                {renderTextField("Chi nhánh", "branchCode", <BusinessIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
+                                {renderTextField(
+                                    "Địa chỉ ngân hàng", "bankAddress", <LocationOnIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Địa chỉ ngân hàng là bắt buộc",
+                                        maxLength: { value: 500, message: "Địa chỉ ngân hàng không được vượt quá 500 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Số tài khoản", "accountNo", <CreditCardIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Số tài khoản là bắt buộc",
+                                        maxLength: { value: 100, message: "Số tài khoản không được vượt quá 100 ký tự" }
+                                    }
+                                )}
+                                {renderTextField(
+                                    "Chi nhánh", "branchCode", <BusinessIcon fontSize="small" sx={{ color: '#757575' }} />,
+                                    { xs: 'span 12', md: 'span 4' }, true, false,
+                                    {
+                                        required: "Chi nhánh là bắt buộc",
+                                        maxLength: { value: 100, message: "Chi nhánh không được vượt quá 100 ký tự" }
+                                    }
+                                )}
 
                                 {renderTextField("Swift Code", "swiftCode", <CodeIcon fontSize="small" sx={{ color: '#757575' }} />, { xs: 'span 12', md: 'span 4' }, true)}
 
                                 <Box sx={{ gridColumn: { xs: 'span 12', md: 'span 4' } }}>
-                                    <Autocomplete
-                                        size="small"
+                                    <RHFAutoComplete
+                                        name="country"
                                         options={countries || []}
-                                        getOptionLabel={(option) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name) || ""}
-                                        value={formData.countryDto}
-                                        onChange={(_, value) => {
-                                            setFormData(prev => ({ ...prev, countryDto: value }));
-                                            setErrors(prev => ({ ...prev, countryDto: '' }));
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                label="Quốc gia"
-                                                required
-                                                error={!!errors.countryDto}
-                                                helperText={errors.countryDto}
-                                                InputProps={{
-                                                    ...params.InputProps,
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <FlagIcon fontSize="small" sx={{ color: '#757575' }} />
-                                                        </InputAdornment>
-                                                    ),
-                                                    sx: { borderRadius: '6px' }
-                                                }}
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        '&:hover fieldset': { borderColor: PRIMARY_COLOR },
-                                                        '&.Mui-focused fieldset': { borderColor: PRIMARY_COLOR },
-                                                    },
-                                                    '& .MuiInputLabel-root.Mui-focused': { color: SECONDARY_COLOR }
-                                                }}
-                                            />
-                                        )}
+                                        placeholder="Chọn quốc gia"
+                                        getOptionLabel={(option: any) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name)}
                                     />
                                 </Box>
                             </Box>
@@ -309,7 +306,7 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                     <Button
                         onClick={onClose}
                         variant="outline"
-                        disabled={loading}
+                        disabled={createMutation.isPending}
                         style={{
                             color: '#666',
                             borderColor: '#ccc',
@@ -323,34 +320,33 @@ const DialogSupplier: React.FC<DialogSupplierProps> = ({ data, open, onClose, on
                             Hủy
                         </Box>
                     </Button>
-                        <Button
-                            onClick={() => setOpenConfirm(true)}
-                            variant="primary"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: PRIMARY_COLOR,
-                                color: 'white',
-                                padding: '7px 32px',
-                                fontWeight: 600,
-                                minHeight: "20px",
-                                fontSize: '0.8rem',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                            }}
-                        >
-                            Lưu lại
-                        </Button>
+                    <Button
+                        onClick={() => setOpenConfirm(true)}
+                        variant="primary"
+                        disabled={createMutation.isPending}
+                        style={{
+                            backgroundColor: PRIMARY_COLOR,
+                            color: 'white',
+                            padding: '7px 32px',
+                            fontWeight: 600,
+                            minHeight: "20px",
+                            fontSize: '0.8rem',
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        Lưu lại
+                    </Button>
                 </DialogActions>
             </Dialog>
             <ConfirmDialog
                 open={openConfirm}
                 title={`Xác nhận ${data ? "sửa" : "thêm"}`}
-                content={`Bạn có chắc chắn muốn ${data ? "sửa" : "thêm"} nhà cung cấp "${formData?.name}" không? Hành động này không thể hoàn tác.`}
+                content={`Bạn có chắc chắn muốn ${data ? "sửa" : "thêm"} nhà cung cấp "${getValues("name")}" không? Hành động này không thể hoàn tác.`}
                 onClose={() => setOpenConfirm(false)}
-                onConfirm={handleSave}
-                loading={loading}
+                onConfirm={handleSubmit(onSubmit)}
+                loading={createMutation.isPending}
             />
-        </div>
-
+        </FormProvider>
     );
 };
 
