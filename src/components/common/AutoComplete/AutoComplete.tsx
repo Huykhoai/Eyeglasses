@@ -1,6 +1,7 @@
 import type { SxProps, Theme } from "@mui/material"
 import { Autocomplete as AutocompleteMUI, TextField as TextFieldMUI, Paper, styled } from "@mui/material"
 import React from "react"
+import type { FieldError } from "react-hook-form";
 
 const StyledPaper = styled(Paper)(() => ({
     borderRadius: '10px',
@@ -67,6 +68,7 @@ interface AutoCompleteProps<T> {
     props?: SxProps<Theme>;
     className?: string;
     disabled?: boolean;
+    error?: FieldError;
     getOptionLabel?: (option: T) => string;
     isOptionEqualToValue?: (option: T, value: T) => boolean;
 }
@@ -78,6 +80,7 @@ const AutoComplete = <T extends { cid?: string; name?: string; id?: any }>({
     placeholder,
     props,
     className,
+    error,
     disabled,
     getOptionLabel = (option: T) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name) || "",
     isOptionEqualToValue = (option, val) => option.id === val?.id,
@@ -108,6 +111,8 @@ const AutoComplete = <T extends { cid?: string; name?: string; id?: any }>({
                 <StyledTextField
                     {...params}
                     placeholder={placeholder}
+                    error={!!error}
+                    helperText={error?.message}
                 />
             )}
         />

@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { StatusProductEnum } from '@/utils/StatusProductEnum';
 import { useAuth } from '@/context/AuthContext';
 import { Roles } from '@/utils/roles';
+import { useBase64 } from '@/utils/base64';
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
     FRAME: 'Gọng kính',
@@ -34,6 +35,7 @@ const Product: React.FC = () => {
     const { tableRef, handleMouseDown, handleMouseMove, handleMouseUp, handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchMoveTable();
     const queryClient = useQueryClient();
     const { user } = useAuth();
+    const { encode } = useBase64();
 
     const params = Object.fromEntries(searchParams);
     const typeParam = (params.type?.toUpperCase() as ProductType) || 'LENS';
@@ -90,9 +92,9 @@ const Product: React.FC = () => {
             );
             return;
         }
-        navigate(`/xnk/products/update/${selectedProduct.id}`);
+        navigate(`/xnk/products/update/${encode(selectedProduct.id)}`);
         handleCloseMenu();
-    }, [selectedProduct, handleCloseMenu, roleAccess]);
+    }, [selectedProduct, handleCloseMenu, roleAccess, encode]);
 
     const handleDeleteFromMenu = useCallback(() => {
         if (!selectedProduct) return;

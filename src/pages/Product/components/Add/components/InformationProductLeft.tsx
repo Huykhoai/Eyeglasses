@@ -2,8 +2,8 @@ import { Close, Image as ImageIcon } from "@mui/icons-material";
 import { IconButton, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutGrid, Label } from "./commonUI";
-import { RHFTextField } from "../../../../../components/common/TextField/RHFComponents";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
+import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 
 interface InformationProductProps {
     onImageChange: (file: File | null) => void;
@@ -14,11 +14,11 @@ interface InformationProductProps {
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const GeneratedCidField: React.FC<{ currentType: any }> = ({ currentType }) => {
-    const { control, setValue } = useFormContext();
-    const brand = useWatch({ control, name: 'brand' });
-    const lensRefractiveIndex = useWatch({ control, name: 'lensAttribute.refractiveIndex' });
-    const frameModel = useWatch({ control, name: 'frameAttribute.model' });
-    const selectedGroup = useWatch({ control, name: 'group' });
+    const { watch, setValue } = useFormContext();
+    const brand = watch('brand');
+    const lensRefractiveIndex = watch('lensAttribute.refractiveIndex');
+    const frameModel = watch('frameAttribute.model');
+    const selectedGroup = watch('group');
 
     useEffect(() => {
         if (!selectedGroup) return;
@@ -59,26 +59,37 @@ const GeneratedCidField: React.FC<{ currentType: any }> = ({ currentType }) => {
 
     }, [selectedGroup, currentType, brand, lensRefractiveIndex, frameModel, setValue]);
 
-    return <RHFTextField name="cid" props={{ disabled: true }} />;
+    return <RHFTextField 
+        name="cid"
+        placeholder="Mã sản phẩm"
+        disabled
+        rules={{
+            required: "Mã sản phẩm là bắt buộc",
+            maxLength: {
+                value: 50,
+                message: "Mã sản phẩm không được vượt quá 50 ký tự"
+            }
+        }}
+    />;
 };
 
 const GeneratedNameField: React.FC<{ currentType: any}> = ({ currentType}) => {
-    const { control, setValue } = useFormContext();
+    const { watch, setValue } = useFormContext();
 
-    const brand = useWatch({ control, name: 'brand' });
-    const selectedGroup = useWatch({ control, name: 'group' });
+    const brand = watch('brand');
+    const selectedGroup = watch('group');
 
-    const refractiveIndex = useWatch({ control, name: 'lensAttribute.refractiveIndex' });
-    const lensMaterial = useWatch({ control, name: 'lensAttribute.material' });
-    const uv = useWatch({ control, name: 'lensAttribute.uv' });
-    const phoColor = useWatch({ control, name: 'lensAttribute.phoColor' });
-    const coating = useWatch({ control, name: 'lensAttribute.coating' });
-    const sph = useWatch({ control, name: 'lensAttribute.sph' });
-    const cyl = useWatch({ control, name: 'lensAttribute.cyl' });
-    const add = useWatch({ control, name: 'lensAttribute.lenAdd' });
+    const refractiveIndex = watch('lensAttribute.refractiveIndex');
+    const lensMaterial = watch('lensAttribute.material');
+    const uv = watch('lensAttribute.uv');
+    const phoColor = watch('lensAttribute.phoColor');
+    const coating = watch('lensAttribute.coating');
+    const sph = watch('lensAttribute.sph');
+    const cyl = watch('lensAttribute.cyl');
+    const add = watch('lensAttribute.lenAdd');
 
-    const frameModel = useWatch({ control, name: 'frameAttribute.model' });
-    const colorCode = useWatch({ control, name: 'frameAttribute.colorCode' });
+    const frameModel = watch('frameAttribute.model');
+    const colorCode = watch('frameAttribute.colorCode');
 
     useEffect(() => {
         if (!selectedGroup) return;
@@ -120,7 +131,17 @@ const GeneratedNameField: React.FC<{ currentType: any}> = ({ currentType}) => {
         setValue
     ]);
 
-    return <RHFTextField name="name" />;
+    return <RHFTextField 
+        name="name" 
+        placeholder="Nhập tên sản phẩm"
+        rules={{
+            required: "Tên sản phẩm là bắt buộc",
+            maxLength: {
+                value: 250,
+                message: "Tên sản phẩm không được vượt quá 250 ký tự"
+            }
+        }}
+    />;
 };
 
 const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChange, currentType }) => {
@@ -128,8 +149,8 @@ const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChan
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { control } = useFormContext();
-    const imageUrl = useWatch({ control, name: 'imageUrl' });
+    const { watch } = useFormContext();
+    const imageUrl = watch('imageUrl');
 
     useEffect(() => {
         if (imageUrl) {
@@ -150,39 +171,39 @@ const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChan
         }
     }, [onImageChange]);
 
-    const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             handleFile(e.target.files[0]);
         }
-    };
+    }, [handleFile]);
 
-    const onContainerClick = () => {
+    const onContainerClick = useCallback(() => {
         fileInputRef.current?.click();
-    };
+    }, []);
 
-    const onDragOver = (e: React.DragEvent) => {
+    const onDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(true);
-    };
+    }, []);
 
-    const onDragLeave = () => {
+    const onDragLeave = useCallback(() => {
         setIsDragging(false);
-    };
+    }, []);
 
-    const onDrop = (e: React.DragEvent) => {
+    const onDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFile(e.dataTransfer.files[0]);
         }
-    };
+    }, [handleFile]);
 
-    const handleRemoveImage = (e: React.MouseEvent) => {
+    const handleRemoveImage = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         setPreviewUrl(null);
         onImageChange(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
-    };
+    }, [onImageChange]);
 
     return (
         <div className="body-card gap-2">
@@ -274,7 +295,16 @@ const InformationProductLeft: React.FC<InformationProductProps> = ({ onImageChan
             </LayoutGrid>
             <LayoutGrid>
                 <Label label="Đơn vị" />
-                <RHFTextField name="unit" />
+                <RHFTextField
+                    name="unit"
+                    placeholder="Đơn vị"
+                    rules={{
+                        required: "Đơn vị là bắt buộc",
+                        maxLength: {
+                            value: 50,
+                            message: "Đơn vị không được vượt quá 50 ký tự",
+                        },
+                    }} />
             </LayoutGrid>
         </div>
     );

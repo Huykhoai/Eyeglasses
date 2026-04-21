@@ -29,10 +29,15 @@ export const RHFTextField = ({
         setLocalValue(externalValue ?? '');
     }, [externalValue]);
 
-    const handleOnBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>, value: string, onChange: (value: string) => void) => {
+    const handleOnBlur = (
+        e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value: string,
+        onChange: (value: string) => void,
+        onBlur: () => void
+    ) => {
         let finalValue = e.target.value;
         if (isNumber) {
-            const regex = /^[0-9]*$/;
+            const regex = /^[+-]?([0-9]*[.])?[0-9]*$/;
             if (!regex.test(finalValue)) {
                 finalValue = '0';
                 setLocalValue('0');
@@ -41,7 +46,7 @@ export const RHFTextField = ({
         if (finalValue !== String(value ?? '')) {
             onChange(finalValue);
         }
-        e.currentTarget.blur();
+        onBlur();
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -61,7 +66,7 @@ export const RHFTextField = ({
                     type={type}
                     value={localValue}
                     onChange={(e) => setLocalValue(e.target.value)}
-                    onBlur={(e) => handleOnBlur(e, value, onChange)}
+                    onBlur={(e) => handleOnBlur(e, value, onChange, onBlur)}
                     onKeyDown={(e) => handleKeyDown(e as any)}
                     label={label}
                     placeholder={placeholder}

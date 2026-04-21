@@ -1,3 +1,5 @@
+import type { ConfigLimitResponse } from "@/types";
+
 export type ProductType = 'LENS' | 'FRAME' | 'ACCESSORY';
 
 export interface NamedEntity {
@@ -23,7 +25,7 @@ export interface ProductBase {
     preserve: string;
     statusProduct: NamedEntity;
     brand: NamedEntity;
-    group: NamedEntity;
+    group: ConfigLimitResponse;
     supplier: NamedEntity;
     country: NamedEntity;
     warranty: NamedEntity | null;

@@ -1,8 +1,9 @@
 import React from "react";
 import { LayoutGrid, Label } from "./commonUI";
-import { RHFTextField, RHFAutoComplete } from "../../../../../components/common/TextField/RHFComponents";
+import { RHFAutoComplete } from "../../../../../components/common/TextField/RHFComponents";
 import { useDesign, useRefractiveIndex, useMaterial, useUv, useCoating, useColor } from "@/hooks/UseAllData";
 import { useFormContext } from "react-hook-form";
+import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 
 const LensFields: React.FC = () => {
     const { data: designs } = useDesign();
@@ -25,32 +26,64 @@ const LensFields: React.FC = () => {
                     <Label label="SPH (-/+) " />
                     <RHFTextField
                         name="lensAttribute.sph"
-                        props={{ type: 'number', style: { maxWidth: "15vw" } }}
+                        type="number"
+                        props={{ maxWidth: "15vw" }}
                         placeholder="Nhập SPH"
+                        rules={{
+                            required: "SPH là bắt buộc",
+                            pattern: {
+                                value: /^[-+]?[0-9]*\.?[0-9]+$/,
+                                message: "SPH không hợp lệ (VD: -2.50, +1.25)"
+                            }
+                        }}
                     />
                 </LayoutGrid>
                 <div className="d-grid align-items-center" style={{ gridTemplateColumns: "1fr 2.3fr" }}>
                     <Label label="Đường kính" />
                     <RHFTextField
                         name="lensAttribute.diameter"
-                        props={{ type: 'number', style: { maxWidth: "15vw" } }}
+                        type="number"
+                        props={{ maxWidth: "15vw" }}
                         placeholder="Nhập đường kính (milimet)"
+                        rules={{
+                            required: "Đường kính là bắt buộc",
+                            pattern: {
+                                value: /^[0-9]*\.?[0-9]+$/,
+                                message: "Đường kính không hợp lệ"
+                            }
+                        }}
                     />
                 </div>
                 <LayoutGrid>
                     <Label label="CYL" />
                     <RHFTextField
                         name="lensAttribute.cyl"
-                        props={{ type: 'number', style: { maxWidth: "15vw" } }}
+                        type="number"
+                        props={{ maxWidth: "15vw" }}
                         placeholder="Nhập CYL"
+                        rules={{
+                            required: "CYL là bắt buộc",
+                            pattern: {
+                                value: /^[-+]?[0-9]*\.?[0-9]+$/,
+                                message: "CYL không hợp lệ"
+                            }
+                        }}
                     />
                 </LayoutGrid>
                 <div className="d-grid align-items-center" style={{ gridTemplateColumns: "1fr 2.3fr" }}>
                     <Label label="ADD" />
                     <RHFTextField
                         name="lensAttribute.lenAdd"
-                        props={{ type: 'number', style: { maxWidth: "15vw" } }}
+                        type="number"
+                        props={{ maxWidth: "15vw" }}
                         placeholder="Nhập ADD"
+                        rules={{
+                            required: "ADD là bắt buộc",
+                            pattern: {
+                                value: /^[0-9]*\.?[0-9]+$/,
+                                message: "ADD không hợp lệ"
+                            }
+                        }}
                     />
                 </div>
                 <RHFAutoComplete
@@ -58,12 +91,18 @@ const LensFields: React.FC = () => {
                     options={designs || []}
                     name="lensAttribute.design1"
                     placeholder="Thiết kế 1"
+                    rules={{
+                        required: "Thiết kế 1 là bắt buộc",
+                    }}
                 />
                 <RHFAutoComplete
                     className="mt-2"
                     options={designs || []}
                     name="lensAttribute.design2"
                     placeholder="Thiết kế 2"
+                    rules={{
+                        required: "Thiết kế 2 là bắt buộc",
+                    }}
                 />
             </div>
             <div className="d-flex justify-content-center align-items-center"
@@ -77,12 +116,18 @@ const LensFields: React.FC = () => {
                     name="lensAttribute.refractiveIndex"
                     placeholder="Chiết suất"
                     disabled={!!id}
+                    rules={{
+                        required: "Chiết suất là bắt buộc",
+                    }}
                 />
                 <RHFAutoComplete
                     className="mt-2"
                     options={materials || []}
                     name="lensAttribute.material"
                     placeholder="Vật liệu"
+                    rules={{
+                        required: "Vật liệu là bắt buộc",
+                    }}
                 />
             </div>
             <div className="d-flex justify-content-center align-items-center"
@@ -95,24 +140,36 @@ const LensFields: React.FC = () => {
                     options={uvs || []}
                     name="lensAttribute.uv"
                     placeholder="UV"
+                    rules={{
+                        required: "UV là bắt buộc",
+                    }}
                 />
                 <RHFAutoComplete
                     className="mt-2"
                     options={colors || []}
                     name="lensAttribute.phoColor"
                     placeholder="Photochromic (Đổi màu)"
+                    rules={{
+                        required: "Photochromic là bắt buộc",
+                    }}
                 />
                 <RHFAutoComplete
                     className="mt-2"
                     options={colors || []}
                     name="lensAttribute.hmcColor"
                     placeholder="HMC (Phủ đa năng)"
+                    rules={{
+                        required: "HMC là bắt buộc",
+                    }}
                 />
                 <RHFAutoComplete
                     className="mt-2"
                     options={colors || []}
                     name="lensAttribute.tintColor"
                     placeholder="Tint (Màu nhuộm)"
+                    rules={{
+                        required: "Tint là bắt buộc",
+                    }}
                 />
             </div>
             <RHFAutoComplete
@@ -120,6 +177,9 @@ const LensFields: React.FC = () => {
                 options={coatings || []}
                 name="lensAttribute.coating"
                 placeholder="Lớp phủ"
+                rules={{
+                    required: "Lớp phủ là bắt buộc",
+                }}
             />
         </div>
     );

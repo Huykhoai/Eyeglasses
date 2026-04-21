@@ -7,7 +7,7 @@ const useGetProductById = (id: number): UseQueryResult<Partial<Product>> => {
     const { showNotification } = useNotification();
 
     return useQuery<Partial<Product>>({
-        queryKey: ['product', id],
+        queryKey: ['products', 'detail', id],
         queryFn: async () => {
             try {
                 const response = await axiosClient.get(`/api/product/${id}`);

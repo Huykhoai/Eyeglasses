@@ -43,17 +43,19 @@ export const RHFTextArea = ({ name, placeholder, props, disabled }: any) => {
     );
 };
 
-export const RHFAutoComplete = ({ name, options, placeholder, props, className, getOptionLabel, isOptionEqualToValue, onChangeCallback, disabled }: any) => {
+export const RHFAutoComplete = ({ rules, name, options, placeholder, props, className, getOptionLabel, isOptionEqualToValue, onChangeCallback, disabled }: any) => {
     const { control } = useFormContext();
     return (
         <Controller
             name={name}
             control={control}
-            render={({ field: { onChange, value } }) => (
+            rules={rules}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
                 <AutoComplete
                     className={className}
                     options={options}
                     value={value ?? null}
+                    error={error}
                     onChange={(_, newValue) => {
                         onChange(newValue);
                         if (onChangeCallback) onChangeCallback(newValue);
