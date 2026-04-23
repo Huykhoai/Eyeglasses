@@ -138,7 +138,6 @@
     background-color: rgba(113, 75, 103, 0.1);
 }
 
-/* Custom Scrollbar for Containers */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;

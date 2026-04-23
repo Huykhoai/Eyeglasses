@@ -165,11 +165,11 @@ const Department: React.FC = () => {
                                         </Typography>
                                     </th>
                                 ))}
-                                <th>
+                                {/* <th>
                                     <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
                                         Thao tác
                                     </Typography>
-                                </th>
+                                </th> */}
                             </tr>
                         </thead>
                         <tbody>
@@ -191,7 +191,7 @@ const Department: React.FC = () => {
                                             )}
                                         </td>
                                     ))}
-                                    <td>
+                                    {/* <td>
                                         <Typography variant="body2" fontSize={11} align="center">
                                             <IconButton
                                                 onClick={(e) => handleOpenMenu(e, item)}
@@ -200,7 +200,7 @@ const Department: React.FC = () => {
                                                 <Tune fontSize="small" />
                                             </IconButton>
                                         </Typography>
-                                    </td>
+                                    </td> */}
                                 </tr>
                             ))}
                         </tbody>

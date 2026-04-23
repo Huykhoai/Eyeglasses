@@ -31,11 +31,11 @@ export const useColumns: ColumnDef[] = [
         )
     },
     {
-        key: 'manager',
+        key: 'managers',
         header: 'Trưởng phòng',
         render: (item: DepartmentType) => (
             <Typography variant="body2" fontSize={12}>
-                {item.manager?.name || '-'}
+                {item.managers?.map((manager) => manager.name).join(', ') || '-'}
             </Typography>
         )
     }

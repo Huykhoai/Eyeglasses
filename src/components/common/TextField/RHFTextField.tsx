@@ -38,11 +38,14 @@ export const RHFTextField = ({
         let finalValue = e.target.value;
         if (isNumber) {
             const regex = /^[+-]?([0-9]*[.])?[0-9]*$/;
-            if (!regex.test(finalValue)) {
-                finalValue = '0';
+            if (regex.test(finalValue) && finalValue !== "" && finalValue !== "." && finalValue !== "-" && finalValue !== "+") {
+                onChange(finalValue);
+            } else {
                 setLocalValue('0');
+                onChange({ ...e, target: { ...e.target, value: '0' } } as any);
             }
         }
+
         if (finalValue !== String(value ?? '')) {
             onChange(finalValue);
         }

@@ -9,6 +9,7 @@ import { AuthProvider } from '@/context/AuthContext.tsx'
 import { NotificationProvider } from './components/ui/Notification/NotificationContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { WebSocketProvider } from './context/WebSocketContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <NotificationProvider>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <WebSocketProvider>
+            <RouterProvider router={router} />
+          </WebSocketProvider>
         </AuthProvider>
       </NotificationProvider>
       <ReactQueryDevtools initialIsOpen={false} />

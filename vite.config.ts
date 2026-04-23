@@ -9,6 +9,9 @@ export default defineConfig({
     host: true,
     open: true,
   },
+  define: {
+    global: 'window',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

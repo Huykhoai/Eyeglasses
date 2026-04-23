@@ -5,7 +5,7 @@ export interface DepartmentType {
     cid: string;
     name: string;
     location: string;
-    manager?: NamedEntity | null;
+    managers?: NamedEntity[] | null;
 }
 
 export interface DialogDepartmentProps {

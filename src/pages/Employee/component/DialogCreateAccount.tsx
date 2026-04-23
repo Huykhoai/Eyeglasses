@@ -225,10 +225,13 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
 
                 <DialogContent sx={{ p: 3, mt: 1 }}>
                     <Paper elevation={0} sx={{ p: 2, bgcolor: `${PRIMARY_COLOR}08`, borderRadius: '12px', mb: 3, border: `1px solid ${PRIMARY_COLOR}20` }}>
-                        <Typography variant="subtitle2" color="text.secondary" fontWeight={600} gutterBottom>Thông tin nhân viên:</Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="subtitle2" color="text.secondary" fontWeight={600} gutterBottom>Thông tin nhân viên:</Typography>
+                            <Chip label={`Mã NV: ${employee?.cid}`} size="small" sx={{ fontWeight: 700, bgcolor: 'white' }} />
+                        </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="h6" fontWeight={700} color={PRIMARY_COLOR}>{employee?.name}</Typography>
-                            <Chip label={`Mã NV: ${employee?.cid}`} size="small" sx={{ fontWeight: 700, bgcolor: 'white' }} />
+                            <Chip label={`Phòng ban: ${employee?.department?.name}`} size="small" sx={{ fontWeight: 700, bgcolor: 'white' }} />
                         </Box>
                     </Paper>
 

@@ -60,8 +60,8 @@ const AddQuotationRequest: React.FC = () => {
     const [size, setSize] = useState(20);
     const [openConfirm, setOpenConfirm] = useState(false);
 
-    const statusAccess = useMemo(() => 
-        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(purchaseQuotation?.status)
+    const statusAccess = useMemo(() => !decodedId || (purchaseQuotation &&
+        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(purchaseQuotation?.status))
     , [purchaseQuotation]);
 
     const generateCID = useCallback(() => {
@@ -128,7 +128,9 @@ const AddQuotationRequest: React.FC = () => {
                 return;
             }
             showNotification('success', response.data.message, 'Thành công');
+            setOpenConfirm(false);
             queryClient.invalidateQueries({ queryKey: ['purchase-quotation'] });
+            navigate('/purchase-quotation');
         },
         onError: (error: any) => {
             showNotification('error', error?.response?.data?.message || 'Lỗi khi lưu yêu cầu báo giá', 'Thất bại');
@@ -311,7 +313,6 @@ const AddQuotationRequest: React.FC = () => {
                 onClose={() => setOpenConfirm(false)}
                 onConfirm={handleSubmit((data) => {
                     onSubmit(data, PurchaseQuotationStatus.PENDING);
-                    setOpenConfirm(false);
                 })}
                 title="Xác nhận phát hành"
                 content="Bạn có chắc chắn muốn phát hành báo giá này?"

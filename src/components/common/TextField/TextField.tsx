@@ -23,11 +23,12 @@ const TextField = ({ name, value, onChange, placeholder, props, disabled, type =
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         if (onChange && e.target.value !== String(value ?? '')) {
             if (isNumber) {
-                const regex = /^[0-9]*$/;
-                if (regex.test(e.target.value)) {
+                const regex = /^[+-]?([0-9]*[.])?[0-9]*$/;
+                if (regex.test(e.target.value) && e.target.value !== "" && e.target.value !== "." && e.target.value !== "-" && e.target.value !== "+") {
                     onChange(e);
                 } else {
-                    onChange({ ...e, target: { ...e.target, value: '0' } });
+                    setLocalValue('0');
+                    onChange({ ...e, target: { ...e.target, value: '0' } } as any);
                 }
             } else {
                 onChange(e);

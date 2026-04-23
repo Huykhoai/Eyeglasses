@@ -7,7 +7,7 @@ import { Box, Typography, IconButton, Drawer, List, ListItem, ListItemButton, Li
 import MenuIcon from '@mui/icons-material/Menu';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-
+import NotificationPopover from './NotificationPopover';
 export interface NavButton {
     name: string;
     url?: string;
@@ -149,9 +149,8 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                 >
                     <MenuIcon />
                 </IconButton>
-
+                <NotificationPopover />
                 <div className="nav-profile">
-
                     <div className="profile-info" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>{user?.username}</span>
                         <span style={{
@@ -185,7 +184,7 @@ const Navbar: React.FC<NavbarProps> = ({ buttons, brandName = "VNOptic" }) => {
                     </Box>
                     <Typography variant="h6" fontWeight="bold" color="primary">{brandName}</Typography>
                 </Box>
-                
+
                 <Box sx={{ px: 2, mb: 3, display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 2 }}>
                     <div className="profile-avatar" style={{ margin: 0 }}>{imageLabel}</div>
                     <Box>
