@@ -88,8 +88,8 @@ export const router = createBrowserRouter([
                     {
                         path: "hr",
                         element: <AuthGuard
-                            requiredPosition={[Position.ADMIN, Position.MANAGER]}
-                            roles={[Roles.ADMIN, Roles.MANAGE_HR]} />,
+                            requiredPosition={[Position.MANAGER]}
+                            roles={[Roles.MANAGE_HR]} />,
                         children: [
                             {
                                 path: "departments",
@@ -139,8 +139,8 @@ export const router = createBrowserRouter([
             {
                 path: "hr/employees",
                 element: <AuthGuard
-                    requiredPosition={[Position.ADMIN, Position.MANAGER]}
-                    roles={[Roles.ADMIN, Roles.MANAGE_HR]} />,
+                    requiredPosition={[Position.MANAGER]}
+                    roles={[Roles.MANAGE_HR]} />,
                 children: [
                     {
                         path: "add",
@@ -155,8 +155,8 @@ export const router = createBrowserRouter([
             {
                 path: "xnk/orders/quotation-request",
                 element: <AuthGuard
-                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
-                    roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD]}
+                    requiredPosition={[Position.MANAGER]}
+                    roles={[Roles.MANAGE_XNK]}
                 />,
                 children: [
                     {

@@ -104,11 +104,10 @@ const Supplier: React.FC = () => {
     };
 
     const handleDeleteFromMenu = () => {
-        const roleStaff = user?.positions?.includes(Roles.STAFF_DELETE);
-        if (!roleAccess && !roleStaff) {
+        if (!roleAccess) {
             showNotification(
                 'error',
-                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm',
+                'Chỉ có Admin và Manager mới có quyền xóa sản phẩm',
                 'Lỗi hệ thống'
             );
             return;
