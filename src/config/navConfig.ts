@@ -30,12 +30,12 @@ export const navButtons: NavButton[] = [
         ]
     },
     { name: 'Nhà cung cấp', url: '/xnk/suppliers' },
-    { name: 'Khách hàng', url: '/customers' },
     { name: 'Phòng ban',
         children: [
             { name: 'Phòng ban', url: '/hr/departments'},
             { name: 'Nhân sự', url: '/hr/employees'}
         ]
     },
+    { name: 'Phê duyệt', url: '/approvals?type=purchase-quotations' },
     { name: 'Cấu hình', url: '/xnk/config' }
 ];

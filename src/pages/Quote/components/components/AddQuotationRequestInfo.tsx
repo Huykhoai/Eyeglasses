@@ -156,7 +156,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                 <Divider orientation="vertical" flexItem sx={{ opacity: 0.5 }} />
                 <Box textAlign="right">
                     <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>Thời gian duyệt</Typography>
-                    <Typography variant="body2" fontWeight={700}>{"--"}</Typography>
+                    <Typography variant="body2" fontWeight={700}>{getValues('approvedDate') ? new Date(getValues('approvedDate'))?.toLocaleString('vi-VN') : '--'}</Typography>
                 </Box>
             </Box>
         </>

@@ -17,6 +17,7 @@ export interface PurchaseQuotationType {
     expectedDate: string;
     modifiedAt: string;
     approvedDate: string;
+    products: SelectedProduct[];
 }
 export interface SelectedProduct {
     id: number;

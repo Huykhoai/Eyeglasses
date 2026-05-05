@@ -20,6 +20,7 @@
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.13.4",
     "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.20",
     "dotenv": "^17.2.4",

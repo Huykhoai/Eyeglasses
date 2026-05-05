@@ -7,7 +7,7 @@
   border-radius: 5px;
   width: 100%;
   max-width: 40vw;
-  min-width: 15vw;
+  min-width: 20vw;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -69,9 +69,9 @@
   position: absolute;
   top: 100%;
   right: 0;
-  min-width: 320px;
-  width: max-content;
-  max-width: 95vw;
+  min-width: 24vw;
+  width: 100%;
+  max-width: 50vw;
   z-index: 1200;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -99,7 +99,7 @@
 .dropdown-content {
   display: flex;
   flex-direction: row;
-  gap: 16px;
+  gap: 14px;
   padding: 12px;
 }
 
@@ -147,7 +147,6 @@
 
 .dropdown-section {
   flex: 1;
-  min-width: 15vw;
 }
 
 .tag {

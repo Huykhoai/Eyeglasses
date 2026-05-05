@@ -85,6 +85,7 @@ const AddQuotationRequest: React.FC = () => {
             ...purchaseQuotation,
             products: new Map<number, any>(purchaseQuotation?.products?.map((item: any) => [
                 item.productId, {
+                    id: item.id,
                     productId: item.productId,
                     requestQty: item.requestQty,
                     expectedPrice: item.expectedPrice,
@@ -130,7 +131,8 @@ const AddQuotationRequest: React.FC = () => {
             showNotification('success', response.data.message, 'Thành công');
             setOpenConfirm(false);
             queryClient.invalidateQueries({ queryKey: ['purchase-quotation'] });
-            navigate('/purchase-quotation');
+            queryClient.invalidateQueries({ queryKey: ['approvals'] });
+            navigate('/xnk/orders/request-quote');
         },
         onError: (error: any) => {
             showNotification('error', error?.response?.data?.message || 'Lỗi khi lưu yêu cầu báo giá', 'Thất bại');
@@ -191,7 +193,7 @@ const AddQuotationRequest: React.FC = () => {
                             <Button variant="outline" onClick={() => navigate(-1)} style={{ padding: '4px 12px', height: '32px' }}>Quay lại</Button>
                             <Divider orientation="vertical" flexItem sx={{ height: 20, my: 'auto', opacity: 0.5 }} />
                             <Typography variant="h5" fontWeight={800} color="#1e293b" letterSpacing="-0.02em">
-                                Tạo mới báo giá
+                                {decodedId ? 'Cập nhật báo giá' : 'Tạo mới báo giá'}
                             </Typography>
                         </Box>
                     </Box>
