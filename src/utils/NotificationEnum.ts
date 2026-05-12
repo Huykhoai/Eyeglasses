@@ -29,9 +29,11 @@ export const StatusNotification = {
     [NotificationEnum.QUOTATION_APPROVED]: "success",
     [NotificationEnum.QUOTATION_REJECTED]: "error",
     [NotificationEnum.CONTRACT_CREATED]: "success",
+    [NotificationEnum.CONTRACT_REJECTED]: "error",
     [NotificationEnum.CONTRACT_APPROVED]: "success",
     [NotificationEnum.DELIVERY_SCHEDULED]: "success",
     [NotificationEnum.OTK_PASSED]: "success",
+    [NotificationEnum.OTK_FAILED]: "error",
     [NotificationEnum.INVENTORY_RECEIVED]: "success"
 } as const;
 

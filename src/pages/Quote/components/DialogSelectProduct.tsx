@@ -36,22 +36,22 @@ interface DialogSelectProductProps {
 }
 
 const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose }) => {
-    const filterOptions = useMemo(() => filterDialogProduct, []);
     const { showNotification } = useNotification();
-    const { watch, setValue } = useFormContext();
-    const supplier = watch('supplier');
-    const productsMap = watch('products') || new Map();
+    const { getValues, setValue } = useFormContext();
+    const supplier = getValues('supplier');
 
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
+    const [localProducts, setLocalProducts] = useState<Map<number, any>>(getValues('products'));
     const [productType, setProductType] = useState<ProductType>('LENS');
 
+    const filterOptions = useMemo(() => filterDialogProduct, []);
     const { data, isLoading } = useQuery<PaginatedResponse<SelectedProduct>>({
-        queryKey: ['products-quotation', page, size, supplier?.id, productType],
+        queryKey: ['products-quotation', page, size, filters, supplier?.id, productType],
         queryFn: async () => {
             try {
-                const params = cleanParams({ ...filters,supplier: supplier?.id, type: productType, size });
+                const params = cleanParams({ ...filters, supplier: supplier?.id, type: productType, size });
                 const response = await axiosClient.get(`/api/purchase-quotation/products/${page}`, { params });
                 return { items: response.data.data, totalItems: response.data.totalItems } as PaginatedResponse<SelectedProduct>;
             } catch (error: any) {
@@ -98,66 +98,17 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
         setSize(size);
     }, []);
 
-    const handleToggleSelect = (product: SelectedProduct) => {
-            const newSelected = new Map(productsMap);
-            if (newSelected.has(product.productId)) {
-                newSelected.delete(product.productId);
-            } else {
-                newSelected.set(product.productId, {
-                    productId: product.productId,
-                    requestQty: 1,
-                    expectedPrice: product.lastPurchasePrice || product.originalPrice || 0,
-                    quotedQty: 1,
-                    quotedPrice: product.lastPurchasePrice || product.originalPrice || 0,
-                });
-            }
-            setValue('products', newSelected, { shouldValidate: true });
-    };
+    const handleAddItems = useCallback((items: Map<number, any>) => {
+        setLocalProducts(items);
+    }, []);
 
-    const handleUpdateQty = (id: number, qty: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
-        if (item) {
-            newSelected.set(id, { ...item, requestQty: qty || 0, quotedQty: qty || 0 });
-        }
-        setValue('products', newSelected, { shouldValidate: true });
-    };
-
-    const handleUpdatePrice = (id: number, price: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
-        if (item) {
-            newSelected.set(id, { ...item, expectedPrice: price, quotedPrice: price });
-        }
-        setValue('products', newSelected, { shouldValidate: true });
-    };
-
-    const handleUpdateQuoteQty = (id: number, qty: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
-        if (item) {
-            newSelected.set(id, { ...item, quotedQty: qty || 0 });
-        }
-        setValue('products', newSelected, { shouldValidate: true });
-    };
-
-    const handleUpdateQuotePrice = (id: number, price: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
-        if (item) {
-            newSelected.set(id, { ...item, quotedPrice: price });
-        }
-        setValue('products', newSelected, { shouldValidate: true });
-    };
-
-    const handleSubmit = () => {
+    const handleConfirm = useCallback(() => {
+        if (localProducts.size === 0) return;
+        setValue('products', localProducts, { shouldDirty: true });
         onClose();
-    };
+    }, [onClose, localProducts, setValue]);
 
-    const columnsTable = columns(
-        productsMap, handleToggleSelect, handleUpdateQty, handleUpdatePrice, 
-        handleUpdateQuoteQty, handleUpdateQuotePrice
-    );
+    const columnsTable = columns(localProducts, handleAddItems);
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth PaperProps={{ sx: { borderRadius: '16px', minWidth: '90vw', height: '90vh' } }}>
@@ -269,11 +220,11 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                     <Button variant="outline" onClick={onClose}>Hủy</Button>
                     <Button
                         variant="primary"
-                        onClick={handleSubmit}
-                        disabled={productsMap.size === 0}
+                        onClick={handleConfirm}
+                        disabled={localProducts.size === 0}
                         icon={<AddIcon fontSize="small" />}
                     >
-                        Thêm ({productsMap.size}) sản phẩm
+                        Thêm ({localProducts.size}) sản phẩm
                     </Button>
                 </Box>
             </DialogActions>

@@ -3,11 +3,12 @@ import Button from '@/components/common/Button/Button';
 import AddIcon from '@mui/icons-material/Add';
 
 interface AddProductMenuProps {
+    title?: string
     onAdd: () => void;
     onBulkAdd: () => void;
 }
 
-const AddProductMenu: React.FC<AddProductMenuProps> = ({ onAdd, onBulkAdd }) => {
+const AddProductMenu: React.FC<AddProductMenuProps> = ({title= "Thêm sản phẩm", onAdd, onBulkAdd }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +33,7 @@ const AddProductMenu: React.FC<AddProductMenuProps> = ({ onAdd, onBulkAdd }) => 
                 onClick={() => setIsOpen(!isOpen)}
                 icon={<AddIcon fontSize="small" />}
             >
-                Thêm sản phẩm
+                {title}
                 <svg
                     width="12" height="12" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" strokeWidth="3"
@@ -57,7 +58,7 @@ const AddProductMenu: React.FC<AddProductMenuProps> = ({ onAdd, onBulkAdd }) => 
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
-                        Thêm đơn lẻ
+                        Thêm thủ công
                     </div>
                     <div
                         className="add-menu-item"

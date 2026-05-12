@@ -121,6 +121,9 @@ const AddQuotationRequest: React.FC = () => {
                     quotedPrice: p.quotedPrice,
                 }))
             };
+            if (data.id) {
+                return axiosClient.put(`/api/purchase-quotation/update`, payload);
+            }
             return axiosClient.post('/api/purchase-quotation/add', payload);
         },
         onSuccess: (response) => {
@@ -306,6 +309,7 @@ const AddQuotationRequest: React.FC = () => {
                 </Stack>
 
                 <DialogSelectProduct
+                    key={openProductDialog ? "open" : "closed"}
                     open={openProductDialog}
                     onClose={() => setOpenProductDialog(false)}
                 />

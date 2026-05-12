@@ -65,7 +65,11 @@
     background: var(--table-hover) !important;
     transform: scale(1.001);
 }
-
+.table-premium tr[disabled] td {
+    background: var(--table-hover) !important;
+    transform: scale(1.001);
+    opacity: 0.5;
+}
 .table-sticky-left {
     position: sticky;
     left: 0;

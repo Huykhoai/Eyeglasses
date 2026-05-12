@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     Popover, Box, Typography, IconButton, Badge, List,
     ListItem, ListItemText, Button, CircularProgress
 } from '@mui/material';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '@/api/axiosClient';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { StatusNotification, type NotificationEnumType } from '@/utils/NotificationEnum';
+import type { NamedEntity } from '@/pages/Product/types/product';
+import { useNavigate } from 'react-router-dom';
 
 interface NotificationItem {
     id: number;
@@ -18,12 +21,15 @@ interface NotificationItem {
     type: NotificationEnumType;
     isRead: boolean;
     createdAt: string;
+    referenceUrl?: string;
+    actor: NamedEntity;
 }
 
 const NotificationPopover: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const [size, setSize] = useState(20);
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
 
     const open = Boolean(anchorEl);
     const id = open ? 'notification-popover' : undefined;
@@ -52,6 +58,7 @@ const NotificationPopover: React.FC = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications', 'count'] });
         }
     });
 
@@ -61,6 +68,7 @@ const NotificationPopover: React.FC = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications', 'count'] });
         }
     });
 
@@ -75,6 +83,16 @@ const NotificationPopover: React.FC = () => {
     const handleLoadMore = () => {
         setSize(prev => prev + 20);
     };
+
+    const handleReferenceClick = useCallback((item: NotificationItem) => {
+        if (!item.isRead) {
+            readMutation.mutate(item.id);
+        }
+        if (item.referenceUrl) {
+            navigate(item.referenceUrl);
+            handleClose();
+        }
+    }, [navigate, readMutation]);
 
     const getStatusColor = (type: NotificationEnumType) => {
         const status = StatusNotification[type] || 'info';
@@ -137,7 +155,7 @@ const NotificationPopover: React.FC = () => {
                     <Button
                         size="small"
                         startIcon={<DoneAllIcon sx={{ fontSize: '16px !important' }} />}
-                        onClick={() => readAllMutation.mutate()}
+                        onClick={() => unreadCount > 0 && readAllMutation.mutate()}
                         sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 600 }}
                     >
                         Đọc tất cả
@@ -156,7 +174,7 @@ const NotificationPopover: React.FC = () => {
                                     alignItems="flex-start"
                                     onClick={() => !item.isRead && readMutation.mutate(item.id)}
                                     sx={{
-                                        padding: '8px 16px',
+                                        padding: '12px 16px',
                                         bgcolor: item.isRead ? '#ffffff' : 'rgba(99, 102, 241, 0.04)',
                                         borderTop: '1px solid #f1f5f9',
                                         borderBottom: '1px solid #f1f5f9',
@@ -169,6 +187,8 @@ const NotificationPopover: React.FC = () => {
                                         m: 0.5,
                                         width: 'calc(100% - 16px)',
                                         cursor: 'pointer',
+                                        flexDirection: 'column',
+                                        gap: 1,
                                         '&:hover': {
                                             bgcolor: '#f1f5f9 !important',
                                             transform: 'scale(1.01)',
@@ -177,13 +197,14 @@ const NotificationPopover: React.FC = () => {
                                     }}
                                 >
                                     <ListItemText
+                                        sx={{ m: 0, width: '100%' }}
                                         primary={
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
                                                 <Typography
                                                     variant="body2"
                                                     fontWeight={item.isRead ? 600 : 700}
                                                     color={item.isRead ? "#475569" : "#0f172a"}
-                                                    fontSize={13}
+                                                    sx={{ fontSize: '0.8125rem' }}
                                                 >
                                                     {item.title}
                                                 </Typography>
@@ -193,11 +214,33 @@ const NotificationPopover: React.FC = () => {
                                             </Box>
                                         }
                                         secondary={
-                                            <Typography variant="caption" color={item.isRead ? "#94a3b8" : "#475569"} sx={{ display: 'block', mt: 0.5, lineHeight: 1.4, fontWeight: item.isRead ? 400 : 500 }}>
+                                            <Typography variant="caption" color={item.isRead ? "#94a3b8" : "#475569"} sx={{ display: 'block', lineHeight: 1.4, fontWeight: item.isRead ? 400 : 500, fontSize: '0.75rem' }}>
                                                 {item.message}
                                             </Typography>
                                         }
                                     />
+                                    {item.referenceUrl && (
+                                        <Button
+                                            size="small"
+                                            startIcon={<OpenInNewIcon sx={{ fontSize: '14px !important' }} />}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleReferenceClick(item);
+                                            }}
+                                            sx={{
+                                                textTransform: 'none',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 700,
+                                                color: '#6366f1',
+                                                p: 0,
+                                                minWidth: 0,
+                                                alignSelf: 'flex-start',
+                                                '&:hover': { background: 'transparent', textDecoration: 'underline' }
+                                            }}
+                                        >
+                                            Xem chi tiết
+                                        </Button>
+                                    )}
                                 </ListItem>
                             </React.Fragment>
                         ))
@@ -210,11 +253,11 @@ const NotificationPopover: React.FC = () => {
                         variant="text"
                         size="small"
                         onClick={handleLoadMore}
-                        disabled={isFetching || notifications.length < size}
+                        disabled={isFetching || (notifications.length > 0 && notifications.length < size)}
                         sx={{ textTransform: 'none', color: '#6366f1', fontWeight: 600 }}
                     >
                         {isFetching ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
-                        {notifications.length < size ? 'Đã tải hết thông báo' : 'Xem thêm'}
+                        {(notifications.length > 0 && notifications.length < size) ? 'Đã tải hết thông báo' : 'Xem thêm'}
                     </Button>
                 </Box>
             </Popover>

@@ -17,7 +17,7 @@ export const navButtons: NavButton[] = [
         children: [
             { name: 'Yêu cầu báo giá', url: '/xnk/orders/request-quote' },
             { name: 'Đơn hàng', url: '/orders' },
-            { name: 'Hợp đồng', url: '/contracts' },
+            { name: 'Hợp đồng', url: '/xnk/contracts' },
             { name: 'Lịch giao hàng', url: '/delivery-schedule' }
         ]
     },

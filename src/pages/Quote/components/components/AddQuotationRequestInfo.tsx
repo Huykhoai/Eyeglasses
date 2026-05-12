@@ -31,7 +31,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
         <>
             <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 5 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                         THÔNG TIN ĐỊNH DANH
                     </Typography>
@@ -84,7 +84,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 7 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Box sx={{ width: 4, height: 16, bgcolor: '#6366f1', borderRadius: 1 }} />
                         THIẾT LẬP THƯƠNG MẠI
                     </Typography>
@@ -97,7 +97,6 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     name="supplier"
                                     options={suppliers || []}
                                     placeholder="Chọn nhà cung cấp"
-                                    getOptionLabel={(option: any) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name)}
                                     onChangeCallback={() => {
                                         setValue('products', new Map(), { shouldValidate: true });
                                     }}
@@ -110,7 +109,6 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     name="currency"
                                     options={currencies || []}
                                     placeholder="Chọn tiền tệ"
-                                    getOptionLabel={(option: any) => (option?.cid ? `${option?.cid} - ${option?.name}` : option?.name)}
                                     onChangeCallback={(val: any) => {
                                         if (val?.value !== undefined) {
                                             setValue('currencyValue', val.value, { shouldValidate: true });

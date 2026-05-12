@@ -25,7 +25,16 @@ const TextField = ({ name, value, onChange, placeholder, props, disabled, type =
             if (isNumber) {
                 const regex = /^[+-]?([0-9]*[.])?[0-9]*$/;
                 if (regex.test(e.target.value) && e.target.value !== "" && e.target.value !== "." && e.target.value !== "-" && e.target.value !== "+") {
-                    onChange(e);
+                    let numValue = Number(e.target.value);
+                    const min = props?.min !== undefined ? Number(props.min) : -Infinity;
+                    const max = props?.max !== undefined ? Number(props.max) : Infinity;
+
+                    if (numValue < min) numValue = min;
+                    if (numValue > max) numValue = max;
+
+                    const finalValue = String(numValue);
+                    setLocalValue(finalValue);
+                    onChange({ ...e, target: { ...e.target, value: finalValue } } as any);
                 } else {
                     setLocalValue('0');
                     onChange({ ...e, target: { ...e.target, value: '0' } } as any);

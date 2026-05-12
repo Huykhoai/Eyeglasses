@@ -17,6 +17,8 @@ import { Position, Roles } from "@/utils/roles";
 import AddExcelProduct from "@/pages/Product/components/AddByExcel/AddExcelProduct";
 import AddQuotationRequest from "@/pages/Quote/components/AddQuotationRequest";
 import Approvals from "@/pages/Approvals/Approvals";
+import Contract from "@/pages/Contract/Contract";
+import AddContract from "@/pages/Contract/component/AddContract";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -71,6 +73,11 @@ export const router = createBrowserRouter([
                                 index: true,
                                 element: <Quote />
                             },
+                            {
+                                path: "contracts",
+                                index: true,
+                                element: <Contract />
+                            }
                         ]
                     },
                     {
@@ -179,6 +186,23 @@ export const router = createBrowserRouter([
                     {
                         path: "update/:id",
                         element: <AddQuotationRequest />
+                    }
+                ]
+            },
+            {
+                path: "xnk/contracts",
+                element: <AuthGuard
+                    requiredPosition={[Position.MANAGER,Position.STAFF_XNK]}
+                    roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
+                />,
+                children: [
+                    {
+                        path: "add",
+                        element: <AddContract />
+                    },
+                    {
+                        path: "update/:id",
+                        element: <AddContract />
                     }
                 ]
             }

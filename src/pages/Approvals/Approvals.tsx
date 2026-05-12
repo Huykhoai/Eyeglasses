@@ -33,19 +33,15 @@ const API_PATH_MAPPING: Record<string, string> = {
 };
 
 const Approvals: React.FC = () => {
-    const [selectedType, setSelectedType] = React.useState<string>("purchase-quotations");
-    const [selectedRow, setSelectedRow] = React.useState<number | null>(null);
-    const [openDialog, setOpenDialog] = React.useState<boolean>(false);
-    const [dialogData, setDialogData] = React.useState<Record<string, any> | null>(null);
 
     const queryClient = useQueryClient();
-    const categories = getFilters(selectedType);
     const { showNotification } = useNotification();
     const [searchParams, setSearchParams] = useSearchParams();
     const params = Object.fromEntries(searchParams);
 
-    const DetailComponent = DETAIL_COMPONENTS[selectedType] || (() => null);
 
+    const idParam = params.id ? parseInt(params.id) : null;
+    const typeParam = params.type || "purchase-quotations";
     const pageParam = params.page ? parseInt(params.page) : 1;
     const [page, setPage] = React.useState<number>(pageParam);
     const [size, setSize] = React.useState<number>(20);
@@ -53,8 +49,16 @@ const Approvals: React.FC = () => {
         const { page: _p, ...rest } = params;
         return rest;
     });
+
+    const [selectedType, setSelectedType] = React.useState<string>(typeParam);
+    const [selectedRow, setSelectedRow] = React.useState<number | null>(idParam);
+    const [openDialog, setOpenDialog] = React.useState<boolean>(false);
+    const [dialogData, setDialogData] = React.useState<Record<string, any> | null>(null);
+
     const { data: approvals, isLoading } = useFetchData(page, size, selectedType, filter);
     const { data: detailById, isLoading: isLoadingDetail } = useFetchDataById(selectedRow as number, API_PATH_MAPPING[selectedType]);
+    const categories = getFilters(selectedType);
+    const DetailComponent = DETAIL_COMPONENTS[selectedType] || (() => null);
 
     const handleFilterChange = useCallback((filters: Record<string, any>) => {
         let mapper: Record<string, any> = { type: selectedType };

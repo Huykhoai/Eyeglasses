@@ -3,13 +3,13 @@ import type { FilterItem } from "@/components/common/MultiFilterBar/MultiFilterB
 
 export const filterDialogProduct: FilterItem[] = [
     {
-        key: 'category',
-        label: 'Danh mục',
-        type: 'select',
-        options: [
-            { label: 'Tất cả', id: 0 },
-            { label: 'Danh mục 1', id: 1 },
-            { label: 'Danh mục 2', id: 2 },
-        ]
+        key: 'cid',
+        label: 'Mã sản phẩm',
+        type: 'text',
+    },
+    {
+        key: 'name',
+        label: 'Tên sản phẩm',
+        type: 'text',
     }
 ]

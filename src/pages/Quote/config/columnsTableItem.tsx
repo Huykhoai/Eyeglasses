@@ -84,7 +84,7 @@ export const columns = (
                     isNumber
                     value={productsMap.get(item.productId)?.requestQty || item.requestQty}
                     onChange={(e) => onUpdateQty(item.productId, Number(e.target.value))}
-                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
 
@@ -99,7 +99,7 @@ export const columns = (
                     isNumber
                     value={productsMap.get(item.productId)?.expectedPrice || item.expectedPrice}
                     onChange={(e) => onUpdatePrice(item.productId, Number(e.target.value))}
-                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
         },
@@ -113,7 +113,7 @@ export const columns = (
                     isNumber
                     value={productsMap.get(item.productId)?.quotedQty || item.quotedQty}
                     onChange={(e) => onUpdateQuoteQty(item.productId, Number(e.target.value))}
-                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
         },
@@ -127,7 +127,7 @@ export const columns = (
                     isNumber
                     value={productsMap.get(item.productId)?.quotedPrice || item.quotedPrice}
                     onChange={(e) => onUpdateQuotePrice(item.productId, Number(e.target.value))}
-                    props={{ min: 1, style: { textAlign: 'right', width: '5vw', padding: '5px 10px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
         },
