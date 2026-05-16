@@ -16,7 +16,7 @@ import {
     LockOutlined as LockIcon,
     Security as SecurityIcon
 } from '@mui/icons-material';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { useForm, Controller, FormProvider, useWatch } from 'react-hook-form';
 import Button from '@/components/common/Button/Button';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import axiosClient from '@/api/axiosClient';
@@ -42,8 +42,9 @@ const DialogChangePassword: React.FC<DialogChangePasswordProps> = ({ open, onClo
         }
     });
 
-    const { watch, reset, handleSubmit, formState: { errors }, control } = methods;
-    const newPasswordValue = watch('newPassword');
+    const { reset, handleSubmit, formState: { errors }, control } = methods;
+    const newPasswordValue = useWatch({ control, name: 'newPassword' });
+    const oldPasswordValue = useWatch({ control, name: 'oldPassword' });
 
     const toggleVisibility = (field: keyof typeof showPasswords) => {
         setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
@@ -131,7 +132,7 @@ const DialogChangePassword: React.FC<DialogChangePasswordProps> = ({ open, onClo
                                     value: /^[A-Z](?=.*[!@#$%^&*()_+])[A-Za-z0-9!@#$%^&*()_+]{7,}$/,
                                     message: 'Viết hoa chữ đầu và có ít nhất 1 ký tự đặc biệt'
                                 },
-                                validate: (value) => value !== watch('oldPassword') || 'Mật khẩu mới không được trùng với mật khẩu cũ'
+                                validate: (value) => value !== oldPasswordValue || 'Mật khẩu mới không được trùng với mật khẩu cũ'
                             }}
                             render={({ field }) => (
                                 <TextField

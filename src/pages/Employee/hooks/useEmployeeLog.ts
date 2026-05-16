@@ -8,7 +8,7 @@ import { cleanParams } from "@/utils/cleanParams";
 export const useEmployeeLog = (employeeId: number | null, page: number, size: number, filters: Record<string, any>) => {
     const { showNotification } = useNotification();
     return useQuery<PaginatedResponse<EmployeeLogResponse>>({
-        queryKey: ['employee-log', employeeId, page, size, filters],
+        queryKey: ['employee', 'log', employeeId, page, size, filters],
         queryFn: async () => {
             try {
                 const params = cleanParams({ ...filters, employeeId, page, size });

@@ -9,7 +9,7 @@ interface PositionRole {
 const useFetchAccountRoleById = (id: number | null, open: boolean) => {
     const { showNotification } = useNotification();
     return useQuery<PositionRole>({
-        queryKey: ['account-role', id],
+        queryKey: ['employee', 'account-role', id],
         queryFn: async () => {
             try {
                 const response = await axiosClient.get(`/api/employee/roles`, {

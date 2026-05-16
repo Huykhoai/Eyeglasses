@@ -2,7 +2,7 @@ import { Close, Image as ImageIcon } from "@mui/icons-material";
 import { IconButton, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutGrid, Label } from "./commonUI";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 
 interface InformationProductProps {
@@ -14,11 +14,11 @@ interface InformationProductProps {
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const GeneratedCidField: React.FC<{ currentType: any }> = ({ currentType }) => {
-    const { watch, setValue } = useFormContext();
-    const brand = watch('brand');
-    const lensRefractiveIndex = watch('lensAttribute.refractiveIndex');
-    const frameModel = watch('frameAttribute.model');
-    const selectedGroup = watch('group');
+    const { setValue } = useFormContext();
+    const brand = useWatch({ name: 'brand' });
+    const lensRefractiveIndex = useWatch({ name: 'lensAttribute.refractiveIndex' });
+    const frameModel = useWatch({ name: 'frameAttribute.model' });
+    const selectedGroup = useWatch({ name: 'group' });
 
     useEffect(() => {
         if (!selectedGroup) return;
@@ -74,22 +74,22 @@ const GeneratedCidField: React.FC<{ currentType: any }> = ({ currentType }) => {
 };
 
 const GeneratedNameField: React.FC<{ currentType: any}> = ({ currentType}) => {
-    const { watch, setValue } = useFormContext();
+    const { setValue } = useFormContext();
 
-    const brand = watch('brand');
-    const selectedGroup = watch('group');
+    const brand = useWatch({ name: 'brand' });
+    const selectedGroup = useWatch({ name: 'group' });
 
-    const refractiveIndex = watch('lensAttribute.refractiveIndex');
-    const lensMaterial = watch('lensAttribute.material');
-    const uv = watch('lensAttribute.uv');
-    const phoColor = watch('lensAttribute.phoColor');
-    const coating = watch('lensAttribute.coating');
-    const sph = watch('lensAttribute.sph');
-    const cyl = watch('lensAttribute.cyl');
-    const add = watch('lensAttribute.lenAdd');
+    const refractiveIndex = useWatch({ name: 'lensAttribute.refractiveIndex' });
+    const lensMaterial = useWatch({ name: 'lensAttribute.material' });
+    const uv = useWatch({ name: 'lensAttribute.uv' });
+    const phoColor = useWatch({ name: 'lensAttribute.phoColor' });
+    const coating = useWatch({ name: 'lensAttribute.coating' });
+    const sph = useWatch({ name: 'lensAttribute.sph' });
+    const cyl = useWatch({ name: 'lensAttribute.cyl' });
+    const add = useWatch({ name: 'lensAttribute.lenAdd' });
 
-    const frameModel = watch('frameAttribute.model');
-    const colorCode = watch('frameAttribute.colorCode');
+    const frameModel = useWatch({ name: 'frameAttribute.model' });
+    const colorCode = useWatch({ name: 'frameAttribute.colorCode' });
 
     useEffect(() => {
         if (!selectedGroup) return;

@@ -1,6 +1,6 @@
 import { TextField, type SxProps, type Theme } from "@mui/material";
 import React, { useState } from "react";
-import { Controller, useFormContext } from "react-hook-form"
+import { Controller, useFormContext, useWatch } from "react-hook-form"
 interface RHFTextFieldProps {
     name: string;
     type?: React.HTMLInputTypeAttribute;
@@ -21,8 +21,8 @@ export const RHFTextField = ({
     name, type = 'text', label, placeholder, rules, variant = "outlined", fullWidth = true,
     disabled, isNumber = false, multiline, rows, startAdornment, endAdornment, props
 }: RHFTextFieldProps) => {
-    const { control, watch } = useFormContext();
-    const externalValue = watch(name);
+    const { control } = useFormContext();
+    const externalValue = useWatch({ control, name });
     const [localValue, setLocalValue] = useState(externalValue ?? '');
 
     React.useEffect(() => {

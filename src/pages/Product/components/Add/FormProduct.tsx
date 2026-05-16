@@ -13,7 +13,7 @@ import { GROUP_TYPE, type Product } from '../../types/product';
 import Loading from '@/components/ui/Loading/Loading';
 import LensFields from './components/LensFields';
 import FrameFields from './components/FrameFields';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { useForm, FormProvider, Controller, useWatch } from 'react-hook-form';
 import axiosClient from '@/api/axiosClient';
 import useGetProductById from './hooks/useGetProductById';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,7 +51,7 @@ const FormProduct: React.FC = () => {
 
     const { control, handleSubmit, trigger, getValues } = methods;
 
-    const watchedGroup = methods.watch('group') as unknown as ConfigLimitResponse;
+    const watchedGroup = useWatch({ control, name: 'group' }) as unknown as ConfigLimitResponse;
     const currentType = useMemo(() => GROUP_TYPE[watchedGroup?.typeInfo?.id ?? 0], [watchedGroup]);
 
     const handleChangeOption = useCallback((newGroup: ConfigLimitResponse) => {

@@ -7,7 +7,7 @@ const useFetchPosition = (open: boolean) => {
     const { showNotification } = useNotification();
 
     return useQuery<ConfigLimitResponse[]>({
-        queryKey: ['position'],
+        queryKey: ['employee', 'position'],
         queryFn: async () => {
             try {
                 const response = await axiosClient.get('/api/position/all');

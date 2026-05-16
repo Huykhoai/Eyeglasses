@@ -8,7 +8,7 @@ import { useNotification } from "@/components/ui/Notification/NotificationContex
 export const useEmployeeData = (page: number, size: number, filter: Record<string, any>) => {
     const { showNotification } = useNotification();
     return useQuery<PaginatedResponse<EmployeeType>>({
-        queryKey: ['employee', page, size, filter],
+        queryKey: ['employee', 'list', page, size, filter],
         queryFn: async () => {
             try {
                 const params = cleanParams({ ...filter, size });

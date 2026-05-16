@@ -6,7 +6,7 @@ import type { EmployeeType } from "../../config/type";
 export const useFetchEmployee = (id: number) => {
     const { showNotification } = useNotification();
     return useQuery<EmployeeType>({
-        queryKey: ['employee', id],
+        queryKey: ['employee', 'detail', id],
         queryFn: async () => {
             try {
                 const response = await axiosClient.get(`/api/employee/${id}`);

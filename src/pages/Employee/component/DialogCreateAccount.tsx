@@ -28,7 +28,7 @@ import {
     ContentCopy as CopyIcon,
     CheckCircle as CheckIcon
 } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '@/api/axiosClient';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
@@ -56,7 +56,7 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
     const [createdAccount, setCreatedAccount] = useState<{ username: string, password: string } | null>(null);
 
     const { data: positions } = useFetchPosition(open);
-    const { control, handleSubmit, setValue, watch, reset } = useForm({
+    const { control, handleSubmit, setValue, reset, trigger, getValues } = useForm({
         defaultValues: {
             username: '',
             email: '',
@@ -74,7 +74,7 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
         return Array.from(positionMaps.values());
     }, [positions]);
 
-    const selectedPositions: EntityType[] = watch('positions');
+    const selectedPositions: EntityType[] = useWatch({ control, name: 'positions' });
     const rolesOptions = useMemo(() => {
         if (!selectedPositions || selectedPositions.length === 0 || !positions) return [];
 
@@ -94,9 +94,9 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
         const availableRoles = new Map(positions
             .filter(pos => selectedPositionIds.includes(pos.id) && pos?.typeInfo?.id)
             .map(pos => [pos?.typeInfo?.id, { id: pos?.typeInfo?.id, name: pos?.typeInfo?.name }]));
-        
+
         setValue('roles', Array.from(availableRoles.values()) as EntityType[]);
-    }, [positions, setValue, watch])
+    }, [positions, setValue])
 
     useEffect(() => {
         if (open && employee) {
@@ -136,32 +136,53 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
             };
             return axiosClient.post('/api/employee/register-account', payload);
         },
-        onSuccess: (response) => {
-            if (response.data.status === 400) {
-                showNotification('error', response.data.message, 'Lỗi hệ thống');
-                return;
+        onSuccess: (response: any) => {
+            try {
+                if (response.data.status === 400) {
+                    showNotification('error', response.data.message, 'Lỗi hệ thống');
+                    return;
+                }
+                showNotification('success', response.data.message, 'Thành công');
+                queryClient.invalidateQueries({ queryKey: ['employee'] });
+                setConfirmOpen(false);
+                onClose();
+                setCreatedAccount({
+                    username: getValues('username'),
+                    password: getValues('password')
+                });
+            } catch (error: any) {
+                const message = error?.response?.data?.message || 'Không thể tạo tài khoản';
+                showNotification('error', message, 'Lỗi');
+                throw error;
             }
-            showNotification('success', response.data.message, 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['employee'] });
-            queryClient.invalidateQueries({ queryKey: ['employee-all'] });
-
-            setCreatedAccount({
-                username: watch('username'),
-                password: watch('password')
-            });
         },
         onError: (error: any) => {
-            showNotification('error', error?.response?.data?.message || 'Không thể tạo tài khoản', 'Lỗi');
+            const message = error?.response?.data?.message || 'Không thể tạo tài khoản';
+            showNotification('error', message, 'Lỗi');
         }
     });
 
-    const handleFormSubmit = (data: any) => {
+    const handleFormSubmit = async (data: any) => {
+        const isValid = await trigger();
+        if (!isValid) {
+            showNotification('error', 'Vui lòng kiểm tra lại thông tin', 'Lỗi');
+            return;
+        }
         if (!user || ![Roles.ADMIN, Roles.MANAGE_HR].some(r => user.roles.includes(r))) {
             showNotification('error', 'Chỉ có Admin và Manager mới có quyền tạo tài khoản nhân viên', 'Thất bại');
             return;
         }
         createAccountMutation.mutate(data);
     };
+
+    const handleOpenDialog = useCallback(async () => {
+        const isValid = await trigger();
+        if (!isValid) {
+            showNotification('error', 'Vui lòng kiểm tra lại thông tin', 'Lỗi');
+            return;
+        }
+        setConfirmOpen(true);
+    }, [trigger]);
 
     if (createdAccount) {
         return (
@@ -198,7 +219,7 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
             </Dialog>
         );
     }
-    
+
     return (
         <Box>
             <Dialog
@@ -446,7 +467,7 @@ const DialogCreateAccount: React.FC<DialogCreateAccountProps> = ({ open, onClose
                     <Button variant="outline" onClick={onClose} style={{ borderRadius: '10px' }}>Hủy bỏ</Button>
                     <Button
                         variant="primary"
-                        onClick={() => setConfirmOpen(true)}
+                        onClick={handleOpenDialog}
                         style={{ borderRadius: '10px', minWidth: '150px' }}
                     >
                         Tạo tài khoản

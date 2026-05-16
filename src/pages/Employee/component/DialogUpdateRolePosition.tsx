@@ -26,7 +26,7 @@ import axiosClient from '@/api/axiosClient';
 import { type EmployeeType, type EntityType } from '../config/type';
 import { roleLabels, Roles } from '@/utils/roles';
 import useFetchAccountRoleById from './hooks/useFetchAccountRoleById';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import useFetchPosition from './hooks/useFetchPosition';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { useAuth } from '@/context/AuthContext';
@@ -45,7 +45,7 @@ const DialogUpdateRolePosition: React.FC<DialogUpdateRolePositionProps> = ({ ope
 
     const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const { control, handleSubmit, reset, setValue, watch } = useForm<{
+    const { control, handleSubmit, reset, setValue } = useForm<{
         employeeId: number | null;
         positions: EntityType[];
         roles: EntityType[];
@@ -73,7 +73,7 @@ const DialogUpdateRolePosition: React.FC<DialogUpdateRolePositionProps> = ({ ope
         return Array.from(positionMaps.values());
     }, [positions]);
 
-    const selectedPositions: EntityType[] = watch('positions');
+    const selectedPositions: EntityType[] = useWatch({ control, name: 'positions' });
     const rolesOptions = useMemo(() => {
         if (!selectedPositions || selectedPositions.length === 0 || !positions) return [];
         const selectedIds = selectedPositions.map(p => p.id);
@@ -119,9 +119,6 @@ const DialogUpdateRolePosition: React.FC<DialogUpdateRolePositionProps> = ({ ope
             }
             showNotification('success', response.data.message, 'Thành công');
             queryClient.invalidateQueries({ queryKey: ['employee'] });
-            queryClient.invalidateQueries({ queryKey: ['employee-all'] });
-            queryClient.invalidateQueries({ queryKey: ['account-role', employee?.id] });
-            queryClient.invalidateQueries({ queryKey: ['employee-log', employee?.id] });
             onClose();
             setConfirmOpen(false);
         },

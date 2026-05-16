@@ -31,7 +31,7 @@ export const useColumns: (ColumnDef & { groupName?: string })[] = [
                     background: '#f8fafc',
                 }}
                 onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder.png';
+                    (e.target as HTMLImageElement).src = '/avatar_default.jpg';
                 }}
             />
         )

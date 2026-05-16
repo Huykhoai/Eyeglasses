@@ -11,7 +11,7 @@ import {
     Save as SaveIcon,
     Calculate as CalcIcon,
 } from '@mui/icons-material';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosClient from '@/api/axiosClient';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
@@ -97,7 +97,8 @@ const AddQuotationRequest: React.FC = () => {
         } : undefined
     });
 
-    const { handleSubmit, watch } = methods;
+    const { handleSubmit, control } = methods;
+    const [cid, supplier] = useWatch({ control, name: ['cid', 'supplier'] });
 
     const createMutation = useMutation({
         mutationFn: async (payload: any) => {
@@ -253,7 +254,7 @@ const AddQuotationRequest: React.FC = () => {
                                 </Box>
                                 <Box>
                                     <Typography variant="h6" fontWeight={800} color="#1e293b" sx={{ lineHeight: 1.2 }}>
-                                        {watch('cid') || 'RFQ-XXXX'}
+                                        {cid || 'RFQ-XXXX'}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -280,7 +281,7 @@ const AddQuotationRequest: React.FC = () => {
                                     <Typography variant="caption" color="text.secondary">Chọn sản phẩm cần đề xuất báo giá</Typography>
                                 </Box>
                             </Box>
-                            {watch('supplier') ? (
+                            {supplier ? (
                                 <Button
                                     variant="primary"
                                     disabled={!statusAccess}
