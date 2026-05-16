@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { columns } from "../../config/columnsTableItem";
 import { Box, Stack, Typography } from "@mui/material";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import Select from "@/components/common/Select/Select";
 import Pagination from "@/components/common/Pagination/Pagination";
 import type { SelectedProduct } from "../../config/types";
@@ -14,10 +14,10 @@ const AddQuotationRequestTable = ({
     page, size,
     setPage, setSize,
 }: { page: number, size: number, setPage: (page: number) => void, setSize: (size: number) => void }) => {
-    const { setValue, watch } = useFormContext();
+    const { setValue } = useFormContext();
     const { showNotification } = useNotification();
 
-    const productsMap = watch('products') || new Map();
+    const productsMap = useWatch({ name: 'products' }) || new Map();
     const selectedProducts: any[] = useMemo(() => Array.from(productsMap.values()), [productsMap])
 
     const displayProducts = useMemo(() => {
@@ -44,8 +44,8 @@ const AddQuotationRequestTable = ({
         retry: false
     });
 
-    const currency = watch('currency');
-    const currencyValue = watch('currencyValue') || 1;
+    const currency = useWatch({ name: 'currency' });
+    const currencyValue = useWatch({ name: 'currencyValue' }) || 1;
 
     const totalAmount = useMemo(() => {
         return selectedProducts.reduce((sum, item) => sum + ((item.quotedQty || 0) * (item.quotedPrice || 0)), 0);
@@ -59,52 +59,7 @@ const AddQuotationRequestTable = ({
         setValue('products', newMap, { shouldValidate: true });
     };
 
-    const handleUpdateQty = (id: number, qty: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
-        if (item) {
-            const quantity = qty > 0 ? qty : 1;
-            newMap.set(id, { ...item, requestQty: quantity, quotedQty: quantity });
-            setValue('products', newMap, { shouldValidate: true });
-        }
-    };
-
-    const handleUpdatePrice = (id: number, price: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
-        if (item) {
-            const priceValue = price > 0 ? price : 1;
-            newMap.set(id, { ...item, expectedPrice: priceValue, quotedPrice: priceValue });
-            setValue('products', newMap, { shouldValidate: true });
-        }
-    };
-
-    const handleUpdateQuoteQty = (id: number, qty: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
-        if (item) {
-            const quantity = qty > 0 ? qty : 1;
-            newMap.set(id, { ...item, quotedQty: quantity });
-            setValue('products', newMap, { shouldValidate: true });
-        }
-    };
-
-    const handleUpdateQuotePrice = (id: number, price: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
-        if (item) {
-            const priceValue = price > 0 ? price : 1;
-            newMap.set(id, { ...item, quotedPrice: priceValue });
-            setValue('products', newMap, { shouldValidate: true });
-        }
-    };
-    const columnsTable = useMemo(() => columns(
-        productsMap, page, size, handleUpdateQty, handleUpdatePrice, handleUpdateQuoteQty,
-        handleUpdateQuotePrice, handleRemoveProduct
-    ), [
-        productsMap, page, size, handleUpdateQty, handleUpdatePrice,
-        handleUpdateQuoteQty, handleUpdateQuotePrice, handleRemoveProduct
-    ]);
+    const columnsTable = columns(productsMap, page, size, handleRemoveProduct);
 
     return (
         <>

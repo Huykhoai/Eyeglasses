@@ -1,6 +1,6 @@
 import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 import { Grid, IconButton, InputAdornment, Typography } from "@mui/material";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     RequestQuote as RequestQuoteIcon,
     Description as FormIcon,
@@ -13,12 +13,17 @@ import { RHFAutoComplete } from "@/components/common/TextField/RHFComponents";
 import { useFormContext } from "react-hook-form";
 import { useSupplier } from "@/hooks/UseAllData";
 import { useCurrency } from "@/hooks/UseAllData";
+import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 
 const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
     const { setValue, getValues } = useFormContext();
-    const id = getValues('id');
+    const [id, status] = getValues(['id', 'status']);
     const { data: suppliers } = useSupplier();
     const { data: currencies } = useCurrency();
+
+    const statusAccess = useMemo(() => !id || (status &&
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
+    , [status]);
 
     const handleRegenerateCID = useCallback(() => {
         setValue('cid', generateCID(), { shouldValidate: true });
@@ -49,6 +54,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                 <RHFTextField
                     name="name"
                     placeholder="Nhập tên hợp đồng..."
+                    disabled={!statusAccess}
                     startAdornment={<InputAdornment position="start"><FormIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
                 />
             </Grid>
@@ -61,6 +67,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                     name="supplier"
                     placeholder="Chọn nhà cung cấp..."
                     options={suppliers || []}
+                    disabled={!statusAccess}
                     onChangeCallback={() => {
                         setValue('items', new Map(), { shouldValidate: true });
                         setValue('quotations', new Map(), { shouldValidate: true });
@@ -74,6 +81,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                 <RHFTextField
                     name="signDate"
                     type="date"
+                    disabled={!statusAccess}
                     startAdornment={<InputAdornment position="start"><DateIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
                 />
             </Grid>
@@ -86,6 +94,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                     name="currency"
                     placeholder="Nhập loại tiền tệ..."
                     options={currencies || []}
+                    disabled={!statusAccess}
                     onChangeCallback={(value: any) => {
                         if (value?.value !== undefined) {
                             setValue('contractCurrencyValue', value.value, { shouldValidate: true });
@@ -100,6 +109,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                 <RHFTextField
                     name="contractCurrencyValue"
                     type="number"
+                    disabled={!statusAccess}
                     placeholder="Nhập tỷ giá quy đổi..."
                     startAdornment={<InputAdornment position="start"><CurrencyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
                 />
@@ -111,6 +121,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                 <RHFTextField
                     name="expectedDeliveryDate"
                     type="date"
+                    disabled={!statusAccess}
                     startAdornment={<InputAdornment position="start"><DateIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
                 />
             </Grid>
@@ -124,6 +135,7 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
                     placeholder="Nhập ghi chú hoặc các điều khoản quan trọng khác của hợp đồng..."
                     multiline
                     rows={3}
+                    disabled={!statusAccess}
                 />
             </Grid>
         </Grid>

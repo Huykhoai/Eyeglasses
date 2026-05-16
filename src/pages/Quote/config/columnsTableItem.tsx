@@ -4,17 +4,63 @@ import { Typography, IconButton } from "@mui/material";
 import { formatPrice } from "@/utils/formatPrice";
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import TextField from "@/components/common/TextField/TextField";
+import { useFormContext } from "react-hook-form";
+import { useMemo } from "react";
+import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 
 export const columns = (
     productsMap: Map<number, any>,
     page: number,
     size: number,
-    onUpdateQty: (id: number, qty: number) => void,
-    onUpdatePrice: (id: number, price: number) => void,
-    onUpdateQuoteQty: (id: number, qty: number) => void,
-    onUpdateQuotePrice: (id: number, price: number) => void,
-    onDelete: (id: number) => void
-): ColumnDef[] => [
+    onDelete: (id: number) => void): ColumnDef[] => {
+
+    const { setValue, getValues } = useFormContext();
+    const [id, status] = getValues(['id', 'status'])
+
+    const statusAccess = useMemo(() => !id || (status &&
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
+    , [status]);
+
+    const handleUpdateQty = (id: number, qty: number) => {
+        const newMap = new Map(productsMap);
+        const item = newMap.get(id);
+        if (item) {
+            const quantity = qty > 0 ? qty : 1;
+            newMap.set(id, { ...item, requestQty: quantity, quotedQty: quantity });
+            setValue('products', newMap, { shouldValidate: true });
+        }
+    };
+
+    const handleUpdatePrice = (id: number, price: number) => {
+        const newMap = new Map(productsMap);
+        const item = newMap.get(id);
+        if (item) {
+            const priceValue = price > 0 ? price : 1;
+            newMap.set(id, { ...item, expectedPrice: priceValue, quotedPrice: priceValue });
+            setValue('products', newMap, { shouldValidate: true });
+        }
+    };
+
+    const handleUpdateQuoteQty = (id: number, qty: number) => {
+        const newMap = new Map(productsMap);
+        const item = newMap.get(id);
+        if (item) {
+            const quantity = qty > 0 ? qty : 1;
+            newMap.set(id, { ...item, quotedQty: quantity });
+            setValue('products', newMap, { shouldValidate: true });
+        }
+    };
+
+    const handleUpdateQuotePrice = (id: number, price: number) => {
+        const newMap = new Map(productsMap);
+        const item = newMap.get(id);
+        if (item) {
+            const priceValue = price > 0 ? price : 1;
+            newMap.set(id, { ...item, quotedPrice: priceValue });
+            setValue('products', newMap, { shouldValidate: true });
+        }
+    };
+    return [
         {
             key: 'stt',
             header: 'STT',
@@ -82,8 +128,9 @@ export const columns = (
                 <TextField
                     name='requestQty'
                     isNumber
+                    disabled={!statusAccess}
                     value={productsMap.get(item.productId)?.requestQty || item.requestQty}
-                    onChange={(e) => onUpdateQty(item.productId, Number(e.target.value))}
+                    onChange={(e) => handleUpdateQty(item.productId, Number(e.target.value))}
                     props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
@@ -97,8 +144,9 @@ export const columns = (
                 <TextField
                     name='expectedPrice'
                     isNumber
+                    disabled={!statusAccess}
                     value={productsMap.get(item.productId)?.expectedPrice || item.expectedPrice}
-                    onChange={(e) => onUpdatePrice(item.productId, Number(e.target.value))}
+                    onChange={(e) => handleUpdatePrice(item.productId, Number(e.target.value))}
                     props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
@@ -111,8 +159,9 @@ export const columns = (
                 <TextField
                     name='quotedQty'
                     isNumber
+                    disabled={!statusAccess}
                     value={productsMap.get(item.productId)?.quotedQty || item.quotedQty}
-                    onChange={(e) => onUpdateQuoteQty(item.productId, Number(e.target.value))}
+                    onChange={(e) => handleUpdateQuoteQty(item.productId, Number(e.target.value))}
                     props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
@@ -125,8 +174,9 @@ export const columns = (
                 <TextField
                     name='quotedPrice'
                     isNumber
+                    disabled={!statusAccess}
                     value={productsMap.get(item.productId)?.quotedPrice || item.quotedPrice}
-                    onChange={(e) => onUpdateQuotePrice(item.productId, Number(e.target.value))}
+                    onChange={(e) => handleUpdateQuotePrice(item.productId, Number(e.target.value))}
                     props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
                 />
             )
@@ -157,3 +207,4 @@ export const columns = (
             )
         }
     ];
+};

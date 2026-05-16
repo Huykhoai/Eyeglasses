@@ -11,7 +11,7 @@ import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import { useBase64 } from "@/utils/base64";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import type { PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 import PurchaseQuotationStatus from "@/utils/PurchaseQuotationEnum";
@@ -23,6 +23,7 @@ import axiosClient from "@/api/axiosClient";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { useFetchContractById } from "../hooks/useFetchContractById";
 import Loading from "@/components/ui/Loading/Loading";
+import ContractHistory from "./ContractHistory";
 
 interface FormContract extends Contract {
     step: number;
@@ -45,6 +46,10 @@ const AddContract = () => {
     const decodedId = decode(encodedId || '');
     const { data: contract } = useFetchContractById(Number(decodedId));
     const [openConfirm, setOpenConfirm] = useState(false);
+
+    const statusAccess = useMemo(() => !decodedId || (contract &&
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(contract?.status))
+        , [contract]);
 
     const generateCID = useCallback(() => {
         return `CT-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -100,7 +105,7 @@ const AddContract = () => {
             }
             showNotification('success', message, 'Thành công');
             setOpenConfirm(false);
-            queryClient.invalidateQueries({ queryKey: ['contracts'] });
+            queryClient.invalidateQueries({ queryKey: ['contract'] });
             queryClient.invalidateQueries({ queryKey: ['approvals'] });
             navigate('/xnk/contracts');
         },
@@ -110,6 +115,11 @@ const AddContract = () => {
         }
     })
     const onSubmit = (data: FormContract, status: PurchaseQuotationEnum) => {
+        if (!statusAccess) {
+            showNotification('error', 'Không thể chỉnh sửa hợp đồng đã được duyệt', 'Thất bại');
+            return;
+        }
+
         const mapper: any = {
             id: data.id,
             cid: data.cid,
@@ -157,7 +167,7 @@ const AddContract = () => {
         if (!data.items || data.items.size === 0) {
             message += 'Danh sách sản phẩm, ';
         }
-        
+
         if (message !== 'Vui lòng nhập đầy đủ thông tin: ') {
             showNotification('error', message, 'Lỗi dữ liệu');
             return false;
@@ -180,7 +190,7 @@ const AddContract = () => {
                             <Stack direction="row" spacing={2}>
                                 <Button
                                     variant="outline"
-                                    // disabled={!statusAccess}
+                                    disabled={!statusAccess}
                                     onClick={handleSubmit((data) => onSubmit(data, PurchaseQuotationStatus.DRAFT))}
                                     style={{ height: '40px', padding: '0 24px', borderColor: '#e2e8f0' }}
                                 >
@@ -188,7 +198,7 @@ const AddContract = () => {
                                 </Button>
                                 <Button
                                     variant="primary"
-                                    // disabled={!statusAccess}
+                                    disabled={!statusAccess}
                                     icon={<SaveIcon fontSize="small" />}
                                     onClick={handleSubmit((data) => {
                                         if (validate(data)) {
@@ -271,7 +281,7 @@ const AddContract = () => {
                         </Box>
                     </Grid>
                     <Grid size={{ xs: 12, sm: isSideBar ? 4 : 0.7 }}
-                        className="d-flex justify-content-end transition-all">
+                        className="d-flex flex-column gap-3 justify-content-end transition-all">
                         <Box className="glass-card"
                             sx={{
                                 position: "relative",
@@ -284,6 +294,21 @@ const AddContract = () => {
                                 justifyContent: "flex-start"
                             }}>
                             <AttachmentDisplay />
+                        </Box>
+                         <Box className="glass-card"
+                            sx={{
+                                position: "relative",
+                                transition: "all 0.3s ease",
+                                width: { xs: "100%", md: isSideBar ? "100%" : "60px" },
+                                minHeight: !isSideBar ? "80vh" : "auto",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "flex-start"
+                            }}>
+                            {isSideBar && (
+                                <ContractHistory contractId={Number(decodedId)} />
+                            )}
                         </Box>
                     </Grid>
                 </Grid>

@@ -115,7 +115,7 @@ const Contract = () => {
                 return;
             }
             showNotification('success', message || 'Xóa hợp đồng thành công', 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['contracts'] });
+            queryClient.invalidateQueries({ queryKey: ['contract'] });
         },
         onError: (error: any) => {
             const message = error?.response?.data?.message || 'Lỗi khi xóa hợp đồng';

@@ -15,8 +15,12 @@ import { useNotification } from "@/components/ui/Notification/NotificationContex
 import { columnsTableContractItem } from "../config/columnsTableContractItem";
 import Pagination from "@/components/common/Pagination/Pagination";
 import Select from "@/components/common/Select/Select";
+import { useFormContext } from "react-hook-form";
+import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR;
 const AddContractTable = () => {
+    const { getValues } = useFormContext();
+    const [id, status] = getValues(['id', 'status']);
     const supplier = useWatch({ name: 'supplier' });
     const quotationsMap: Map<number, Quotation> = useWatch({ name: 'quotations' });
     const items: Map<number, SimpleContractItem> = useWatch({ name: 'items' });
@@ -26,6 +30,10 @@ const AddContractTable = () => {
     const [size, setSize] = useState(20);
 
     const columns = useMemo(() => columnsTableContractItem(page, size, quotationsMap, items), [page, size, quotationsMap, items]);
+
+    const statusAccess = useMemo(() => !id || (status &&
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
+    , [status]);
 
     const handleChangePage = useCallback((page: number) => {
         setPage(page);
@@ -158,8 +166,9 @@ const AddContractTable = () => {
                             />
                         )}
                         <AddProductMenu
-                                onAdd={handleImport}
-                                onBulkAdd={handleImportExcel} />
+                            onAdd={handleImport}
+                            onBulkAdd={handleImportExcel}
+                            disabled={!statusAccess} />
                     </Box>
                 ) : (
                     <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 600, fontStyle: 'italic' }}>

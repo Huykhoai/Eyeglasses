@@ -100,28 +100,8 @@ const AddQuotationRequest: React.FC = () => {
     const { handleSubmit, watch } = methods;
 
     const createMutation = useMutation({
-        mutationFn: async (data: any) => {
-            const selectedProducts: any[] = Array.from(data.products.values());
-            const payload = {
-                id: data.id,
-                cid: data.cid,
-                name: data.name,
-                supplierId: data.supplier?.id,
-                currencyId: data.currency?.id,
-                currencyValue: data.currencyValue,
-                requestDate: data.requestDate,
-                expectedDate: data.expectedDate,
-                note: data.note,
-                status: data.status,
-                items: selectedProducts.map(p => ({
-                    productId: p.productId,
-                    requestQty: p.requestQty,
-                    expectedPrice: p.expectedPrice,
-                    quotedQty: p.quotedQty,
-                    quotedPrice: p.quotedPrice,
-                }))
-            };
-            if (data.id) {
+        mutationFn: async (payload: any) => {
+            if (payload.id) {
                 return axiosClient.put(`/api/purchase-quotation/update`, payload);
             }
             return axiosClient.post('/api/purchase-quotation/add', payload);
@@ -147,11 +127,28 @@ const AddQuotationRequest: React.FC = () => {
             showNotification('error', 'Không thể chỉnh sửa yêu cầu báo giá đã được duyệt', 'Thất bại');
             return;
         }
+        const selectedProducts: any[] = Array.from(data.products.values());
+            const payload = {
+                id: data.id,
+                cid: data.cid,
+                name: data.name,
+                supplierId: data.supplier?.id,
+                currencyId: data.currency?.id,
+                currencyValue: data.currencyValue,
+                requestDate: data.requestDate,
+                expectedDate: data.expectedDate,
+                note: data.note,
+                status: status,
+                items: selectedProducts.map(p => ({
+                    productId: p.productId,
+                    requestQty: p.requestQty,
+                    expectedPrice: p.expectedPrice,
+                    quotedQty: p.quotedQty,
+                    quotedPrice: p.quotedPrice,
+                }))
+            };
 
-        if (status !== PurchaseQuotationStatus.DRAFT && !validate(data)) {
-            return;
-        }
-        createMutation.mutate({ ...data, status });
+        createMutation.mutate(payload);
     };
 
     const validate = (data: FormValues) => {

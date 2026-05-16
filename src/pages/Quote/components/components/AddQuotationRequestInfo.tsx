@@ -1,5 +1,5 @@
 import { Box, Divider, Grid, IconButton, InputAdornment, Stack, Typography } from "@mui/material";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import {
     Description as FormIcon,
@@ -12,11 +12,17 @@ import { RHFAutoComplete } from "@/components/common/TextField/RHFComponents";
 import { useCurrency, useSupplier } from "@/hooks/UseAllData";
 import type { EntityType } from "@/pages/Employee/config/type";
 import { RHFTextField } from "@/components/common/TextField/RHFTextField";
+import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 
 const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ generateCID }) => {
     const { setValue, getValues } = useFormContext();
+    const [id, status] = getValues(['id', 'status']);
     const { data: suppliers } = useSupplier();
     const { data: currencies } = useCurrency();
+
+    const statusAccess = useMemo(() => !id || (status &&
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
+    , [status]);
 
     const getNameEmployee = useCallback((empl: EntityType) => {
         if (!empl) return '--';
@@ -42,10 +48,10 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                             <RHFTextField
                                 name='cid'
                                 placeholder='Nhập mã phiếu yêu cầu báo giá...'
-                                disabled={!!getValues('id')}
+                                disabled={!!id}
                                 startAdornment={<InputAdornment position="start"><RequestQuoteIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                                 endAdornment={
-                                    <IconButton onClick={handleRegenerateCID} disabled={!!getValues('id')} size="small" sx={{ color: '#6366f1' }}>
+                                    <IconButton onClick={handleRegenerateCID} disabled={!!id} size="small" sx={{ color: '#6366f1' }}>
                                         <AutorenewIcon fontSize="small" />
                                     </IconButton>
                                 }
@@ -57,6 +63,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                             <RHFTextField
                                 name='name'
                                 placeholder="Nhập tên yêu cầu báo giá..."
+                                disabled={!statusAccess}
                                 startAdornment={<InputAdornment position="start"><FormIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
@@ -67,6 +74,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                 name='requestDate'
                                 type="datetime-local"
                                 rules={{ required: 'Vui lòng chọn ngày tạo phiếu' }}
+                                disabled={!statusAccess}
                                 startAdornment={<InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
@@ -77,6 +85,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                 name='expectedDate'
                                 type="date"
                                 rules={{ required: 'Vui lòng chọn hạn cuối nhận báo giá' }}
+                                disabled={!statusAccess}
                                 startAdornment={<InputAdornment position="start"><DateIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
                             />
                         </Box>
@@ -100,6 +109,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     onChangeCallback={() => {
                                         setValue('products', new Map(), { shouldValidate: true });
                                     }}
+                                    disabled={!statusAccess}
                                 />
                             </Grid>
 
@@ -114,6 +124,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                             setValue('currencyValue', val.value, { shouldValidate: true });
                                         }
                                     }}
+                                    disabled={!statusAccess}
                                 />
                             </Grid>
 
@@ -123,6 +134,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     name='currencyValue'
                                     isNumber
                                     startAdornment={<InputAdornment position="start"><CurrencyIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>}
+                                    disabled={!statusAccess}
                                 />
                             </Grid>
 
@@ -133,6 +145,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
                                     placeholder="VD: Điều kiện thanh toán, địa điểm giao hàng..."
                                     multiline
                                     rows={3}
+                                    disabled={!statusAccess}
                                 />
                             </Grid>
                         </Grid>

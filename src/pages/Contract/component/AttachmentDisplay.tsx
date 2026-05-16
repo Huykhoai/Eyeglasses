@@ -4,23 +4,72 @@ import FolderIcon from '@mui/icons-material/Folder';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ImageIcon from '@mui/icons-material/Image';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useFormContext } from 'react-hook-form';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import Button from "@/components/common/Button/Button";
 import TextField from "@/components/common/TextField/TextField";
-import { useWatch } from "react-hook-form";
+import axiosClient from "@/api/axiosClient";
+import { useNotification } from "@/components/ui/Notification/NotificationContext";
+import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import DialogAddAttachment from "./DialogAddAttachment";
+import type { AttachmentDto } from "../config/types";
+import DialogViewImage from "./DialogViewImage";
 
 const THEME_PRIMARY = import.meta.env.VITE_PRIMARY_COLOR;
-
+const url = import.meta.env.VITE_API_URL;
 const AttachmentDisplay = () => {
     const { setValue } = useFormContext();
+    const contractId = useWatch({ name: 'id' });
     const isSideBar = useWatch({ name: 'isSideBar' });
+
+    const queryClient = useQueryClient();
+    const { showNotification } = useNotification();
+
     const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [openAdd, setOpenAdd] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
+    const { data: files = [], isLoading } = useQuery<AttachmentDto[]>({
+        queryKey: ['attachments', contractId],
+        queryFn: async () => {
+            try {
+                const response = await axiosClient.get(`/api/attachment/contract/${contractId}`);
+                return response.data;
+            } catch (error: any) {
+                const message = error?.response?.data?.message || 'Lỗi khi tải tài liệu';
+                showNotification('error', message, 'Thất bại');
+                throw error;
+            }
+        },
+        enabled: !!contractId,
+        retry: false,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 5 * 60 * 1000,
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id: number) => {
+            const response = await axiosClient.delete(`/api/attachment/delete/${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            showNotification('success', 'Xóa tài liệu thành công', 'Thành công');
+            queryClient.invalidateQueries({ queryKey: ['attachments', contractId] });
+            setOpenDelete(false);
+        },
+        onError: (error: any) => {
+            showNotification('error', error?.response?.data?.message || 'Lỗi khi xóa tài liệu', 'Thất bại');
+        }
+    });
 
     const handleShowSideBar = useCallback(() => {
         setValue('isSideBar', true);
@@ -29,12 +78,58 @@ const AttachmentDisplay = () => {
     const handleHideSideBar = useCallback(() => {
         setValue('isSideBar', false);
     }, [setValue]);
-    // Mock data based on the image
-    const [files] = useState([
-        { id: 1, name: "Untitled diagram _ Merm...", desc: "Không có mô tả", type: "IMAGE", size: "1.2 MB" },
-        { id: 2, name: "OTK_mockup", desc: "Không có mô tả", type: "PDF", size: "4.5 MB" },
-        { id: 3, name: "Nguyen_Quang_Huy_524...", desc: "Không có mô tả", type: "PDF", size: "0.8 MB" },
-    ]);
+
+    const isPDF = useCallback((url: string) => {
+        return url?.toLowerCase().endsWith(".pdf");
+    }, []);
+
+    const isImage = useCallback((url: string) => {
+        const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+        return imageExtensions.some((ext) =>
+            url?.toLowerCase().endsWith(ext)
+        );
+    }, []);
+
+    const handleViewFile = (attachment: AttachmentDto) => {
+        if (attachment.url) {
+            window.open(`${url}${attachment.url}`, "_blank", "noopener,noreferrer");
+        }
+    };
+
+    const handleImageClick = (attachment: AttachmentDto) => {
+        if (attachment.url) {
+            if (isImage(attachment.url)) {
+                setImagePreviewUrl(`${url}${attachment.url}`);
+                setImagePreviewOpen(true);
+            } else {
+                handleViewFile(attachment);
+            }
+        }
+
+    };
+
+    const handleDownloadFile = async (attachment: AttachmentDto) => {
+        if (!attachment.url) return;
+
+        try {
+            const fullUrl = `${url}${attachment.url}`;
+            const response = await fetch(fullUrl);
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute('download', attachment.name);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } catch (error: any) {
+            showNotification("error", `Lỗi khi tải file: ${error.message}`, "Thất bại")
+        }
+    };
 
     if (!isSideBar) {
         return (
@@ -57,11 +152,25 @@ const AttachmentDisplay = () => {
                     color: '#cbd5e1',
                     letterSpacing: '0.1em'
                 }}>
-                    TỆP ĐÍNH KÈM
+                    TỆP ĐÍNH KÈM ({files.length})
                 </Typography>
             </Box>
         )
     }
+
+    const filteredFiles = files.filter(f => {
+        const searchMatch = !searchTerm ||
+            f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (f.description && f.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        if (!searchMatch) return false;
+
+        if (filter === 'all') return true;
+        const ext = f.url?.split('.').pop()?.toLowerCase();
+        if (filter === 'pdf') return ext === 'pdf';
+        if (filter === 'image') return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '');
+        return true;
+    });
     return (
         <Box sx={{ p: 1, width: '100%' }}>
             <Box sx={{
@@ -85,20 +194,27 @@ const AttachmentDisplay = () => {
                         Tệp đính kèm ({files.length})
                     </Typography>
                 </Box>
-                <Button
-                    variant="primary"
-                    icon={<CloudUploadIcon />}
-                >
-                    Thêm tệp đính kèm
-                </Button>
+                <Tooltip title={!contractId ? "Vui lòng tạo hợp đồng trước" : "Thêm tệp đính kèm"} placement="top">
+                    <Button
+                        variant="primary"
+                        icon={<CloudUploadIcon />}
+                        onClick={() => setOpenAdd(true)}
+                        disabled={!contractId}
+                    >
+
+                        Thêm tệp đính kèm
+                    </Button>
+                </Tooltip>
+
             </Box>
 
             <TextField
                 name="search"
                 type="text"
-                value={""}
+                value={searchTerm}
+                disabled={!contractId}
                 placeholder="Tìm kiếm theo tên hoặc mô tả..."
-                onChange={(e) => {}}
+                onChange={(e) => setSearchTerm(e.target.value)}
             />
 
             <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 1 }}>
@@ -109,39 +225,65 @@ const AttachmentDisplay = () => {
                         bgcolor: filter === 'all' ? THEME_PRIMARY : '#f1f5f9',
                         color: filter === 'all' ? '#fff' : '#475569',
                         fontWeight: 700,
-                        '&:hover': { bgcolor: filter === 'all' ? THEME_PRIMARY : '#e2e8f0' }
+                        '&:hover': {
+                            bgcolor: filter === 'all' ? THEME_PRIMARY : '#e2e8f0',
+                            opacity: 0.9
+                        }
                     }}
                 />
                 <Chip
-                    icon={<ImageIcon sx={{ fontSize: '18px !important', color: filter === 'image' ? '#fff !important' : 'inherit' }} />}
-                    label="Hình ảnh (1)"
+                    icon={<ImageIcon sx={{
+                        fontSize: '18px !important',
+                        color: filter === 'image' ? '#fff !important' : '#64748b !important'
+                    }} />}
+                    label="Hình ảnh"
                     onClick={() => setFilter('image')}
-                    variant="outlined"
+                    variant={filter === 'image' ? 'filled' : 'outlined'}
                     sx={{
                         bgcolor: filter === 'image' ? THEME_PRIMARY : 'transparent',
                         color: filter === 'image' ? '#fff' : '#475569',
                         borderRadius: '8px',
                         fontWeight: 600,
-                        border: '1px solid #e2e8f0'
+                        border: filter === 'image' ? 'none' : '1px solid #e2e8f0',
+                        '&:hover': {
+                            bgcolor: filter === 'image' ? THEME_PRIMARY : '#f8fafc',
+                            color: filter === 'image' ? '#fff' : THEME_PRIMARY,
+                            borderColor: THEME_PRIMARY,
+                            '& .MuiChip-icon': {
+                                color: filter === 'image' ? '#fff !important' : `${THEME_PRIMARY} !important`
+                            }
+                        }
                     }}
                 />
                 <Chip
-                    icon={<PictureAsPdfIcon sx={{ fontSize: '18px !important', color: filter === 'pdf' ? '#fff !important' : 'inherit' }} />}
-                    label="PDF (2)"
+                    icon={<PictureAsPdfIcon sx={{
+                        fontSize: '18px !important',
+                        color: filter === 'pdf' ? '#fff !important' : '#64748b !important'
+                    }} />}
+                    label="PDF"
                     onClick={() => setFilter('pdf')}
-                    variant="outlined"
+                    variant={filter === 'pdf' ? 'filled' : 'outlined'}
                     sx={{
                         bgcolor: filter === 'pdf' ? THEME_PRIMARY : 'transparent',
                         color: filter === 'pdf' ? '#fff' : '#475569',
                         borderRadius: '8px',
                         fontWeight: 600,
-                        border: '1px solid #e2e8f0'
+                        border: filter === 'pdf' ? 'none' : '1px solid #e2e8f0',
+                        '&:hover': {
+                            bgcolor: filter === 'pdf' ? THEME_PRIMARY : '#f8fafc',
+                            color: filter === 'pdf' ? '#fff' : THEME_PRIMARY,
+                            borderColor: THEME_PRIMARY,
+                            '& .MuiChip-icon': {
+                                color: filter === 'pdf' ? '#fff !important' : `${THEME_PRIMARY} !important`
+                            }
+                        }
                     }}
                 />
             </Stack>
 
-            <Stack spacing={1.5}>
-                {files.map((file) => (
+            <Stack spacing={1.5} sx={{ position: 'relative', maxHeight: '40vh', minHeight: '34.6vh', overflowY: 'auto' }}>
+                {isLoading && <Typography variant="caption" align="center">Đang tải...</Typography>}
+                {filteredFiles.map((file) => (
                     <Box
                         key={file.id}
                         sx={{
@@ -169,10 +311,22 @@ const AttachmentDisplay = () => {
                             overflow: 'hidden',
                             border: '1px solid #f1f5f9'
                         }}>
-                            {file.type === 'PDF' ? (
-                                <PictureAsPdfIcon sx={{ color: '#ef4444', fontSize: 32 }} />
+                            {isPDF(file.url || '') ? (
+                                <PictureAsPdfIcon sx={{ width: 40, height: 40, color: '#ef4444' }} />
                             ) : (
-                                <ImageIcon sx={{ color: '#3b82f6', fontSize: 32 }} />
+                                <img
+                                    src={`${url}${file.url}`}
+                                    alt={file.name}
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        cursor: "pointer",
+                                        transition: "transform 0.3s",
+
+                                    }}
+                                    onClick={() => handleImageClick(file)}
+                                />
                             )}
                         </Box>
 
@@ -180,29 +334,19 @@ const AttachmentDisplay = () => {
                             <Typography variant="body2" fontWeight={700} color="#1e293b" noWrap sx={{ mb: 0.2 }}>
                                 {file.name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                {file.desc}
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }} noWrap>
+                                {file.description || "Không có mô tả"}
                             </Typography>
                         </Box>
 
                         <Stack direction="row" spacing={0.5}>
-                            <Tooltip title="Xem">
-                                <IconButton size="small" sx={{ bgcolor: '#f8fafc', color: '#64748b' }}>
-                                    <VisibilityIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
                             <Tooltip title="Tải xuống">
-                                <IconButton size="small" sx={{ bgcolor: '#f0fdf4', color: '#166534' }}>
+                                <IconButton onClick={() => handleDownloadFile(file)} size="small" sx={{ bgcolor: '#f0fdf4', color: '#166534' }}>
                                     <FileDownloadIcon fontSize="small" />
                                 </IconButton>
                             </Tooltip>
-                            <Tooltip title="Sửa">
-                                <IconButton size="small" sx={{ bgcolor: '#eff6ff', color: '#1e40af' }}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
                             <Tooltip title="Xóa">
-                                <IconButton size="small" sx={{ bgcolor: '#fef2f2', color: '#991b1b' }}>
+                                <IconButton onClick={() => { setSelectedId(file.id!); setOpenDelete(true); }} size="small" sx={{ bgcolor: '#fef2f2', color: '#991b1b' }}>
                                     <DeleteIcon fontSize="small" />
                                 </IconButton>
                             </Tooltip>
@@ -211,11 +355,26 @@ const AttachmentDisplay = () => {
                 ))}
             </Stack>
 
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="caption" color="text.secondary" fontWeight={500}>
-                    Hiển thị {files.length} trên {files.length} file
-                </Typography>
-            </Box>
+            <DialogAddAttachment
+                key={openAdd ? 'open' : 'closed'}
+                open={openAdd}
+                onClose={() => setOpenAdd(false)}
+                contractId={contractId}
+            />
+
+            <ConfirmDialog
+                open={openDelete}
+                onClose={() => setOpenDelete(false)}
+                onConfirm={() => selectedId && deleteMutation.mutate(selectedId)}
+                title="Xác nhận xóa tài liệu"
+                content="Bạn có chắc chắn muốn xóa tệp đính kèm này không? Hành động này không thể hoàn tác."
+                loading={deleteMutation.isPending}
+            />
+            <DialogViewImage
+                open={imagePreviewOpen}
+                onClose={() => setImagePreviewOpen(false)}
+                imagePreviewUrl={imagePreviewUrl}
+            />
         </Box>
     );
 };

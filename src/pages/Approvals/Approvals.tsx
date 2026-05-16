@@ -13,6 +13,7 @@ import { useFetchData } from "./hooks/useFetchData";
 import Loading from "@/components/ui/Loading/Loading";
 import { useFetchDataById } from "./hooks/useFetchDataById";
 import ApprovalsDetail from "./components/ApprovalsPurchaseDetail";
+import ApprovalsContractDetail from "./components/ApprovalsContractDetail";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { cleanParams } from "@/utils/cleanParams";
@@ -20,7 +21,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
 
 const DETAIL_COMPONENTS: Record<string, React.FC<any>> = {
     "purchase-quotations": ApprovalsDetail,
-    "contracts": () => <Box p={3}>Chưa cấu hình giao diện Hợp đồng</Box>,
+    "contracts": ApprovalsContractDetail,
     "otks": () => <Box p={3}>Chưa cấu hình giao diện OTK</Box>,
     "purchase-orders": () => <Box p={3}>Chưa cấu hình giao diện Đơn hàng</Box>,
 };
@@ -107,12 +108,25 @@ const Approvals: React.FC = () => {
             const response = await axiosClient.post(`/api/approvals/${id}`, params);
             return response.data;
         },
-        onSuccess: (response: any) => {
-            showNotification('success', response.message, 'Thành công');
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['approvals'] });
+            switch (selectedType) {
+                case "purchase-quotations":
+                    queryClient.invalidateQueries({ queryKey: ['purchase-quotation'] });
+                    break;
+                case "contracts":
+                    queryClient.invalidateQueries({ queryKey: ['contract'] });
+                    break;
+                case "otks":
+                    queryClient.invalidateQueries({ queryKey: ['otk'] });
+                    break;
+                case "purchase-orders":
+                    queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+                    break;
+            }
             setSelectedRow(null);
             setOpenDialog(false);
             setDialogData(null);
-            queryClient.invalidateQueries({ queryKey: ['approvals'] });
         },
         onError: (error: any) => {
             const message = error?.response?.data?.message || 'Lỗi khi phê duyệt';
@@ -218,7 +232,7 @@ const Approvals: React.FC = () => {
                             </Box>
                         </Box>
                         <Box className="approval-detail-body custom-scrollbar" sx={{ flex: 1, overflowY: 'auto', p: 1 }}>
-                                <DetailComponent data={detailById} />
+                            <DetailComponent data={detailById} />
                         </Box>
                     </>
                 )}

@@ -60,3 +60,20 @@ export interface ContractItem {
     contractQty: number;
     lineTotal: number;
 }
+
+export interface AttachmentDto {
+    id?: number;
+    name: string;
+    description?: string;
+    url?: string;
+    contractId: number;
+    createdAt?: string;
+}
+
+export interface TableContractLogResponse {
+    id: number;
+    name: string;
+    description?: string;
+    createdAt: string;
+    employee: NamedEntity;
+}

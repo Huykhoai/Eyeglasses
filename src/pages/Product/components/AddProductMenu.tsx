@@ -6,9 +6,10 @@ interface AddProductMenuProps {
     title?: string
     onAdd: () => void;
     onBulkAdd: () => void;
+    disabled?: boolean;
 }
 
-const AddProductMenu: React.FC<AddProductMenuProps> = ({title= "Thêm sản phẩm", onAdd, onBulkAdd }) => {
+const AddProductMenu: React.FC<AddProductMenuProps> = ({title= "Thêm sản phẩm", onAdd, onBulkAdd, disabled = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -30,6 +31,7 @@ const AddProductMenu: React.FC<AddProductMenuProps> = ({title= "Thêm sản ph�
     return (
         <div className="add-product-menu" ref={containerRef}>
             <Button
+                disabled={disabled}
                 onClick={() => setIsOpen(!isOpen)}
                 icon={<AddIcon fontSize="small" />}
             >

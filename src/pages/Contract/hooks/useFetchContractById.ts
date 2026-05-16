@@ -6,7 +6,7 @@ import { useNotification } from "@/components/ui/Notification/NotificationContex
 export const useFetchContractById = (id: number) => {
     const { showNotification } = useNotification();
     return useQuery<Contract>({
-        queryKey: ['contracts', 'detail', id],
+        queryKey: ['contract', 'detail', id],
         queryFn: async () => {
             try {
                 const response = await axiosClient.get(`/api/contract/${id}`);

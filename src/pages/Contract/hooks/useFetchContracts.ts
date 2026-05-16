@@ -8,7 +8,7 @@ import type { Contract } from "../config/types";
 export const useFetchContract = (page: number, size: number, filter: Record<string, any>) => {
     const { showNotification } = useNotification();
     return useQuery<PaginatedResponse<Contract>>({
-        queryKey: ['contracts', 'list', page, size, filter],
+        queryKey: ['contract', 'list', page, size, filter],
         queryFn: async () => {
             try {
                 const params = cleanParams({ ...filter, size });

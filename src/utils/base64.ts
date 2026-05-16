@@ -1,9 +1,9 @@
 
 export const useBase64 = () => {
     const encode = (key: any) => {
-        if (!key) return null;
+        if (key === undefined || key === null) return null;
         try {
-            return btoa(JSON.stringify(key));
+            return btoa(String(key));
         } catch (error) {
             return null;
         }
@@ -12,7 +12,7 @@ export const useBase64 = () => {
         if (!key) return null;
 
         try {
-            return JSON.parse(atob(key));
+            return atob(key);
         } catch (error) {
             return null;
         }

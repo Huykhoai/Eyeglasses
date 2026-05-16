@@ -27,7 +27,7 @@ const FormProduct: React.FC = () => {
     const { decode } = useBase64();
     const { showNotification } = useNotification();
 
-    const decodedId = id ? decode(id) : undefined;
+    const decodedId = id ? Number(decode(id)) : undefined;
     const { data: groups = [] } = useGroup();
     const { data: product, isLoading: isLoadingProduct } = useGetProductById(Number(decodedId));
     const queryClient = useQueryClient();
