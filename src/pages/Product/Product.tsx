@@ -26,7 +26,6 @@ import { useBase64 } from '@/utils/base64';
 const productTypeLabels: Record<ProductType, string> = {
     LENS: 'Mắt kính',
     FRAME: 'Gọng kính',
-    ACCESSORY: 'Phụ kiện',
 };
 const Product: React.FC = () => {
     const navigate = useNavigate();
@@ -86,7 +85,7 @@ const Product: React.FC = () => {
         const roleStaff = user?.roles?.includes(Roles.STAFF_EDIT);
         if (!roleAccess && !roleStaff) {
             showNotification(
-                'error', 
+                'error',
                 'Chỉ có Admin và Manager hoặc nhân viên có quyền sửa mới có quyền sửa sản phẩm',
                 'Lỗi hệ thống'
             );
@@ -101,14 +100,14 @@ const Product: React.FC = () => {
         const roleStaff = user?.roles?.includes(Roles.STAFF_DELETE);
         if (!roleAccess && !roleStaff) {
             showNotification(
-                'error', 
-                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm', 
+                'error',
+                'Chỉ có Admin và Manager hoặc nhân viên có quyền xóa mới có quyền xóa sản phẩm',
                 'Lỗi hệ thống'
             );
             return;
         }
         setOpenDeleteDialog(true);
-        
+
     }, [selectedProduct, roleAccess]);
 
     const handleDelete = useCallback(async () => {
@@ -155,10 +154,10 @@ const Product: React.FC = () => {
 
     const handlePageChange = useCallback((page: number) => {
         setPage(page);
-        setSearchParams({ 
+        setSearchParams({
             ...filters,
             type: productType.toLowerCase(),
-            page: page.toString() 
+            page: page.toString()
         }, { replace: true });
     }, [filters, setSearchParams, productType]);
 

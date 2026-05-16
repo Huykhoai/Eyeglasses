@@ -1,6 +1,6 @@
 import type { ConfigLimitResponse } from "@/types";
 
-export type ProductType = 'LENS' | 'FRAME' | 'ACCESSORY';
+export type ProductType = 'LENS' | 'FRAME';
 
 export interface NamedEntity {
     id: number;
@@ -84,9 +84,7 @@ export interface FrameProduct extends ProductBase {
     frameAttribute: FrameAttributeDto;
 }
 
-export type AccessoryProduct = ProductBase;
-
-export type Product = LensProduct | FrameProduct | AccessoryProduct;
+export type Product = LensProduct | FrameProduct;
 
 export interface ProductPageResponse {
     data: Product[];
@@ -96,5 +94,4 @@ export interface ProductPageResponse {
 export const GROUP_TYPE: Record<number, ProductType> = {
     1: 'LENS',
     2: 'FRAME',
-    3: 'ACCESSORY'
 }

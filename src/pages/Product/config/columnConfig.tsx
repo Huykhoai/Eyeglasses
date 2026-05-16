@@ -147,7 +147,7 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         groupName: 'Thông tin giá',
         render: (item: Product) => (
             <Typography className="badge-chip badge-neutral" variant="body2" fontSize={9}>
-                {item.currency?.cid || '-' }
+                {item.currency?.cid || '-'}
             </Typography>
         ),
     },
@@ -497,8 +497,6 @@ export const getColumnsForType = (type: ProductType): ColumnDef[] => {
             return [...base, ...lensColumns];
         case 'FRAME':
             return [...base, ...frameColumns];
-        case 'ACCESSORY':
-            return base;
         default:
             return base;
     }

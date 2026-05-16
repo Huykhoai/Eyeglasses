@@ -9,7 +9,6 @@ interface ProductTypeTabsProps {
 const tabs: { type: ProductType; label: string }[] = [
     { type: 'LENS', label: 'Mắt kính' },
     { type: 'FRAME', label: 'Gọng kính' },
-    { type: 'ACCESSORY', label: 'Phụ kiện' },
 ];
 
 const ProductTypeTabs: React.FC<ProductTypeTabsProps> = ({ value, onChange }) => {
