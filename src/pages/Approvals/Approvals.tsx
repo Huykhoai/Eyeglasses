@@ -195,7 +195,7 @@ const Approvals: React.FC = () => {
                             <Typography variant="body1" fontWeight={600}>Không có dữ liệu</Typography>
                         </Box>
                     ) : (
-                        <ApprovalsTable data={approvals?.items || []} onChange={handleClickItem} />
+                        <ApprovalsTable data={approvals?.items || []} selected={selectedRow} onChange={handleClickItem} />
                     )}
                 </Box>
                 {(approvals?.totalItems || 0) > size && (

@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { useFetchQuotationBySupplier } from "../hooks/useFetchQuotationBySupplier";
-import type { Quotation } from "../config/types";
-import { Box, Checkbox, Divider, FormControlLabel, IconButton, Paper, Stack, styled, Typography } from "@mui/material";
+import { useFetchContractBySupplier } from "../hooks/useFetchContractBySupplier";
+import type { Contract } from "@/pages/Contract/config/types";
+import { Box, Checkbox, Divider, IconButton, Paper, Stack, styled, Typography } from "@mui/material";
 import TextField from "@/components/common/TextField/TextField";
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import SearchIcon from '@mui/icons-material/Search';
-import ApprovalIcon from '@mui/icons-material/Approval';
 import Loading from "@/components/ui/Loading/Loading";
+import ApprovalIcon from '@mui/icons-material/Approval';
 import Pagination from "@/components/common/Pagination/Pagination";
-const primaryColor = import.meta.env.VITE_PRIMARY_COLOR;
-const QuotationItem = styled(Paper)<{ selected: boolean }>(({ theme, selected }) => ({
+const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
+const ContractItemCard = styled(Paper)<{ selected: boolean }>(({ theme, selected }) => ({
     padding: theme.spacing(2),
     marginBottom: theme.spacing(1.5),
     cursor: 'pointer',
@@ -27,50 +27,45 @@ const QuotationItem = styled(Paper)<{ selected: boolean }>(({ theme, selected })
     }
 }));
 
-interface DialogImportLeftProps {
-    supplierId: number;
-    quotationsMap: Map<number, Quotation>;
-    onRemoveItemsByQuotation?: (quotationId: number) => void;
+interface DialogImportDeliveryLeftProps {
+    supplierId?: number | null;
+    contractsMap: Map<number, Contract>;
+    onRemoveItemsByContract?: (contractId: number) => void;
 }
 
-const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotationsMap, onRemoveItemsByQuotation }) => {
+const DialogImportDeliveryLeft: React.FC<DialogImportDeliveryLeftProps> = ({ supplierId, contractsMap, onRemoveItemsByContract }) => {
     const { setValue } = useFormContext();
 
     const [page, setPage] = useState(1);
     const size = 20;
-    const [type, setType] = useState<boolean>(false);
     const [search, setSearch] = useState('');
 
-    const { data: quotations, isLoading: isLoadingQuotations } = useFetchQuotationBySupplier(
-        supplierId, page, size, type, search
+    const { data: contractsData, isLoading } = useFetchContractBySupplier(
+        supplierId, page, size, search
     );
 
-    const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setType(e.target.checked);
-        setPage(1);
-    }, []);
-
-    const handleSelectQuotation = useCallback((quotation: Quotation) => {
-        const newMap = new Map(quotationsMap);
-        const isSelected = newMap.has(quotation.id);
+    const handleSelectContract = useCallback((contract: Contract) => {
+        if (!contract.id) return;
+        const newMap = new Map(contractsMap);
+        const isSelected = newMap.has(contract.id);
         if (isSelected) {
-            newMap.delete(quotation.id);
-            if (onRemoveItemsByQuotation) {
-                onRemoveItemsByQuotation(quotation.id);
+            newMap.delete(contract.id);
+            if (onRemoveItemsByContract) {
+                onRemoveItemsByContract(contract.id);
             }
         } else {
-            newMap.set(quotation.id, quotation);
+            newMap.set(contract.id, contract);
         }
-        setValue('quotations', newMap, { shouldDirty: true });
-    }, [setValue, quotationsMap, onRemoveItemsByQuotation]);
+        setValue('contracts', newMap, { shouldDirty: true });
+    }, [setValue, contractsMap, onRemoveItemsByContract]);
 
     return (
         <Box className="glass-card" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {isLoadingQuotations && <Loading fullPage message="Đang tải dữ liệu..." />}
+            {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <TextField
                     name="search"
-                    placeholder="Tìm mã đơn hàng..."
+                    placeholder="Tìm mã hợp đồng..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -81,32 +76,22 @@ const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotati
                     <SearchIcon />
                 </IconButton>
             </Box>
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        size="small"
-                        checked={type}
-                        onChange={handleTypeChange}
-                        sx={{ color: primaryColor, '&.Mui-checked': { color: primaryColor } }}
-                    />
-                }
-                label={<Typography variant="body2" color="text.secondary" title="Lọc các đơn hàng chưa về hết">Đơn hàng chưa về hết</Typography>}
-                sx={{ ml: 0 }}
-            />
+
             <Divider sx={{ my: 1 }} />
             <Box sx={{ flex: 1, overflowY: 'auto', paddingTop: 0.25 }}>
-                {quotations?.items?.length === 0 ? (
+                {contractsData?.items?.length === 0 ? (
                     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
                         <ApprovalIcon sx={{ fontSize: 60, opacity: 0.1, mb: 2 }} />
                         <Typography variant="body1" fontWeight={600}>Không có dữ liệu</Typography>
                     </Box>
-                ) : quotations?.items?.map((quotation) => {
-                    const isSelected = quotationsMap.has(quotation.id);
+                ) : contractsData?.items?.map((contract) => {
+                    if (!contract.id) return null;
+                    const isSelected = contractsMap.has(contract.id);
                     return (
-                        <QuotationItem
-                            key={quotation.id}
+                        <ContractItemCard
+                            key={contract.id}
                             selected={isSelected}
-                            onClick={() => handleSelectQuotation(quotation)}
+                            onClick={() => handleSelectContract(contract)}
                         >
                             <Stack direction="row" spacing={1} alignItems={'center'} sx={{ width: '100%' }}>
                                 <Checkbox
@@ -116,21 +101,21 @@ const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotati
                                 />
                                 <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                                     <Box className="d-flex justify-content-between" sx={{ width: '100%' }}>
-                                        <Typography variant="subtitle2" fontWeight={600} color="#64748b">{quotation.cid}</Typography>
-                                        <Typography variant="caption" color="text.secondary" noWrap>{new Date(quotation.createdAt).toLocaleDateString('vi-VN')}</Typography>
+                                        <Typography variant="subtitle2" fontWeight={600} color="#64748b">{contract.cid}</Typography>
+                                        <Typography variant="caption" color="text.secondary" noWrap>{contract.signDate ? new Date(contract.signDate).toLocaleDateString('vi-VN') : '-'}</Typography>
                                     </Box>
-                                    <Typography variant="subtitle2" fontWeight={600} color="#1e293b" mt={1}>{quotation.name}</Typography>
+                                    <Typography variant="subtitle2" fontWeight={600} color="#1e293b" mt={1}>{contract.name}</Typography>
                                 </Box>
                                 <ArrowForwardIosIcon sx={{ fontSize: 14, color: isSelected ? primaryColor : '#cbd5e1', flexShrink: 0 }} />
                             </Stack>
-                        </QuotationItem>
+                        </ContractItemCard>
                     )
                 })}
             </Box>
-            {(quotations?.totalItems ?? 0) > size && (
+            {(contractsData?.totalItems ?? 0) > size && (
                 <Box className="d-flex justify-content-center">
                     <Pagination
-                        totalItems={quotations?.totalItems || 0}
+                        totalItems={contractsData?.totalItems || 0}
                         page={page}
                         size={size}
                         onChange={(page: number) => setPage(page)}
@@ -141,4 +126,4 @@ const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotati
     );
 };
 
-export default React.memo(DialogImportLeft);
+export default React.memo(DialogImportDeliveryLeft);

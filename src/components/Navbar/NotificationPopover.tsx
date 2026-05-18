@@ -54,7 +54,7 @@ const NotificationPopover: React.FC = () => {
 
     const readAllMutation = useMutation({
         mutationFn: async () => {
-            return await axiosClient.post('/api/notifications/mark-all-read');
+            return await axiosClient.patch('/api/notifications/mark-all-read');
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });

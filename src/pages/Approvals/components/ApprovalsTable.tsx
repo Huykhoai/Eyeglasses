@@ -6,8 +6,10 @@ import type { ApprovalType } from "../config/types"
 interface ApprovalsTableProps {
     data: ApprovalType[] | [];
     onChange: (id: number) => void;
+    selected: number | null;
 }
-const ApprovalsTable = ({ data, onChange }: ApprovalsTableProps) => {
+const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
+const ApprovalsTable = ({ data, onChange, selected }: ApprovalsTableProps) => {
     const handleSelected = useCallback((id: number) => {
         onChange(id)
     }, [onChange])
@@ -19,6 +21,10 @@ const ApprovalsTable = ({ data, onChange }: ApprovalsTableProps) => {
                     key={item.id}
                     onClick={() => handleSelected(item.id)}
                     className="approval-list-item"
+                    sx={{
+                        cursor: 'pointer',
+                        border: selected === item.id ? `2px solid ${primaryColor}` : '1px solid #e2e8f0',
+                    }}
                 >
                     <Box className="d-flex justify-content-between align-items-start py-2">
                         <Typography variant="caption" fontWeight={800} color="primary">{item.cid}</Typography>

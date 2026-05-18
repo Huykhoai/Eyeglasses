@@ -1,30 +1,26 @@
-import Button from "@/components/common/Button/Button";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import './Contract.css';
-import {
-    Edit as EditIcon,
-    Delete as DeleteIcon
-} from "@mui/icons-material";
-import MultiFilterBar from "@/components/common/MultiFilterBar/MultiFilterBar";
-import Select from "@/components/common/Select/Select";
-import { useCallback, useMemo, useState } from "react";
-import { getFilterContract } from "./config/filter";
-import { useCurrency, useSupplier } from "@/hooks/UseAllData";
-import { useBase64 } from "@/utils/base64";
-import { useNotification } from "@/components/ui/Notification/NotificationContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFetchContract } from "./hooks/useFetchContracts";
-import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material";
-import { columns as columnsTable } from "./config/columnsTable";
-import PurchaseQuotationStatus from "@/utils/PurchaseQuotationEnum";
-import { Tune } from "@mui/icons-material";
-import type { Contract } from "./config/types";
-import axiosClient from "@/api/axiosClient";
-import Pagination from "@/components/common/Pagination/Pagination";
-import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import Loading from "@/components/ui/Loading/Loading";
+import Button from '@/components/common/Button/Button';
+import './DeliverySchedule.css';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import MultiFilterBar from '@/components/common/MultiFilterBar/MultiFilterBar';
+import { useBase64 } from '@/utils/base64';
+import { useNotification } from '@/components/ui/Notification/NotificationContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
+import { useSupplier } from '@/hooks/UseAllData';
+import { getFilterDelivery } from './config/getFilterDelivery';
+import Select from '@/components/common/Select/Select';
+import { useFetchDelivery } from './hooks/useFetchDelivery';
+import { columnsTable } from './config/columnsTable';
+import type { DeliverySchedule } from './config/types';
+import axiosClient from '@/api/axiosClient';
+import PurchaseQuotationStatus from '@/utils/PurchaseQuotationEnum';
+import Loading from '@/components/ui/Loading/Loading';
+import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
+import { Tune, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import Pagination from '@/components/common/Pagination/Pagination';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 
-const ContractPage = () => {
+const DeliverySchedulePage = () => {
     const navigate = useNavigate();
     const { encode } = useBase64();
     const { showNotification } = useNotification();
@@ -42,12 +38,11 @@ const ContractPage = () => {
     const [size, setSize] = useState<number>(20);
 
     const { data: suppliers } = useSupplier();
-    const { data: currencies } = useCurrency();
-    const categories = useMemo(() => getFilterContract(suppliers || [], currencies || []), [suppliers, currencies]);
+    const categories = useMemo(() => getFilterDelivery(suppliers || []), [suppliers]);
     const columns = useMemo(() => columnsTable, []);
-    const { data: contracts, isLoading } = useFetchContract(page, size, filter);
+    const { data: deliveries, isLoading } = useFetchDelivery(page, size, filter);
 
-    const [selectedItem, setSelectedItem] = useState<Contract | null>(null);
+    const [selectedItem, setSelectedItem] = useState<DeliverySchedule | null>(null);
     const [openConfirm, setOpenConfirm] = useState(false);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -75,7 +70,7 @@ const ContractPage = () => {
         }, { replace: true });
     }, [setSearchParams, filter])
 
-    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>, item: Contract) => {
+    const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>, item: any) => {
         setSelectedItem(item);
         setAnchorEl(event.currentTarget);
     }, [])
@@ -86,7 +81,7 @@ const ContractPage = () => {
 
     const handleEdit = useCallback(() => {
         if (!selectedItem || !selectedItem?.id) return;
-        navigate(`/xnk/contracts/update/${encode(selectedItem.id.toString())}`);
+        navigate(`/xnk/delivery-schedule/update/${encode(selectedItem.id.toString())}`);
     }, [navigate, selectedItem])
 
     const handleDelete = useCallback(() => {
@@ -94,7 +89,7 @@ const ContractPage = () => {
     }, [])
 
     const handleAdd = useCallback(() => {
-        navigate("/xnk/contracts/add")
+        navigate("/xnk/delivery-schedule/add")
     }, [navigate])
 
     const handleConfirmDelete = useCallback(() => {
@@ -106,26 +101,26 @@ const ContractPage = () => {
 
     const mutation = useMutation({
         mutationFn: async (id: number) => {
-            return axiosClient.delete(`/api/contract/${id}`);
+            return axiosClient.delete(`/api/delivery/${id}`);
         },
         onSuccess: (response: any) => {
             const message = response?.data?.message;
             if (response.status === 400) {
-                showNotification('error', message || 'Lỗi khi xóa hợp đồng', 'Thất bại');
+                showNotification('error', message || 'Lỗi khi xóa lịch giao', 'Thất bại');
                 return;
             }
-            showNotification('success', message || 'Xóa hợp đồng thành công', 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['contract'] });
+            showNotification('success', message || 'Xóa lịch giao thành công', 'Thành công');
+            queryClient.invalidateQueries({ queryKey: ['delivery'] });
         },
         onError: (error: any) => {
-            const message = error?.response?.data?.message || 'Lỗi khi xóa hợp đồng';
+            const message = error?.response?.data?.message || 'Lỗi khi xóa lịch giao';
             showNotification('error', message, 'Thất bại');
         }
     })
 
     return (
         <div className="contract-page-wapper">
-            {isLoading && <Loading fullPage message="Đang tải dữ liệu..."/>}
+            {isLoading && <Loading fullPage message="Đang tải dữ liệu..." />}
             <div className="contract-header">
                 <Button
                     variant="outline"
@@ -155,7 +150,7 @@ const ContractPage = () => {
                     variant="primary"
                     onClick={handleAdd}
                 >
-                    Thêm hợp đồng
+                    Thêm lịch giao hàng
                 </Button>
             </div>
             <div className="contract-card">
@@ -183,7 +178,7 @@ const ContractPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {(contracts?.items ?? []).map((item, index) => (
+                            {(deliveries?.items ?? []).map((item, index) => (
                                 <tr key={item.id || index}>
                                     <td>
                                         <Typography variant="body2" align="center" fontSize={12}>
@@ -217,10 +212,10 @@ const ContractPage = () => {
                         </tbody>
                     </table>
                 </div>
-                {(contracts?.totalItems ?? 0) > 0 && (
+                {(deliveries?.totalItems ?? 0) > 0 && (
                     <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
                         <Pagination
-                            totalItems={contracts?.totalItems ?? 0}
+                            totalItems={deliveries?.totalItems ?? 0}
                             page={page}
                             size={size}
                             onChange={handlePageChange}
@@ -260,11 +255,11 @@ const ContractPage = () => {
                 onClose={() => setOpenConfirm(false)}
                 onConfirm={handleConfirmDelete}
                 title="Xác nhận xóa"
-                content="Bạn có chắc chắn muốn xóa báo giá này?"
+                content="Bạn có chắc chắn muốn xóa lịch giao hàng này?"
                 loading={mutation.isPending}
             />
         </div>
     );
 };
 
-export default ContractPage;
+export default DeliverySchedulePage;

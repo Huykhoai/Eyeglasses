@@ -17,8 +17,10 @@ import { Position, Roles } from "@/utils/roles";
 import AddExcelProduct from "@/pages/Product/components/AddByExcel/AddExcelProduct";
 import AddQuotationRequest from "@/pages/Quote/components/AddQuotationRequest";
 import Approvals from "@/pages/Approvals/Approvals";
-import Contract from "@/pages/Contract/Contract";
+import ContractPage from "@/pages/Contract/Contract";
 import AddContract from "@/pages/Contract/component/AddContract";
+import DeliverySchedulePage from "@/pages/DeliverySchedule/DeliverySchedule";
+import AddDeliverySchedule from "@/pages/DeliverySchedule/components/AddDeliverySchedule";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -76,7 +78,12 @@ export const router = createBrowserRouter([
                             {
                                 path: "contracts",
                                 index: true,
-                                element: <Contract />
+                                element: <ContractPage />
+                            },
+                            {
+                                path: "delivery-schedule",
+                                index: true,
+                                element: <DeliverySchedulePage />
                             }
                         ]
                     },
@@ -203,6 +210,23 @@ export const router = createBrowserRouter([
                     {
                         path: "update/:id",
                         element: <AddContract />
+                    }
+                ]
+            },
+            {
+                path: "xnk/delivery-schedule",
+                element: <AuthGuard
+                    requiredPosition={[Position.MANAGER,Position.STAFF_XNK]}
+                    roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
+                />,
+                children: [
+                    {
+                        path: "add",
+                        element: <AddDeliverySchedule />
+                    },
+                    {
+                        path: "update/:id",
+                        element: <AddDeliverySchedule />
                     }
                 ]
             }

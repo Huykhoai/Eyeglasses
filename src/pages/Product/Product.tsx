@@ -438,7 +438,7 @@ const Product: React.FC = () => {
                             <div className="empty-icon">📦</div>
                             <div className="empty-title">Chưa có sản phẩm</div>
                             <div className="empty-desc">
-                                Hãy thêm sản phẩm {productTypeLabels[productType].toLowerCase()} đầu tiên
+                                Hãy thêm sản phẩm {productTypeLabels[productType]?.toLowerCase()} đầu tiên
                             </div>
                         </div>
                     )

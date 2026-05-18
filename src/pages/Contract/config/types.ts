@@ -59,6 +59,9 @@ export interface ContractItem {
     quoPrice: number;
     contractQty: number;
     lineTotal: number;
+    allocatedQty?: number;
+    allowedQty?: number;
+    contractId?: number;
 }
 
 export interface AttachmentDto {
