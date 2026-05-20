@@ -154,7 +154,7 @@ const DeliverySchedulePage = () => {
                 </Button>
             </div>
             <div className="contract-card">
-                <div className="table-scroll-container" style={{ minHeight: 'calc(100vh - 247px)' }}>
+                <div className="table-scroll-container" style={{ height: 'calc(100vh - 247px)' }}>
                     <table className="table-premium">
                         <thead>
                             <tr>

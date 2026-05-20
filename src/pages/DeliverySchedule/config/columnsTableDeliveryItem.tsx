@@ -12,6 +12,7 @@ export const columnsTableDeliveryItem = (
             key: 'stt',
             header: 'STT',
             width: '5%',
+            align: 'center',
             render: (_, index?: number | null) => (page - 1) * size + (index || 0) + 1
         },
         {

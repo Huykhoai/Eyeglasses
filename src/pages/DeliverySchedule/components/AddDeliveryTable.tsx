@@ -175,7 +175,7 @@ const AddDeliveryTable = () => {
                     </Typography>
                 )}
             </Box>
-            <div className="table-scroll-container" style={{ flex: 1, overflowY: 'auto', marginTop: 1, minHeight: '300px', maxHeight: '500px' }}>
+            <div className="table-scroll-container" style={{ flex: 1, overflowY: 'auto', marginTop: 1, height: 'calc(100vh - 200px)' }}>
                 <table className="table-premium">
                     <thead>
                         <tr>

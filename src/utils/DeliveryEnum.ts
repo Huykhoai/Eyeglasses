@@ -4,6 +4,9 @@ const DeliveryEnum = {
     INSPECTING: 'INSPECTING',
     COMPLETED: 'COMPLETED',
     CANCELLED: 'CANCELLED',
+    NOT_CHECKED: 'NOT_CHECKED',
+    CHECKING: 'CHECKING',
+    CHECKED: 'CHECKED',
 } as const;
 
 export const DeliveryEnumLabel = {
@@ -12,6 +15,9 @@ export const DeliveryEnumLabel = {
     INSPECTING: 'Đang kiểm kê',
     COMPLETED: 'Hoàn thành',
     CANCELLED: 'Đã hủy',
+    NOT_CHECKED: 'Chưa kiểm',
+    CHECKING: 'Đang kiểm',
+    CHECKED: 'Đã kiểm',
 } as const;
 
 export type DeliveryEnumType = typeof DeliveryEnum[keyof typeof DeliveryEnum];

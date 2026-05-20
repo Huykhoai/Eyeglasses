@@ -5,9 +5,10 @@ import {
     Save as SaveIcon,
     CheckCircleOutline as CheckCircleOutlineIcon,
     ListAlt as ListAltIcon,
+    AssignmentTurnedIn as AssignmentTurnedInIcon,
 } from '@mui/icons-material';
 import { FormProvider, useForm } from "react-hook-form";
-import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
+import { Box, Divider, Grid, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import { useBase64 } from "@/utils/base64";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import { Fragment, useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import AddDeliveryInfo from "./AddDeliveryInfo";
 import AddDeliveryTable from "./AddDeliveryTable";
+import OtkTab from "./OtkTab";
 import type { DeliverySchedule, SimpleDeliveryItem } from "../config/types";
 import axiosClient from "@/api/axiosClient";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
@@ -44,6 +46,7 @@ const AddDeliverySchedule = () => {
     const decodedId = decode(encodedId || '');
     const { data: delivery } = useFetchDeliveryById(Number(decodedId));
     const [openConfirm, setOpenConfirm] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
 
     const statusAccess = useMemo(() => !decodedId || (delivery &&
         ([DeliveryEnum.DRAFT, DeliveryEnum.PENDING] as DeliveryEnumType[]).includes(delivery?.status))
@@ -289,10 +292,23 @@ const AddDeliverySchedule = () => {
                                 <AddDeliveryInfo generateCID={generateCID} />
                             </Box>
                             <Box className="glass-card">
-                                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700 }}>
-                                    <ListAltIcon /> Sản phẩm thuộc lịch giao hàng
-                                </Typography>
-                                <AddDeliveryTable />
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+                                    <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}
+                                        sx={{
+                                            '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', fontSize: '0.9rem' },
+                                            '& .Mui-selected': { color: `${THEME_COLORS.primary} !important` },
+                                            '& .MuiTabs-indicator': { backgroundColor: THEME_COLORS.primary }
+                                        }}>
+                                        <Tab icon={<ListAltIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="Danh sách sản phẩm" />
+                                        <Tab icon={<AssignmentTurnedInIcon sx={{ fontSize: 18 }} />} iconPosition="start"
+                                            label={`Phiếu OTK`}
+                                            disabled={!decodedId} />
+                                    </Tabs>
+                                </Box>
+                                {activeTab === 0 && <AddDeliveryTable />}
+                                {activeTab === 1 && decodedId && (
+                                    <OtkTab deliveryScheduleId={Number(decodedId)} />
+                                )}
                             </Box>
                         </Box>
                     </Grid>
