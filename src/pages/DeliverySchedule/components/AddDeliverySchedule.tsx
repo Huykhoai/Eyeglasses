@@ -90,7 +90,7 @@ const AddDeliverySchedule = () => {
 
     const { handleSubmit, getValues, formState: { isDirty } } = methods;
 
-    const steps = ["Bản nháp", "Chờ hàng về", "Đang kiểm kê", getValues('status') === DeliveryEnum.CANCELLED ? "Đã hủy" : "Hoàn thành"];
+    const steps = ["Tạo mới", "Chờ hàng về", "Đang kiểm kê", getValues('status') === DeliveryEnum.CANCELLED ? "Đã hủy" : "Hoàn thành"];
 
     const { mutate, isPending } = useMutation({
         mutationFn: async (data: any) => {
@@ -207,14 +207,6 @@ const AddDeliverySchedule = () => {
                             </Box>
 
                             <Stack direction="row" spacing={2}>
-                                <Button
-                                    variant="outline"
-                                    disabled={!statusAccess}
-                                    onClick={handleSubmit((data) => onSubmit(data, DeliveryEnum.DRAFT))}
-                                    style={{ height: '40px', padding: '0 24px', borderColor: '#e2e8f0' }}
-                                >
-                                    Lưu nháp
-                                </Button>
                                 <Button
                                     variant="primary"
                                     disabled={!statusAccess}

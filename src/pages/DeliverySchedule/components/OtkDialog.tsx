@@ -120,6 +120,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
             }
             queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
             queryClient.invalidateQueries({ queryKey: ['otk'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery']})
             showNotification('success', message, 'Thành công');
             setOpenConfirm(false);
             onClose();
@@ -285,7 +286,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                                 {deliveryItems.length > 0 ? deliveryItems.map((item: DeliveryItemDetail, index: number) => {
                                                     const oldQty = initialQtyMap.get(item.id) || 0;
                                                     let allowedQty = item.allowedQty || 0;
-                                                    const isDraft = otkId && status === DeliveryEnum.NOT_CHECKED;
+                                                    const isDraft = otkId && status !== DeliveryEnum.APPROVED;
                                                     if (isDraft) {
                                                         allowedQty += oldQty;
                                                     }

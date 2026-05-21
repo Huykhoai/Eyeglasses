@@ -6,7 +6,12 @@ import {
     Visibility as VisibilityIcon,
     Edit as EditIcon,
     Delete as DeleteIcon,
+    Search as SearchIcon,
+    Calculate as CalculateIcon,
 } from '@mui/icons-material';
+import { useNavigate } from "react-router-dom";
+import { useBase64 } from "@/utils/base64";
+import DeliveryEnum from "@/utils/DeliveryEnum";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
@@ -27,6 +32,8 @@ interface OtkTabProps {
 const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const { encode } = useBase64();
 
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
@@ -56,8 +63,11 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
                 return;
             }
             showNotification('success', msg, 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['otk', 'list', deliveryScheduleId, page, size] });
+            queryClient.invalidateQueries({ queryKey: ['otk'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
             setSelectedOtk(null);
+            setDeleteDialogOpen(false);
         },
         onError: (err: any) => {
             showNotification('error', err?.response?.data?.message || 'Lỗi khi xóa OTK', 'Thất bại');
@@ -77,9 +87,21 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
         setDialogOpen(true);
     }, []);
 
-    const handleOpenView = useCallback(() => {
-        setDialogOpen(true);
-    }, []);
+    const handleOpenInspection = useCallback(() => {
+        if (!selectedOtk) return;
+        const encodedId = encode(selectedOtk.id);
+        const encodedDsId = encode(deliveryScheduleId);
+        navigate(`/xnk/otk/inspection/${encodedId}/${encodedDsId}`);
+        setAnchorEl(null);
+    }, [selectedOtk, encode, deliveryScheduleId, navigate]);
+
+    const handleOpenCost = useCallback(() => {
+        if (!selectedOtk) return;
+        const encodedId = encode(selectedOtk.id);
+        const encodedDsId = encode(deliveryScheduleId);
+        navigate(`/xnk/otk/cost/${encodedId}/${encodedDsId}`);
+        setAnchorEl(null);
+    }, [selectedOtk, encode, deliveryScheduleId, navigate]);
 
     const handleOpenEdit = useCallback(() => {
         setDialogOpen(true);
@@ -205,11 +227,20 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
                     }
                 }}
             >
-                <MenuItem onClick={handleOpenView} sx={{ fontSize: '0.85rem' }}>
+                <MenuItem onClick={handleOpenInspection} sx={{ fontSize: '0.85rem' }}>
                     <ListItemIcon>
-                        <VisibilityIcon fontSize="small" color="info" />
+                        <SearchIcon fontSize="small" color="info" />
                     </ListItemIcon>
-                    Xem chi tiết
+                    Kiểm tra hàng hóa
+                </MenuItem>
+                <MenuItem
+                    onClick={handleOpenCost}
+                    disabled={selectedOtk?.status !== DeliveryEnum.CHECKED}
+                    sx={{ fontSize: '0.85rem' }}>
+                    <ListItemIcon>
+                        <CalculateIcon fontSize="small" color={selectedOtk?.status === DeliveryEnum.CHECKED ? 'success' : 'disabled'} />
+                    </ListItemIcon>
+                    Tính tiền
                 </MenuItem>
                 <MenuItem onClick={handleOpenEdit} sx={{ fontSize: '0.85rem' }}>
                     <ListItemIcon>

@@ -13,7 +13,7 @@ export const columnsOtkDialog = (
     status: string,
     onAddItems: (items: Map<number, any>) => void,
 ): ColumnDef[] => {
-    const isDraft = otkId && status === DeliveryEnum.NOT_CHECKED;
+    const isDraft = otkId && status !== DeliveryEnum.APPROVED;
     const handleToggleSelect = useCallback((item: DeliveryItemDetail) => {
         const currentMap = new Map(localItems);
         if (currentMap.has(item.id)) {
@@ -34,17 +34,17 @@ export const columnsOtkDialog = (
         onAddItems(currentMap);
     }, [otkId, localItems, onAddItems, initialQtyMap, status]);
 
-    const handleUpdateQty = useCallback((id: number, qty: number) => {
+    const handleUpdateQty = useCallback((item: DeliveryItemDetail, qty: number) => {
         const currentMap = new Map(localItems);
-        const item = currentMap.get(id);
-        if (!item) return;
-        const oldQty = initialQtyMap.get(id) || 0;
+        const currentItem = currentMap.get(item.id);
+        if (!currentItem) return;
+        const oldQty = initialQtyMap.get(item.id) || 0;
         let allowedQty = item.allowedQty || 0;
         if (isDraft) {
             allowedQty += oldQty;
         }
         if (allowedQty <= 0) return;
-        currentMap.set(id, { ...item, otkQty: Math.max(0, Math.min(qty, allowedQty)) });
+        currentMap.set(item.id, { ...currentItem, otkQty: Math.max(0, Math.min(qty, allowedQty)) });
         onAddItems(currentMap);
     }, [otkId, localItems, onAddItems, initialQtyMap, status]);
 
@@ -150,7 +150,7 @@ export const columnsOtkDialog = (
                                 name='otkQty'
                                 isNumber
                                 value={otkQty}
-                                onChange={(e) => handleUpdateQty(item.id, Number(e.target.value))}
+                                onChange={(e) => handleUpdateQty(item, Number(e.target.value))}
                                 props={{ min: 0, max: allowedQty, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
                             />
                         ) : (

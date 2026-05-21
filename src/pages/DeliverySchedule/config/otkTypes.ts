@@ -1,4 +1,5 @@
 import type { NamedEntity } from "@/pages/Product/types/product";
+import type { DeliveryEnumType } from "@/utils/DeliveryEnum";
 
 export interface OtkResponse {
     id: number;
@@ -24,13 +25,18 @@ export interface OtkItemResponse {
     deliveryItemId: number;
     cid: string;
     name: string;
-    contract: NamedEntity;
+    contractId: number;
+    contractCid: string;
+    status: DeliveryEnumType;
     scheduledQty: number;
+    otkQty: number;
     receivedQty: number;
     acceptedQty: number;
     deniedQty: number;
     extraQty: number;
     lostQty: number;
+    unitPrice: number;
+    lineTotalVnd: number;
     note?: string;
 }
 

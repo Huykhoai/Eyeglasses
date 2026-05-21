@@ -186,7 +186,7 @@ const DeliverySchedulePage = () => {
                                         </Typography>
                                     </td>
                                     {columns.map((col) => (
-                                        <td key={col.key} style={{ width: col.width, textAlign: 'center' }}>
+                                        <td key={col.key} style={{ width: col.width, textAlign: col.align }}>
                                             {col.render ? (
                                                 col.render(item)
                                             ) : (

@@ -21,6 +21,8 @@ import ContractPage from "@/pages/Contract/Contract";
 import AddContract from "@/pages/Contract/component/AddContract";
 import DeliverySchedulePage from "@/pages/DeliverySchedule/DeliverySchedule";
 import AddDeliverySchedule from "@/pages/DeliverySchedule/components/AddDeliverySchedule";
+import OtkInspection from "@/pages/DeliverySchedule/components/OtkInspection";
+import OtkCostCalculation from "@/pages/DeliverySchedule/components/OtkCostCalculation";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -182,7 +184,7 @@ export const router = createBrowserRouter([
             {
                 path: "xnk/orders/quotation-request",
                 element: <AuthGuard
-                    requiredPosition={[Position.MANAGER,Position.STAFF_XNK]}
+                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
                     roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
                 />,
                 children: [
@@ -199,7 +201,7 @@ export const router = createBrowserRouter([
             {
                 path: "xnk/contracts",
                 element: <AuthGuard
-                    requiredPosition={[Position.MANAGER,Position.STAFF_XNK]}
+                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
                     roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
                 />,
                 children: [
@@ -216,7 +218,7 @@ export const router = createBrowserRouter([
             {
                 path: "xnk/delivery-schedule",
                 element: <AuthGuard
-                    requiredPosition={[Position.MANAGER,Position.STAFF_XNK]}
+                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK]}
                     roles={[Roles.MANAGE_XNK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
                 />,
                 children: [
@@ -227,6 +229,23 @@ export const router = createBrowserRouter([
                     {
                         path: "update/:id",
                         element: <AddDeliverySchedule />
+                    }
+                ]
+            },
+            {
+                path: "xnk/otk",
+                element: <AuthGuard
+                    requiredPosition={[Position.MANAGER, Position.STAFF_XNK, Position.STAFF_OTK]}
+                    roles={[Roles.MANAGE_XNK, Roles.MANAGE_OTK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}
+                />,
+                children: [
+                    {
+                        path: "inspection/:id/:dsId",
+                        element: <OtkInspection />
+                    },
+                    {
+                        path: "cost/:id/:dsId",
+                        element: <OtkCostCalculation />
                     }
                 ]
             }
