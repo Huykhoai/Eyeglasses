@@ -20,8 +20,8 @@ export const DeliveryEnumLabel = {
     NOT_CHECKED: 'Chưa kiểm',
     CHECKING: 'Đang kiểm',
     CHECKED: 'Đã kiểm',
-    APPROVED: 'Đã duyệt OTK',
-    REJECTED: 'Từ chối OTK',
+    APPROVED: 'Đã duyệt',
+    REJECTED: 'Từ chối',
 } as const;
 
 export type DeliveryEnumType = typeof DeliveryEnum[keyof typeof DeliveryEnum];

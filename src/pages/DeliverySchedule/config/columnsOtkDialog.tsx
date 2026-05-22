@@ -12,6 +12,9 @@ export const columnsOtkDialog = (
     initialQtyMap: Map<number, number>,
     status: string,
     onAddItems: (items: Map<number, any>) => void,
+    isAllSelected: boolean,
+    isIndeterminate: boolean,
+    onToggleSelectAll: (e: any) => void
 ): ColumnDef[] => {
     const isDraft = otkId && status !== DeliveryEnum.APPROVED;
     const handleToggleSelect = useCallback((item: DeliveryItemDetail) => {
@@ -51,8 +54,15 @@ export const columnsOtkDialog = (
     return [
         {
             key: 'select',
-            header: '',
+            header: (
+                <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={isIndeterminate}
+                    onChange={onToggleSelectAll}
+                />
+            ),
             align: 'center',
+            width: '40px',
             render: (item: DeliveryItemDetail) => {
                 const isSelected = localItems.has(item.id);
                 const oldQty = initialQtyMap.get(item.id) || 0;
@@ -151,7 +161,7 @@ export const columnsOtkDialog = (
                                 isNumber
                                 value={otkQty}
                                 onChange={(e) => handleUpdateQty(item, Number(e.target.value))}
-                                props={{ min: 0, max: allowedQty, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, max: allowedQty, style: { textAlign: 'end', width: '5vw', padding: '3px 8px' } }}
                             />
                         ) : (
                             <Typography fontWeight="medium" fontSize={13}

@@ -240,11 +240,11 @@ export const router = createBrowserRouter([
                 />,
                 children: [
                     {
-                        path: "inspection/:id/:dsId",
+                        path: "inspection/:id",
                         element: <OtkInspection />
                     },
                     {
-                        path: "cost/:id/:dsId",
+                        path: "cost/:id",
                         element: <OtkCostCalculation />
                     }
                 ]

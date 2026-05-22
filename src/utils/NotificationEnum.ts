@@ -6,6 +6,7 @@ export const NotificationEnum = {
     CONTRACT_APPROVED: "CONTRACT_APPROVED",
     CONTRACT_REJECTED: "CONTRACT_REJECTED",
     DELIVERY_SCHEDULED: "DELIVERY_SCHEDULED",
+    OTK_CREATED: "OTK_CREATED",
     OTK_PASSED: "OTK_PASSED",
     OTK_FAILED: "OTK_FAILED",
     INVENTORY_RECEIVED: "INVENTORY_RECEIVED"
@@ -18,20 +19,23 @@ export const NotificationTitleEnum = {
     [NotificationEnum.CONTRACT_CREATED]: "Tạo hợp đồng",
     [NotificationEnum.CONTRACT_APPROVED]: "Phê duyệt hợp đồng",
     [NotificationEnum.DELIVERY_SCHEDULED]: "Lên lịch giao hàng",
+    [NotificationEnum.OTK_CREATED]: "Tạo OTK",
     [NotificationEnum.OTK_PASSED]: "Kiểm tra OTK",
+    [NotificationEnum.OTK_FAILED]: "Kiểm tra OTK",
     [NotificationEnum.INVENTORY_RECEIVED]: "Nhận hàng tồn kho"
 }
 
 export type NotificationEnumType = typeof NotificationEnum[keyof typeof NotificationEnum];
 
 export const StatusNotification = {
-    [NotificationEnum.QUOTATION_CREATED]: "success",
+    [NotificationEnum.QUOTATION_CREATED]: "info",
     [NotificationEnum.QUOTATION_APPROVED]: "success",
     [NotificationEnum.QUOTATION_REJECTED]: "error",
-    [NotificationEnum.CONTRACT_CREATED]: "success",
+    [NotificationEnum.CONTRACT_CREATED]: "info",
     [NotificationEnum.CONTRACT_REJECTED]: "error",
     [NotificationEnum.CONTRACT_APPROVED]: "success",
     [NotificationEnum.DELIVERY_SCHEDULED]: "success",
+    [NotificationEnum.OTK_CREATED]: "info",
     [NotificationEnum.OTK_PASSED]: "success",
     [NotificationEnum.OTK_FAILED]: "error",
     [NotificationEnum.INVENTORY_RECEIVED]: "success"

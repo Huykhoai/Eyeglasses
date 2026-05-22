@@ -206,6 +206,15 @@ const OtkInspection = () => {
     });
 
     const handleOpenConfirmDialog = () => {
+        if (!otk) return;
+        if (otk?.status === DeliveryEnum.CHECKED) {
+            showNotification('error', 'Không thể sửa OTK đã kiểm tra', 'Thất bại');
+            return;
+        }
+        if (otk?.status === DeliveryEnum.APPROVED || otk?.status === DeliveryEnum.REJECTED) {
+            showNotification('error', 'Không thể sửa OTK đã duyệt hoặc từ chối', 'Thất bại');
+            return;
+        }
         if (selectedItems.size === 0) {
             showNotification('error', 'Vui lòng chọn ít nhất 1 sản phẩm', 'Thất bại');
             return;

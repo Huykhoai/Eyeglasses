@@ -118,9 +118,10 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                 showNotification('error', message, 'Thất bại');
                 return;
             }
-            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
             queryClient.invalidateQueries({ queryKey: ['otk'] });
-            queryClient.invalidateQueries({ queryKey: ['delivery']})
+            queryClient.invalidateQueries({ queryKey: ['otk-inspection'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
             showNotification('success', message, 'Thành công');
             setOpenConfirm(false);
             onClose();
@@ -153,10 +154,69 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
         }
         return true;
     }
-    const columns = columnsOtkDialog(otkId, currentMap, initialQtyMap, status, handleAddItems);
 
     const deliveryItems = deliveryItemsData?.items || [];
     const totalItems = deliveryItemsData?.totalItems || 0;
+
+    const checkableItems = useMemo(() => {
+        return deliveryItems.filter(item => {
+            const oldQty = initialQtyMap.get(item.id) || 0;
+            let allowedQty = item.allowedQty || 0;
+            const isDraft = otkId && status !== DeliveryEnum.APPROVED;
+            if (isDraft) {
+                allowedQty += oldQty;
+            }
+            return allowedQty > 0;
+        });
+    }, [deliveryItems, initialQtyMap, otkId, status]);
+
+    const isAllSelected = useMemo(() => {
+        if (checkableItems.length === 0) return false;
+        return checkableItems.every((item) => currentMap.has(item.id));
+    }, [checkableItems, currentMap]);
+
+    const isIndeterminate = useMemo(() => {
+        if (checkableItems.length === 0) return false;
+        const selectedCount = checkableItems.filter(item => currentMap.has(item.id)).length;
+        return selectedCount > 0 && selectedCount < checkableItems.length;
+    }, [checkableItems, currentMap]);
+
+    const handleToggleSelectAll = useCallback((e: any) => {
+        const nextMap = new Map(currentMap);
+        if (e.target.checked) {
+            checkableItems.forEach((item) => {
+                if (!nextMap.has(item.id)) {
+                    const oldQty = initialQtyMap.get(item.id) || 0;
+                    let allowedQty = item.allowedQty || 0;
+                    const isDraft = otkId && status !== DeliveryEnum.APPROVED;
+                    if (isDraft) {
+                        allowedQty += oldQty;
+                    }
+                    nextMap.set(item.id, {
+                        id: otkId ? currentMap.get(item.id)?.id : null,
+                        deliveryItemId: item.id,
+                        otkQty: allowedQty
+                    });
+                }
+            });
+        } else {
+            checkableItems.forEach((item) => {
+                nextMap.delete(item.id);
+            });
+        }
+        handleAddItems(nextMap);
+    }, [checkableItems, currentMap, handleAddItems, initialQtyMap, otkId, status]);
+
+    const columns = columnsOtkDialog(
+        otkId,
+        currentMap,
+        initialQtyMap,
+        status,
+        handleAddItems,
+        isAllSelected,
+        isIndeterminate,
+        handleToggleSelectAll
+    );
 
     return (
         <FormProvider {...methods}>
@@ -275,9 +335,15 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                                 <tr>
                                                     {columns.map((col) => (
                                                         <th key={col.key} style={{ width: col.width }}>
-                                                            <Typography variant="subtitle2" fontSize={11} fontWeight={700} align='center'>
-                                                                {col.header}
-                                                            </Typography>
+                                                            {typeof col.header === 'string' ? (
+                                                                <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
+                                                                    {col.header}
+                                                                </Typography>
+                                                            ) : (
+                                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                                    {col.header}
+                                                                </Box>
+                                                            )}
                                                         </th>
                                                     ))}
                                                 </tr>

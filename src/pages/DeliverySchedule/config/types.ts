@@ -13,6 +13,15 @@ export interface DeliverySchedule {
     declarationNumber: string;
     feeEnvironment: number;
     feeInsurance: number;
+    feeDelivery: number;
+    feeDeliverySea: number;
+    feeOther: number;
+    taxImport: number;
+    isImportTaxPercentage: boolean;
+    taxVat: number;
+    isVatPercentage: boolean;
+    taxOther: number;
+    isOtherTaxPercentage: boolean;
     declarationDate: string;
     deliveryDate: string;
     totalAmountForeign: number;

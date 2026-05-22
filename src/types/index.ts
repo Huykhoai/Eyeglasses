@@ -60,7 +60,7 @@ export interface ConfigItem {
 }
 export interface ColumnDef {
     key: string;
-    header: string;
+    header: string | React.ReactNode;
     width?: string;
     align?: 'left' | 'center' | 'right';
     render?: (item: any, index?: number | null) => React.ReactNode;

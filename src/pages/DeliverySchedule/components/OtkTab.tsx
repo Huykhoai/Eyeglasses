@@ -90,26 +90,34 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
     const handleOpenInspection = useCallback(() => {
         if (!selectedOtk) return;
         const encodedId = encode(selectedOtk.id);
-        const encodedDsId = encode(deliveryScheduleId);
-        navigate(`/xnk/otk/inspection/${encodedId}/${encodedDsId}`);
+        navigate(`/xnk/otk/inspection/${encodedId}`);
         setAnchorEl(null);
-    }, [selectedOtk, encode, deliveryScheduleId, navigate]);
+    }, [selectedOtk, encode, navigate]);
 
     const handleOpenCost = useCallback(() => {
         if (!selectedOtk) return;
         const encodedId = encode(selectedOtk.id);
-        const encodedDsId = encode(deliveryScheduleId);
-        navigate(`/xnk/otk/cost/${encodedId}/${encodedDsId}`);
+        navigate(`/xnk/otk/cost/${encodedId}`);
         setAnchorEl(null);
-    }, [selectedOtk, encode, deliveryScheduleId, navigate]);
+    }, [selectedOtk, encode, navigate]);
 
     const handleOpenEdit = useCallback(() => {
+        if (!selectedOtk) return;
+        if (selectedOtk.status === DeliveryEnum.APPROVED) {
+            showNotification('error', 'Không thể sửa OTK đã duyệt', 'Thất bại');
+            return;
+        }
         setDialogOpen(true);
-    }, []);
+    }, [selectedOtk]);
 
     const handleOpenDelete = useCallback(() => {
+        if (!selectedOtk) return;
+        if (selectedOtk.status === DeliveryEnum.APPROVED) {
+            showNotification('error', 'Không thể xóa OTK đã duyệt', 'Thất bại');
+            return;
+        }
         setDeleteDialogOpen(true);
-    }, []);
+    }, [selectedOtk]);
 
     const handleCloseDialog = useCallback(() => {
         setDialogOpen(false);
@@ -235,10 +243,10 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
                 </MenuItem>
                 <MenuItem
                     onClick={handleOpenCost}
-                    disabled={selectedOtk?.status !== DeliveryEnum.CHECKED}
+                    disabled={selectedOtk?.status !== DeliveryEnum.APPROVED}
                     sx={{ fontSize: '0.85rem' }}>
                     <ListItemIcon>
-                        <CalculateIcon fontSize="small" color={selectedOtk?.status === DeliveryEnum.CHECKED ? 'success' : 'disabled'} />
+                        <CalculateIcon fontSize="small" color={selectedOtk?.status === DeliveryEnum.APPROVED ? 'success' : 'disabled'} />
                     </ListItemIcon>
                     Tính tiền
                 </MenuItem>

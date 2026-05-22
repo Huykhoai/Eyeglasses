@@ -144,6 +144,119 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                     startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
                 />
             </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Phí vận chuyển bộ (VND)
+                </Typography>
+                <RHFTextField
+                    name="feeDelivery"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Phí vận chuyển biển (VND)
+                </Typography>
+                <RHFTextField
+                    name="feeDeliverySea"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Phí khác (VND)
+                </Typography>
+                <RHFTextField
+                    name="feeOther"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                />
+            </Grid>
+
+            {/* Thuế */}
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Thuế nhập khẩu
+                </Typography>
+                <RHFTextField
+                    name="taxImport"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                size="small"
+                                onClick={() => setValue('isImportTaxPercentage', !getValues('isImportTaxPercentage'))}
+                                disabled={!statusAccess}
+                            >
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isImportTaxPercentage') ? '#6366f1' : '#94a3b8' }}>
+                                    {getValues('isImportTaxPercentage') ? '%' : 'VND'}
+                                </Typography>
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Thuế VAT
+                </Typography>
+                <RHFTextField
+                    name="taxVat"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                size="small"
+                                onClick={() => setValue('isVatPercentage', !getValues('isVatPercentage'))}
+                                disabled={!statusAccess}
+                            >
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isVatPercentage') ? '#6366f1' : '#94a3b8' }}>
+                                    {getValues('isVatPercentage') ? '%' : 'VND'}
+                                </Typography>
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                    Thuế khác
+                </Typography>
+                <RHFTextField
+                    name="taxOther"
+                    type="number"
+                    disabled={!statusAccess}
+                    placeholder="0"
+                    startAdornment={<InputAdornment position="start"><MoneyIcon fontSize="small" sx={{ color: '#94a3b8' }} /></InputAdornment>}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                size="small"
+                                onClick={() => setValue('isOtherTaxPercentage', !getValues('isOtherTaxPercentage'))}
+                                disabled={!statusAccess}
+                            >
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isOtherTaxPercentage') ? '#6366f1' : '#94a3b8' }}>
+                                    {getValues('isOtherTaxPercentage') ? '%' : 'VND'}
+                                </Typography>
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </Grid>
 
             <Grid size={{ xs: 12 }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>

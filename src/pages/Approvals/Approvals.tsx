@@ -14,6 +14,7 @@ import Loading from "@/components/ui/Loading/Loading";
 import { useFetchDataById } from "./hooks/useFetchDataById";
 import ApprovalsDetail from "./components/ApprovalsPurchaseDetail";
 import ApprovalsContractDetail from "./components/ApprovalsContractDetail";
+import ApprovalsOtkDetail from "./components/ApprovalsOtkDetail";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
 import { cleanParams } from "@/utils/cleanParams";
@@ -22,7 +23,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
 const DETAIL_COMPONENTS: Record<string, React.FC<any>> = {
     "purchase-quotations": ApprovalsDetail,
     "contracts": ApprovalsContractDetail,
-    "otks": () => <Box p={3}>Chưa cấu hình giao diện OTK</Box>,
+    "otks": ApprovalsOtkDetail,
     "purchase-orders": () => <Box p={3}>Chưa cấu hình giao diện Đơn hàng</Box>,
 };
 

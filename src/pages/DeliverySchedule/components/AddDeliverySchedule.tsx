@@ -1,5 +1,5 @@
 import Button from "@/components/common/Button/Button";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import './AddDeliverySchedule.css';
 import {
     Save as SaveIcon,
@@ -43,10 +43,27 @@ const AddDeliverySchedule = () => {
     const { decode } = useBase64();
 
     const { id: encodedId } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const decodedId = decode(encodedId || '');
     const { data: delivery } = useFetchDeliveryById(Number(decodedId));
     const [openConfirm, setOpenConfirm] = useState(false);
-    const [activeTab, setActiveTab] = useState(0);
+
+    const activeTab = useMemo(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'otk') return 1;
+        return 0;
+    }, [searchParams]);
+
+    const handleTabChange = useCallback((_: any, newValue: number) => {
+        const params = new URLSearchParams(searchParams);
+        if (newValue === 1) {
+            params.set('tab', 'otk');
+        } else {
+            params.set('tab', 'products');
+
+        }
+        setSearchParams(params);
+    }, [searchParams, setSearchParams]);
 
     const statusAccess = useMemo(() => !decodedId || (delivery &&
         ([DeliveryEnum.DRAFT, DeliveryEnum.PENDING] as DeliveryEnumType[]).includes(delivery?.status))
@@ -66,6 +83,15 @@ const AddDeliverySchedule = () => {
             deliveryDate: '',
             feeEnvironment: 0,
             feeInsurance: 0,
+            feeDelivery: 0,
+            feeDeliverySea: 0,
+            feeOther: 0,
+            taxImport: 0,
+            isImportTaxPercentage: true,
+            taxVat: 0,
+            isVatPercentage: true,
+            taxOther: 0,
+            isOtherTaxPercentage: true,
             billOfLadingNumber: '',
             declarationNumber: '',
             totalAmountForeign: 0,
@@ -143,6 +169,15 @@ const AddDeliverySchedule = () => {
             deliveryDate: data.deliveryDate,
             feeEnvironment: data.feeEnvironment || 0,
             feeInsurance: data.feeInsurance || 0,
+            feeDelivery: data.feeDelivery || 0,
+            feeDeliverySea: data.feeDeliverySea || 0,
+            feeOther: data.feeOther || 0,
+            taxImport: data.taxImport || 0,
+            isImportTaxPercentage: data.isImportTaxPercentage,
+            taxVat: data.taxVat || 0,
+            isVatPercentage: data.isVatPercentage,
+            taxOther: data.taxOther || 0,
+            isOtherTaxPercentage: data.isOtherTaxPercentage,
             supplierId: data.supplier?.id,
             items: Array.from(data.items.values()).map((item: any) => ({
                 id: item.id,
@@ -202,7 +237,7 @@ const AddDeliverySchedule = () => {
                     <Grid size={{ xs: 12, sm: 5 }}>
                         <Box className="add-delivery-header">
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                <Button variant="outline" onClick={() => navigate(-1)} style={{ padding: '4px 12px', height: '32px' }}>Quay lại</Button>
+                                <Button variant="outline" onClick={() => navigate('/xnk/delivery-schedule')} style={{ padding: '4px 12px', height: '32px' }}>Quay lại</Button>
                                 <Divider orientation="vertical" flexItem sx={{ height: 20, my: 'auto', opacity: 0.5 }} />
                             </Box>
 
@@ -285,7 +320,7 @@ const AddDeliverySchedule = () => {
                             </Box>
                             <Box className="glass-card">
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
-                                    <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)}
+                                    <Tabs value={activeTab} onChange={handleTabChange}
                                         sx={{
                                             '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', fontSize: '0.9rem' },
                                             '& .Mui-selected': { color: `${THEME_COLORS.primary} !important` },

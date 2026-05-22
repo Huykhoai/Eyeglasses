@@ -4,10 +4,12 @@ import type { OtkResponse } from "./otkTypes";
 import { DeliveryEnumLabel, type DeliveryEnumType } from "@/utils/DeliveryEnum";
 import dayjs from "dayjs";
 
-const statusColor: Record<string, 'default' | 'warning' | 'success' | 'error'> = {
+const statusColor: Record<string, 'default' | 'warning' | 'success' | 'error' | 'primary'> = {
     NOT_CHECKED: 'default',
     CHECKING: 'warning',
     CHECKED: 'success',
+    APPROVED: 'primary',
+    REJECTED: 'error',
     CANCELLED: 'error',
 };
 
