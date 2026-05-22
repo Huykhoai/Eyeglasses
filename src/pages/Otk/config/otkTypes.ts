@@ -16,6 +16,8 @@ export interface OtkResponse {
     totalLostQty: number;
     createdAt?: string;
     modifiedAt?: string;
+    approvedAt?: string;
+    approvedBy?: NamedEntity;
     items?: Map<number, any>;
     initialQty?: Map<number, number>;
 }

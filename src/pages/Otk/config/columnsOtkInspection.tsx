@@ -45,7 +45,7 @@ export const columnsOtkInspection = (
             render: (item: OtkItemResponse) => {
                 const status = DeliveryEnumLabel[item.status];
                 let badge = "";
-                switch(item.status){
+                switch (item.status) {
                     case DeliveryEnum.NOT_CHECKED:
                         badge = "badge-neutral";
                         break;

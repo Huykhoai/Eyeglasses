@@ -20,25 +20,24 @@ import dayjs from "dayjs";
 import { RHFTextField } from "@/components/common/TextField/RHFTextField";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { RHFAutoComplete } from "@/components/common/TextField/RHFComponents";
-import { useEmployeeAll } from "@/hooks/UseAllData";
-import { columnsOtkDialog } from "../config/columnsOtkDialog";
+import { useDeliveryScheduleAll, useEmployeeAll } from "@/hooks/UseAllData";
+import { columnsOtkDialog } from "@/pages/Otk/config/columnsOtkDialog";
 import MultiFilterBar from "@/components/common/MultiFilterBar/MultiFilterBar";
 import DeliveryEnum from "@/utils/DeliveryEnum";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import { useFetchOtkById } from "../hooks/useFetchOtkById";
-import { useFetchDeliveryItem } from "../hooks/useFetchDeliveryItem";
-import { getFilterDeliveryItem } from "../config/getFilterDeliveryItem";
+import { useFetchOtkById } from "@/pages/Otk/hooks/useFetchOtkById";
+import { getFilterDeliveryItem } from "@/pages/DeliverySchedule/config/getFilterDeliveryItem";
+import { useFetchDeliveryItem } from "@/pages/DeliverySchedule/hooks/useFetchDeliveryItem";
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
 interface OtkDialogProps {
     open: boolean;
     onClose: () => void;
-    deliveryScheduleId: number;
     otkId: number | null;
 }
 
-const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId, otkId }) => {
+const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, otkId }) => {
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
     const { data: employee } = useEmployeeAll();
@@ -49,12 +48,12 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
     const [openConfirm, setOpenConfirm] = useState(false);
 
     const { data: otkData } = useFetchOtkById(otkId || null, open);
-    const { data: deliveryItemsData, isLoading } = useFetchDeliveryItem(deliveryScheduleId, page, size, filter, open);
+    const { data: deliverySchedules } = useDeliveryScheduleAll();
     const categories = useMemo(() => getFilterDeliveryItem, []);
     const methods = useForm({
         defaultValues: {
             cid: '',
-            deliveryScheduleId: deliveryScheduleId,
+            deliverySchedule: null,
             inspectionDate: dayjs().format('YYYY-MM-DD'),
             status: DeliveryEnum.NOT_CHECKED,
             note: '',
@@ -71,9 +70,12 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
     })
 
     const { control, handleSubmit, getValues, setValue } = methods;
-    const currentMap = useWatch({ control, name: 'items' });
+    const currentMap: Map<number, any> = useWatch({ control, name: 'items' });
     const status = useWatch({ control, name: 'status' });
-    const initialQtyMap = useWatch({ control, name: 'initialQty' });
+    const initialQtyMap: Map<number, number> = useWatch({ control, name: 'initialQty' });
+    const deliverySchedule = useWatch({ control, name: 'deliverySchedule' });
+
+    const { data: deliveryItemsData, isLoading } = useFetchDeliveryItem(deliverySchedule?.id || null, page, size, filter, open);
 
     const handleFilterChange = useCallback((filter: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -96,7 +98,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
         mutate({
             id: data.id,
             cid: data.cid,
-            deliveryScheduleId: data.deliveryScheduleId,
+            deliveryScheduleId: data.deliverySchedule?.id,
             inspectionDate: data.inspectionDate,
             status: data.status,
             note: data.note,
@@ -121,7 +123,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
             queryClient.invalidateQueries({ queryKey: ['otk'] });
             queryClient.invalidateQueries({ queryKey: ['otk-inspection'] });
             queryClient.invalidateQueries({ queryKey: ['delivery'] });
-            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
+            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliverySchedule?.id] });
             showNotification('success', message, 'Thành công');
             setOpenConfirm(false);
             onClose();
@@ -227,7 +229,6 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                     bgcolor: 'background.paper', borderRadius: '20px', boxShadow: 24,
                     display: 'flex', flexDirection: 'column', overflow: 'hidden'
                 }}>
-                    {isLoading && <Loading fullPage message="Đang tải..." />}
                     <Box p={2} display="flex" justifyContent="space-between" alignItems="center" bgcolor={primaryColor} borderBottom="1px solid #e2e8f0">
                         <Stack direction="row" spacing={2} alignItems="center">
                             <Box sx={{ bgcolor: primaryColor, p: 1, borderRadius: '10px', color: '#fff' }}>
@@ -241,6 +242,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                             <CloseIcon sx={{ color: "#fff" }} />
                         </IconButton>
                     </Box>
+                    {isLoading && <Loading fullPage message="Đang tải..." />}
                     <Grid container spacing={2} overflow="auto" p={2} sx={{ flex: 1, minHeight: 0, bgcolor: '#f8fafc' }}>
                         <Grid size={{ xs: 12 }}>
                             <Box className="d-flex flex-column gap-3" sx={{ height: '100%' }}>
@@ -249,7 +251,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                         <InventoryIcon fontSize="small" color="primary" /> Thông tin phiếu kiểm định
                                     </Typography>
                                     <Grid container spacing={2}>
-                                        <Grid size={{ xs: 12, md: 4 }}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <RHFTextField
                                                 name="cid"
                                                 label="Mã OTK"
@@ -264,7 +266,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                                 }
                                             />
                                         </Grid>
-                                        <Grid size={{ xs: 12, md: 4 }}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <RHFTextField
                                                 name="inspectionDate"
                                                 label="Ngày kiểm định"
@@ -279,7 +281,17 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                                 }
                                             />
                                         </Grid>
-                                        <Grid size={{ xs: 12, md: 4 }}>
+                                        <Grid size={{ xs: 12, md: 6 }}>
+                                            <RHFAutoComplete
+                                                name="deliverySchedule"
+                                                placeholder="Chọn phiếu giao hàng"
+                                                options={deliverySchedules || []}
+                                                rules={{
+                                                    required: 'Vui lòng chọn phiếu giao hàng'
+                                                }}
+                                            />
+                                        </Grid>
+                                        <Grid size={{ xs: 12, md: 6 }}>
                                             <RHFAutoComplete
                                                 name="employeeAss"
                                                 placeholder="Chọn người kiểm định"
@@ -376,7 +388,7 @@ const OtkDialog: React.FC<OtkDialogProps> = ({ open, onClose, deliveryScheduleId
                                                     <tr>
                                                         <td colSpan={columns.length} align="center">
                                                             <Typography variant="body2" color="text.secondary">
-                                                                Không có dữ liệu
+                                                                Vui lòng chọn phiếu giao hàng
                                                             </Typography>
                                                         </td>
                                                     </tr>

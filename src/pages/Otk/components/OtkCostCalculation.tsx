@@ -13,7 +13,7 @@ import axiosClient from "@/api/axiosClient";
 import Loading from "@/components/ui/Loading/Loading";
 import { useBase64 } from "@/utils/base64";
 import type { OtkItemResponse } from "../config/otkTypes";
-import '../components/AddDeliverySchedule.css';
+import '../../DeliverySchedule/components/AddDeliverySchedule.css';
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 

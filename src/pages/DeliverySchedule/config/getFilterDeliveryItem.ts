@@ -16,5 +16,10 @@ export const getFilterDeliveryItem: FilterItem[] = [
         label: 'Tên sản phẩm',
         type: 'text',
     },
+    {
+        key: 'quantity',
+        label: 'Đã phân bổ',
+        type: 'number',
+    }
     
 ]

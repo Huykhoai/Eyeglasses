@@ -1,7 +1,7 @@
 import { Box, Grid, Typography, Divider } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
 import CardComponent from "./CardComponent";
-import type { OtkItemResponse } from "../../DeliverySchedule/config/otkTypes";
+import type { OtkItemResponse } from "../../Otk/config/otkTypes";
 import type { ColumnDef } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";

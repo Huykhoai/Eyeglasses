@@ -3,9 +3,9 @@ import axiosClient from "@/api/axiosClient";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import { cleanParams } from "@/utils/cleanParams";
 import type { PaginatedResponse } from "@/types";
-import type { DeliveryItemDetail } from "../config/otkTypes";
+import type { DeliveryItemDetail } from "../../Otk/config/otkTypes";
 
-export const useFetchDeliveryItem = (deliveryScheduleId: number, page: number, size: number, filter: Record<string, string>, open: boolean) => {
+export const useFetchDeliveryItem = (deliveryScheduleId: number | null, page: number, size: number, filter: Record<string, string>, open: boolean) => {
     const { showNotification } = useNotification();
     return useQuery<PaginatedResponse<DeliveryItemDetail>>({
         queryKey: ['delivery-items-for-otk', deliveryScheduleId, page, size, filter],

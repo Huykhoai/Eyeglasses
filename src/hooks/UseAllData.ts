@@ -67,3 +67,7 @@ export const useDepartmentAll = () =>
 
 export const useEmployeeAll = () =>
     useFetchAll<ConfigLimitResponse[]>(['employee-all'], "/api/employee/all")
+
+export const useDeliveryScheduleAll = () =>
+    useFetchAll<ConfigLimitResponse[]>(['delivery-schedule-all'], "/api/delivery/all")
+

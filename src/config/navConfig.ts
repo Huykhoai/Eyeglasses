@@ -6,10 +6,12 @@ export const navButtons: NavButton[] = [
         name: 'Sản phẩm',
         children: [
             { name: 'Danh sách sản phẩm', url: '/xnk/products?type=lens' },
-            { name: 'Thêm sản phẩm mới', children: [
-                { name: 'Thêm thủ công', url: '/xnk/products/add' },
-                { name: 'Thêm bằng Excel', url: '/xnk/products/add-by-excel' }
-            ] },
+            {
+                name: 'Thêm sản phẩm mới', children: [
+                    { name: 'Thêm thủ công', url: '/xnk/products/add' },
+                    { name: 'Thêm bằng Excel', url: '/xnk/products/add-by-excel' }
+                ]
+            },
         ]
     },
     {
@@ -22,6 +24,9 @@ export const navButtons: NavButton[] = [
         ]
     },
     {
+        name: 'OTK', url: '/otk'
+    },
+    {
         name: 'Kho hàng',
         children: [
             { name: 'Nhập kho', url: '/warehouse/import' },
@@ -30,10 +35,11 @@ export const navButtons: NavButton[] = [
         ]
     },
     { name: 'Nhà cung cấp', url: '/xnk/suppliers' },
-    { name: 'Phòng ban',
+    {
+        name: 'Phòng ban',
         children: [
-            { name: 'Phòng ban', url: '/hr/departments'},
-            { name: 'Nhân sự', url: '/hr/employees'}
+            { name: 'Phòng ban', url: '/hr/departments' },
+            { name: 'Nhân sự', url: '/hr/employees' }
         ]
     },
     { name: 'Phê duyệt', url: '/approvals?type=purchase-quotations' },

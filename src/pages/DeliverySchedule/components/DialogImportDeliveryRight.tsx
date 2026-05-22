@@ -1,7 +1,7 @@
 import Pagination from "@/components/common/Pagination/Pagination";
 import Select from "@/components/common/Select/Select";
 import { Box, Checkbox, Grid, Typography } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useFetchItemsFromContracts } from "../hooks/useFetchItemsFromContracts";
 import Loading from "@/components/ui/Loading/Loading";
 import { columnsTableDialog } from "../config/columnsTableDialog";
@@ -14,6 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import axiosClient from "@/api/axiosClient";
 import DeliveryEnum from "@/utils/DeliveryEnum";
+import { useBrand } from "@/hooks/UseAllData";
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
 interface DialogImportDeliveryRightProps {
@@ -25,6 +26,7 @@ interface DialogImportDeliveryRightProps {
 const DialogImportDeliveryRight: React.FC<DialogImportDeliveryRightProps> = ({ contractsMap, initialItems, onAddItems }) => {
     const { getValues } = useFormContext();
     const { showNotification } = useNotification();
+    const { data: brands } = useBrand();
     const [id, initialQtyMap, status] = getValues(["id", "initialQtyMap", "status"]);
 
     const [page, setPage] = useState<number>(1);
@@ -34,7 +36,7 @@ const DialogImportDeliveryRight: React.FC<DialogImportDeliveryRightProps> = ({ c
 
     const contractIds = contractsMap ? Array.from(contractsMap.keys()).map(Number) : [];
     const { contractItems, isLoading, totalItems } = useFetchItemsFromContracts(contractIds, page, size, filter);
-    const categories = filterDialog(Array.from(contractsMap.values()), []);
+    const categories = filterDialog(Array.from(contractsMap.values()), brands || []);
     const handleFilterChange = useCallback((filter: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
         Object.entries(filter).forEach(([key, value]) => {
@@ -90,7 +92,60 @@ const DialogImportDeliveryRight: React.FC<DialogImportDeliveryRightProps> = ({ c
         fetchAllItems();
     }, [onAddItems, fetchAllItems]);
 
-    const columns = columnsTableDialog({ id, status, initialQtyMap, initialItems, contractsMap, onAddItems });
+    const checkableItemsPage = useMemo(() => {
+        return (contractItems || []).filter((item: ContractItem) => {
+            const oldQty = initialQtyMap.get(item.id) || 0;
+            let allowedQty = item.allowedQty || 0;
+            const isDraftStr = [DeliveryEnum.DRAFT, DeliveryEnum.PENDING].includes(status)
+            if (id && isDraftStr) {
+                allowedQty += oldQty;
+            }
+            return allowedQty > 0;
+        });
+    }, [contractItems, initialQtyMap, status, id]);
+
+    const isAllSelectedPage = useMemo(() => {
+        if (checkableItemsPage.length === 0) return false;
+        return checkableItemsPage.every((item: ContractItem) => initialItems.has(item.id));
+    }, [checkableItemsPage, initialItems]);
+
+    const isIndeterminatePage = useMemo(() => {
+        if (checkableItemsPage.length === 0) return false;
+        const selectedCount = checkableItemsPage.filter((item: ContractItem) => initialItems.has(item.id)).length;
+        return selectedCount > 0 && selectedCount < checkableItemsPage.length;
+    }, [checkableItemsPage, initialItems]);
+
+    const handleToggleSelectAllPage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const nextMap = new Map(initialItems);
+        if (e.target.checked) {
+            checkableItemsPage.forEach((item: ContractItem) => {
+                if (!nextMap.has(item.id)) {
+                    const oldQty = initialQtyMap.get(item.id) || 0;
+                    let allowedQty = item.allowedQty || 0;
+                    const isDraftStr = [DeliveryEnum.DRAFT, DeliveryEnum.PENDING].includes(status)
+                    if (id && isDraftStr) {
+                        allowedQty += oldQty;
+                    }
+                    nextMap.set(item.id, {
+                        contractItemId: item.id,
+                        contractId: item.contractId!,
+                        scheduledQty: allowedQty,
+                        allowedQty: allowedQty
+                    });
+                }
+            });
+        } else {
+            checkableItemsPage.forEach((item: ContractItem) => {
+                nextMap.delete(item.id);
+            });
+        }
+        onAddItems(nextMap);
+    }, [checkableItemsPage, initialItems, onAddItems, initialQtyMap, status, id]);
+
+    const columns = columnsTableDialog({
+        id, status, initialQtyMap, initialItems, contractsMap, onAddItems,
+        isAllSelectedPage, isIndeterminatePage, onToggleSelectAllPage: handleToggleSelectAllPage
+    });
     return (
         <Box className="glass-card" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {(isLoading || isFetchingAll) && <Loading fullPage message="Đang tải dữ liệu..." />}

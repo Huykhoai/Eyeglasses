@@ -30,5 +30,10 @@ export const filterDialog = (quotations: Quotation[], brands: ConfigLimitRespons
             label: brand.name,
             id: brand.id,
         }))
+    },
+    {
+        key: 'quantity',
+        label: 'Đã phân bổ',
+        type: 'number',
     }
 ] 

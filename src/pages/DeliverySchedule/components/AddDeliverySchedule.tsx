@@ -16,7 +16,6 @@ import { Fragment, useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import AddDeliveryInfo from "./AddDeliveryInfo";
 import AddDeliveryTable from "./AddDeliveryTable";
-import OtkTab from "./OtkTab";
 import type { DeliverySchedule, SimpleDeliveryItem } from "../config/types";
 import axiosClient from "@/api/axiosClient";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
@@ -24,6 +23,7 @@ import { useFetchDeliveryById } from "../hooks/useFetchDeliveryById";
 import Loading from "@/components/ui/Loading/Loading";
 import type { Contract } from "@/pages/Contract/config/types";
 import DeliveryEnum, { type DeliveryEnumType } from "@/utils/DeliveryEnum";
+import OtkTab from "@/pages/Otk/components/OtkTab";
 
 interface FormDelivery extends DeliverySchedule {
     step: number;

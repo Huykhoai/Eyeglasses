@@ -21,8 +21,9 @@ import ContractPage from "@/pages/Contract/Contract";
 import AddContract from "@/pages/Contract/component/AddContract";
 import DeliverySchedulePage from "@/pages/DeliverySchedule/DeliverySchedule";
 import AddDeliverySchedule from "@/pages/DeliverySchedule/components/AddDeliverySchedule";
-import OtkInspection from "@/pages/DeliverySchedule/components/OtkInspection";
-import OtkCostCalculation from "@/pages/DeliverySchedule/components/OtkCostCalculation";
+import OtkCostCalculation from "@/pages/Otk/components/OtkCostCalculation";
+import OtkPage from "@/pages/Otk/OtkPage";
+import OtkInspection from "@/pages/Otk/components/OtkInspection";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -96,9 +97,8 @@ export const router = createBrowserRouter([
                             roles={[Roles.MANAGE_OTK, Roles.STAFF_VIEW]} />,
                         children: [
                             {
-                                path: "otk",
                                 index: true,
-                                element: <div>Trang chính OTK</div>
+                                element: <OtkPage />
                             }
                         ]
                     },
@@ -233,7 +233,7 @@ export const router = createBrowserRouter([
                 ]
             },
             {
-                path: "xnk/otk",
+                path: "otk",
                 element: <AuthGuard
                     requiredPosition={[Position.MANAGER, Position.STAFF_XNK, Position.STAFF_OTK]}
                     roles={[Roles.MANAGE_XNK, Roles.MANAGE_OTK, Roles.STAFF_ADD, Roles.STAFF_EDIT]}

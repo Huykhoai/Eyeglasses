@@ -1,27 +1,20 @@
 import { Box, IconButton, ListItemIcon, Menu, MenuItem, Stack, Typography } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-    Add as AddIcon,
     Tune as TuneIcon,
     Visibility as VisibilityIcon,
-    Edit as EditIcon,
-    Delete as DeleteIcon,
     Search as SearchIcon,
     Calculate as CalculateIcon,
 } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import { useBase64 } from "@/utils/base64";
 import DeliveryEnum from "@/utils/DeliveryEnum";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axiosClient from "@/api/axiosClient";
-import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import Pagination from "@/components/common/Pagination/Pagination";
 import Select from "@/components/common/Select/Select";
-import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
-import type { OtkResponse } from "../config/otkTypes";
-import OtkDialog from "./OtkDialog";
-import Button from "@/components/common/Button/Button";
 import { columnsOtkTable } from "../config/columnsOtkTable";
+import type { OtkResponse } from "../config/otkTypes";
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
@@ -30,15 +23,11 @@ interface OtkTabProps {
 }
 
 const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
-    const { showNotification } = useNotification();
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { encode } = useBase64();
 
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedOtk, setSelectedOtk] = useState<OtkResponse | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
@@ -54,26 +43,6 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
     const otkList: OtkResponse[] = data?.data || [];
     const totalItems: number = data?.totalItems || 0;
 
-    const { mutate: deleteOtk, isPending: isDeleting } = useMutation({
-        mutationFn: (id: number) => axiosClient.delete(`/api/otk/${id}`),
-        onSuccess: (response) => {
-            const msg = response.data?.message || 'Xóa thành công';
-            if (response.data?.status === 400) {
-                showNotification('error', msg, 'Thất bại');
-                return;
-            }
-            showNotification('success', msg, 'Thành công');
-            queryClient.invalidateQueries({ queryKey: ['otk'] });
-            queryClient.invalidateQueries({ queryKey: ['delivery'] });
-            queryClient.invalidateQueries({ queryKey: ['delivery-items-for-otk', deliveryScheduleId] });
-            setSelectedOtk(null);
-            setDeleteDialogOpen(false);
-        },
-        onError: (err: any) => {
-            showNotification('error', err?.response?.data?.message || 'Lỗi khi xóa OTK', 'Thất bại');
-        }
-    });
-
     const handleOpenMenu = useCallback((event: React.MouseEvent<HTMLElement>, item: any) => {
         setSelectedOtk(item);
         setAnchorEl(event.currentTarget);
@@ -83,47 +52,20 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
         setAnchorEl(null);
     }, [])
 
-    const handleOpenCreate = useCallback(() => {
-        setDialogOpen(true);
-    }, []);
-
     const handleOpenInspection = useCallback(() => {
         if (!selectedOtk) return;
         const encodedId = encode(selectedOtk.id);
-        navigate(`/xnk/otk/inspection/${encodedId}`);
+        navigate(`/otk/inspection/${encodedId}`);
         setAnchorEl(null);
     }, [selectedOtk, encode, navigate]);
 
     const handleOpenCost = useCallback(() => {
         if (!selectedOtk) return;
         const encodedId = encode(selectedOtk.id);
-        navigate(`/xnk/otk/cost/${encodedId}`);
+        navigate(`/otk/cost/${encodedId}`);
         setAnchorEl(null);
     }, [selectedOtk, encode, navigate]);
 
-    const handleOpenEdit = useCallback(() => {
-        if (!selectedOtk) return;
-        if (selectedOtk.status === DeliveryEnum.APPROVED) {
-            showNotification('error', 'Không thể sửa OTK đã duyệt', 'Thất bại');
-            return;
-        }
-        setDialogOpen(true);
-    }, [selectedOtk]);
-
-    const handleOpenDelete = useCallback(() => {
-        if (!selectedOtk) return;
-        if (selectedOtk.status === DeliveryEnum.APPROVED) {
-            showNotification('error', 'Không thể xóa OTK đã duyệt', 'Thất bại');
-            return;
-        }
-        setDeleteDialogOpen(true);
-    }, [selectedOtk]);
-
-    const handleCloseDialog = useCallback(() => {
-        setDialogOpen(false);
-        setSelectedOtk(null);
-        setAnchorEl(null);
-    }, []);
 
     const columns = useMemo(() => columnsOtkTable(page, size), [page, size]
     );
@@ -153,9 +95,6 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
                         { label: '50', value: 50 },
                         { label: '100', value: 100 },
                     ]} onChangeSize={(v) => { setSize(Number(v)); setPage(1); }} />
-                    <Button variant="primary" icon={<AddIcon fontSize="small" />} onClick={handleOpenCreate}>
-                        Tạo OTK
-                    </Button>
                 </Box>
             </Box>
 
@@ -250,35 +189,7 @@ const OtkTab: React.FC<OtkTabProps> = ({ deliveryScheduleId }) => {
                     </ListItemIcon>
                     Tính tiền
                 </MenuItem>
-                <MenuItem onClick={handleOpenEdit} sx={{ fontSize: '0.85rem' }}>
-                    <ListItemIcon>
-                        <EditIcon fontSize="small" color="info" />
-                    </ListItemIcon>
-                    Chỉnh sửa
-                </MenuItem>
-                <MenuItem onClick={handleOpenDelete} sx={{ fontSize: '0.85rem', color: 'error.main' }}>
-                    <ListItemIcon>
-                        <DeleteIcon fontSize="small" color="error" />
-                    </ListItemIcon>
-                    Xóa
-                </MenuItem>
             </Menu>
-            <OtkDialog
-                key={selectedOtk?.id || 'new'}
-                open={dialogOpen}
-                onClose={handleCloseDialog}
-                deliveryScheduleId={deliveryScheduleId}
-                otkId={selectedOtk?.id || null}
-            />
-
-            <ConfirmDialog
-                open={deleteDialogOpen}
-                onClose={() => setDeleteDialogOpen(false)}
-                onConfirm={() => selectedOtk && deleteOtk(selectedOtk.id)}
-                title="Xác nhận xóa"
-                content={`Bạn có chắc chắn muốn xóa phiếu OTK "${selectedOtk?.cid}"?`}
-                loading={isDeleting}
-            />
         </Box>
     );
 };

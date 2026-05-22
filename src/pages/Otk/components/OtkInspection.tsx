@@ -16,12 +16,14 @@ import Button from "@/components/common/Button/Button";
 import { useBase64 } from "@/utils/base64";
 import { DeliveryEnumLabel, type DeliveryEnumType } from "@/utils/DeliveryEnum";
 import DeliveryEnum from "@/utils/DeliveryEnum";
-import { type OtkItemResponse } from "../config/otkTypes";
-import '../components/AddDeliverySchedule.css';
+import '../../DeliverySchedule/components/AddDeliverySchedule.css';
 import { columnsOtkInspection } from "../config/columnsOtkInspection";
 import Select from "@/components/common/Select/Select";
 import Pagination from "@/components/common/Pagination/Pagination";
 import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
+import type { OtkItemResponse } from "../config/otkTypes";
+import { useAuth } from "@/context/AuthContext";
+import { Position, Roles } from "@/utils/roles";
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
@@ -29,6 +31,7 @@ const OtkInspection = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
     const queryClient = useQueryClient();
+    const { user } = useAuth();
     const { decode } = useBase64();
     const { id: encodedId } = useParams();
     const otkId = Number(decode(encodedId || ''));
@@ -37,6 +40,10 @@ const OtkInspection = () => {
     const [size, setSize] = useState(20);
     const [selectedItems, setSelectedItems] = useState<Map<number, any>>(new Map());
     const [confirmDialog, setConfirmDialog] = useState(false);
+    const accessRole = useMemo(() => {
+        return user?.positions.some((p) => ([Position.ADMIN, Position.MANAGER, Position.STAFF_OTK] as string[]).includes(p)) &&
+            user?.roles.some((p) => ([Roles.ADMIN, Roles.MANAGE_OTK, Roles.STAFF_ADD, Roles.STAFF_EDIT] as string[]).includes(p));
+    }, [user]);
 
 
     const { data: otk, isLoading } = useQuery({
@@ -206,6 +213,10 @@ const OtkInspection = () => {
     });
 
     const handleOpenConfirmDialog = () => {
+        if (!accessRole) {
+            showNotification('error', 'Bạn không có quyền thực hiện hành động này', 'Thất bại');
+            return;
+        }
         if (!otk) return;
         if (otk?.status === DeliveryEnum.CHECKED) {
             showNotification('error', 'Không thể sửa OTK đã kiểm tra', 'Thất bại');
@@ -253,7 +264,9 @@ const OtkInspection = () => {
                 <Stack direction="row" spacing={1}>
                     <Button variant="primary"
                         icon={<CheckCircleIcon fontSize="small" />}
-                        onClick={handleOpenConfirmDialog}>
+                        onClick={handleOpenConfirmDialog}
+                        disabled={selectedItems.size === 0}
+                    >
                         Hoàn thành kiểm tra
                     </Button>
                 </Stack>

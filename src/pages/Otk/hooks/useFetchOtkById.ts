@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import type { OtkResponse } from "../config/otkTypes";
 import axiosClient from "@/api/axiosClient";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
+import type { OtkResponse } from "../config/otkTypes";
 
 export const useFetchOtkById = (otkId: number | null, open: boolean) => {
     const { showNotification } = useNotification();

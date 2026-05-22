@@ -12,13 +12,16 @@ import {
     Notes as NotesIcon
 } from '@mui/icons-material';
 import { RHFAutoComplete } from "@/components/common/TextField/RHFComponents";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useSupplier } from "@/hooks/UseAllData";
 import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 
 const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
     const { setValue, getValues } = useFormContext();
     const [id, status] = getValues(['id', 'status']);
+    const [isImportTaxPercentage, isVatPercentage, isOtherTaxPercentage] = useWatch({
+        name: ['isImportTaxPercentage', 'isVatPercentage', 'isOtherTaxPercentage']
+    });
     const { data: suppliers } = useSupplier();
 
     const statusAccess = useMemo(() => !id || (status &&
@@ -181,11 +184,19 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                 />
             </Grid>
 
-            {/* Thuế */}
             <Grid size={{ xs: 12, md: 4 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
-                    Thuế nhập khẩu
-                </Typography>
+                <div className="d-flex align-items-center justify-content-between form-check form-switch p-0">
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                        Thuế nhập khẩu
+                    </Typography>
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isImportTaxPercentage}
+                        onChange={() => setValue('isImportTaxPercentage', !isImportTaxPercentage)}
+                        style={{ backgroundColor: isImportTaxPercentage ? "#ff9800" : "#ccc" }}
+                    />
+                </div>
                 <RHFTextField
                     name="taxImport"
                     type="number"
@@ -196,11 +207,11 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         <InputAdornment position="end">
                             <IconButton
                                 size="small"
-                                onClick={() => setValue('isImportTaxPercentage', !getValues('isImportTaxPercentage'))}
+                                onClick={() => setValue('isImportTaxPercentage', !isImportTaxPercentage)}
                                 disabled={!statusAccess}
                             >
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isImportTaxPercentage') ? '#6366f1' : '#94a3b8' }}>
-                                    {getValues('isImportTaxPercentage') ? '%' : 'VND'}
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: isImportTaxPercentage ? '#6366f1' : '#94a3b8' }}>
+                                    {isImportTaxPercentage ? '%' : 'VND'}
                                 </Typography>
                             </IconButton>
                         </InputAdornment>
@@ -208,9 +219,18 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                 />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
-                    Thuế VAT
-                </Typography>
+                <div className="d-flex align-items-center justify-content-between form-check form-switch p-0">
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                        Thuế VAT
+                    </Typography>
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isVatPercentage}
+                        onChange={() => setValue('isVatPercentage', !isVatPercentage)}
+                        style={{ backgroundColor: isVatPercentage ? "#ff9800" : "#ccc" }}
+                    />
+                </div>
                 <RHFTextField
                     name="taxVat"
                     type="number"
@@ -221,11 +241,11 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         <InputAdornment position="end">
                             <IconButton
                                 size="small"
-                                onClick={() => setValue('isVatPercentage', !getValues('isVatPercentage'))}
+                                onClick={() => setValue('isVatPercentage', !isVatPercentage)}
                                 disabled={!statusAccess}
                             >
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isVatPercentage') ? '#6366f1' : '#94a3b8' }}>
-                                    {getValues('isVatPercentage') ? '%' : 'VND'}
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: isVatPercentage ? '#6366f1' : '#94a3b8' }}>
+                                    {isVatPercentage ? '%' : 'VND'}
                                 </Typography>
                             </IconButton>
                         </InputAdornment>
@@ -233,9 +253,18 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                 />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
-                    Thuế khác
-                </Typography>
+                <div className="d-flex align-items-center justify-content-between form-check form-switch p-0">
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 1, display: 'block' }}>
+                        Thuế khác
+                    </Typography>
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isOtherTaxPercentage}
+                        onChange={() => setValue('isOtherTaxPercentage', !isOtherTaxPercentage)}
+                        style={{ backgroundColor: isOtherTaxPercentage ? "#ff9800" : "#ccc" }}
+                    />
+                </div>
                 <RHFTextField
                     name="taxOther"
                     type="number"
@@ -246,11 +275,11 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         <InputAdornment position="end">
                             <IconButton
                                 size="small"
-                                onClick={() => setValue('isOtherTaxPercentage', !getValues('isOtherTaxPercentage'))}
+                                onClick={() => setValue('isOtherTaxPercentage', !isOtherTaxPercentage)}
                                 disabled={!statusAccess}
                             >
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: getValues('isOtherTaxPercentage') ? '#6366f1' : '#94a3b8' }}>
-                                    {getValues('isOtherTaxPercentage') ? '%' : 'VND'}
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: isOtherTaxPercentage ? '#6366f1' : '#94a3b8' }}>
+                                    {isOtherTaxPercentage ? '%' : 'VND'}
                                 </Typography>
                             </IconButton>
                         </InputAdornment>

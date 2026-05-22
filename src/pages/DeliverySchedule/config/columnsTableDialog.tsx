@@ -14,9 +14,15 @@ interface DialogImportRightProps {
     initialItems: Map<number, SimpleDeliveryItem>;
     contractsMap: Map<number, Contract>;
     onAddItems: (items: Map<number, SimpleDeliveryItem>) => void;
+    isAllSelectedPage: boolean;
+    isIndeterminatePage: boolean;
+    onToggleSelectAllPage: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, contractsMap, onAddItems }: DialogImportRightProps): ColumnDef[] => {
+export const columnsTableDialog = ({
+    id, status, initialQtyMap, initialItems, contractsMap, onAddItems,
+    isAllSelectedPage, isIndeterminatePage, onToggleSelectAllPage
+}: DialogImportRightProps): ColumnDef[] => {
 
     const isDraft = useMemo(() => ([DeliveryEnum.DRAFT, DeliveryEnum.PENDING] as DeliveryEnumType[])
         .includes(status), [status])
@@ -65,7 +71,14 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, co
     return [
         {
             key: 'select',
-            header: '',
+            header: (
+                <Checkbox
+                    size="small"
+                    checked={isAllSelectedPage}
+                    indeterminate={isIndeterminatePage}
+                    onChange={onToggleSelectAllPage}
+                />
+            ),
             width: '5%',
             align: 'center',
             render: (item: ContractItem) => {
