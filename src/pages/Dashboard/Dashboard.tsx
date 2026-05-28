@@ -1,18 +1,30 @@
 import React from 'react';
 import './Dashboard.css';
+import { useAuth } from '@/context/AuthContext';
+import Quotations from './Components/Quotations';
+import Contracts from './Components/Contracts';
+import Otks from './Components/Otks';
+import InventoryChart from './Components/InventoryChart';
+
 
 const Dashboard: React.FC = () => {
+    const { user } = useAuth();
+
     return (
         <div className="dashboard-container">
             <div className="welcome-banner">
-                <h1>Chào mừng trở lại, Huy!</h1>
-                <p>Hệ thống đang hoạt động ổn định. Bạn có 5 đơn hàng mới cần xử lý.</p>
+                <h1>Chào mừng trở lại, {user?.username}!</h1>
+                <p>Hệ thống đang hoạt động ổn định.</p>
             </div>
 
             <div className="dashboard-stats-grid">
-                <div className="placeholder-card">Thống kê doanh thu</div>
-                <div className="placeholder-card">Sản phẩm bán chạy</div>
-                <div className="placeholder-card">Hoạt động gần đây</div>
+                <Quotations />
+                <Contracts />
+                <Otks />
+            </div>
+
+            <div style={{ marginTop: '24px' }}>
+                <InventoryChart />
             </div>
         </div>
     );
