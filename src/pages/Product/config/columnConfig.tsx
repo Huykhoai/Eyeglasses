@@ -2,9 +2,23 @@ import { Typography } from '@mui/material';
 import type { ProductType, Product, LensProduct, FrameProduct } from '../types/product';
 import type { ColumnDef } from '@/types';
 import { formatPrice } from '@/utils/formatPrice';
+import QrProduct from '../components/QRProduct';
 const url = import.meta.env.VITE_API_URL;
 
 const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left?: string, zIndex?: number })[] = [
+    {
+        key: 'qr',
+        header: 'QR',
+        align: 'center',
+        groupName: 'Thông tin sản phẩm',
+        width: '5vw',
+        isSticky: true,
+        left: '2.8vw',
+        zIndex: 12,
+        render: (item: Product) => (
+            <QrProduct id={item.id} />
+        ),
+    },
     {
         key: 'cid',
         header: 'Mã Viết Tắt',
@@ -12,7 +26,7 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         groupName: 'Thông tin sản phẩm',
         width: '9vw',
         isSticky: true,
-        left: '42px',
+        left: '7.8vw',
         zIndex: 12,
         render: (item: Product) => (
             <span className="badge-chip badge-info" style={{ fontSize: 10 }}>{item.cid}</span>
@@ -24,7 +38,7 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         align: 'center',
         width: '5vw',
         isSticky: true,
-        left: '11.744vw',
+        left: '16.745vw',
         zIndex: 12,
         groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (
@@ -50,7 +64,7 @@ const commonColumns: (ColumnDef & { groupName?: string, isSticky?: boolean, left
         header: 'Tên đầy đủ',
         width: '20vw',
         isSticky: true,
-        left: '16.744vw',
+        left: '21.745vw',
         zIndex: 12,
         groupName: 'Thông tin sản phẩm',
         render: (item: Product) => (

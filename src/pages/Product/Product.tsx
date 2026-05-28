@@ -243,7 +243,7 @@ const Product: React.FC = () => {
                 </div>
 
                 {(paginatedProducts?.items?.length ?? 0) > 0 ? (
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 279px)' }}
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 279px)', padding: 0 }}
                         ref={tableRef}
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}
@@ -315,7 +315,7 @@ const Product: React.FC = () => {
                                     );
                                 })()}
                                 <tr>
-                                    <th style={{ width: '50px', position: 'sticky', left: '0px', zIndex: 12 }}>
+                                    <th style={{ width: '5vw', position: 'sticky', left: '0px', zIndex: 12 }}>
                                         <Typography variant="subtitle2" fontSize={11} fontWeight={700} align="center">
                                             STT
                                         </Typography>

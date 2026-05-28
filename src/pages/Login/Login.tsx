@@ -165,8 +165,6 @@ const Login: React.FC = () => {
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
                                 />
-                                <span className="checkbox-custom"></span>
-                                Nhớ mật khẩu
                             </label>
                             <a href="#" className="forgot-password">Quên mật khẩu?</a>
                         </div>
@@ -175,10 +173,6 @@ const Login: React.FC = () => {
                             Đăng nhập
                         </button>
                     </form>
-
-                    <div className="login-footer">
-                        <p>Chưa có tài khoản? <a href="#">Liên hệ quản trị viên</a></p>
-                    </div>
                 </div>
             </div>
         </div>

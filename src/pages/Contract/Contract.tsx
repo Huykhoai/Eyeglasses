@@ -99,6 +99,14 @@ const ContractPage = () => {
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem || !selectedItem.id) return;
+        if (selectedItem.status === PurchaseQuotationStatus.APPROVED) {
+            showNotification('error', 'Hợp đồng đã được duyệt, không thể xóa', 'Thất bại');
+            return;
+        }
+        if (selectedItem.status === PurchaseQuotationStatus.CANCELLED) {
+            showNotification('error', 'Hợp đồng đã bị hủy, không thể xóa', 'Thất bại');
+            return;
+        }
         mutation.mutate(selectedItem.id);
         setOpenConfirm(false);
         setAnchorEl(null);
