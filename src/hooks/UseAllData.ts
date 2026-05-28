@@ -1,5 +1,6 @@
 import type { ConfigItem, ConfigLimitResponse } from "@/types"
 import { useFetchAll } from "./GenericAllData"
+import type { WarehouseResponse } from "@/pages/Warehouse/WarehousePage"
 
 
 export const useWarranty = () =>
@@ -70,4 +71,8 @@ export const useEmployeeAll = () =>
 
 export const useDeliveryScheduleAll = () =>
     useFetchAll<ConfigLimitResponse[]>(['delivery-schedule-all'], "/api/delivery/all")
+
+export const useWarehouseAll = () =>
+    useFetchAll<WarehouseResponse[]>(['warehouse-all'], "/api/warehouse/all")
+
 

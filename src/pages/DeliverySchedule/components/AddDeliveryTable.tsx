@@ -31,7 +31,6 @@ const AddDeliveryTable = () => {
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
 
-    const columns = useMemo(() => columnsTableDeliveryItem(page, size, contractsMap, items), [page, size, contractsMap, items]);
 
     const statusAccess = useMemo(() => !id || (status &&
         ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
@@ -45,6 +44,8 @@ const AddDeliveryTable = () => {
         setSize(Number(size));
         setPage(1);
     }, []);
+
+    const columns = useMemo(() => columnsTableDeliveryItem(page, size, contractsMap, items), [page, size, contractsMap, items]);
 
     const selectedProducts = useMemo(() => Array.from(items.values()), [items]);
     const displayProducts = useMemo(() => {

@@ -18,7 +18,6 @@ export const navButtons: NavButton[] = [
         name: 'Đơn hàng',
         children: [
             { name: 'Yêu cầu báo giá', url: '/xnk/orders/request-quote' },
-            { name: 'Đơn hàng', url: '/orders' },
             { name: 'Hợp đồng', url: '/xnk/contracts' },
             { name: 'Lịch giao hàng', url: '/xnk/delivery-schedule' }
         ]
@@ -29,9 +28,8 @@ export const navButtons: NavButton[] = [
     {
         name: 'Kho hàng',
         children: [
-            { name: 'Nhập kho', url: '/warehouse/import' },
-            { name: 'Xuất kho', url: '/warehouse/export' },
-            { name: 'Kiểm kê', url: '/warehouse/audit' }
+            { name: 'Phiếu nhập kho', url: '/warehouse/inventory-receipts' },
+            { name: 'Kho hàng', url: '/warehouse' }
         ]
     },
     { name: 'Nhà cung cấp', url: '/xnk/suppliers' },

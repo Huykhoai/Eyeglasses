@@ -51,3 +51,21 @@ export interface DeliveryItemDetail {
     allowedQty: number;
     scheduleQty: number;
 }
+
+export interface OtkCostItemResponse {
+    id: number;
+    cid: string;
+    name: string;
+    contractId: number;
+    contractCid: string;
+    scheduleQty: number;
+    otkQty: number;
+    acceptQty: number;
+    deniedQty: number;
+    unitPrice: number;
+    totalPrice: number;
+    weight: number;
+    allocatedFee: number;
+    unitCost: number;
+    totalCost: number;
+}

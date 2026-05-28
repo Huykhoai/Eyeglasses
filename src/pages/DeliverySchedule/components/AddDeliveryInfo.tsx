@@ -193,6 +193,7 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         className="form-check-input"
                         type="checkbox"
                         checked={isImportTaxPercentage}
+                        disabled={!statusAccess}
                         onChange={() => setValue('isImportTaxPercentage', !isImportTaxPercentage)}
                         style={{ backgroundColor: isImportTaxPercentage ? "#ff9800" : "#ccc" }}
                     />
@@ -227,6 +228,7 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         className="form-check-input"
                         type="checkbox"
                         checked={isVatPercentage}
+                        disabled={!statusAccess}
                         onChange={() => setValue('isVatPercentage', !isVatPercentage)}
                         style={{ backgroundColor: isVatPercentage ? "#ff9800" : "#ccc" }}
                     />
@@ -261,6 +263,7 @@ const AddDeliveryInfo = ({ generateCID }: { generateCID: () => string }) => {
                         className="form-check-input"
                         type="checkbox"
                         checked={isOtherTaxPercentage}
+                        disabled={!statusAccess}
                         onChange={() => setValue('isOtherTaxPercentage', !isOtherTaxPercentage)}
                         style={{ backgroundColor: isOtherTaxPercentage ? "#ff9800" : "#ccc" }}
                     />

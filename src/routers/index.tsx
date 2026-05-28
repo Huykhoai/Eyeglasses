@@ -24,6 +24,10 @@ import AddDeliverySchedule from "@/pages/DeliverySchedule/components/AddDelivery
 import OtkCostCalculation from "@/pages/Otk/components/OtkCostCalculation";
 import OtkPage from "@/pages/Otk/OtkPage";
 import OtkInspection from "@/pages/Otk/components/OtkInspection";
+import InventoryReceiptPage from "@/pages/Inventory/InventoryReceiptPage";
+import InventoryReceiptDetail from "@/pages/Inventory/InventoryReceiptDetail";
+import WarehousePage from "@/pages/Warehouse/WarehousePage";
+import WarehouseStockPage from "@/pages/Warehouse/WarehouseStockPage";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -99,6 +103,28 @@ export const router = createBrowserRouter([
                             {
                                 index: true,
                                 element: <OtkPage />
+                            }
+                        ]
+                    },
+                    {
+                        path: "warehouse",
+                        element: <AuthGuard
+                            requiredPosition={[Position.MANAGER, Position.STAFF_WH]}
+                            roles={[Roles.MANAGE_WH, Roles.STAFF_VIEW]} />,
+                        children: [
+                            {
+                                path: "",
+                                index: true,
+                                element: <WarehousePage />
+                            },
+                            {
+                                path: "inventory-receipts",
+                                index: true,
+                                element: <InventoryReceiptPage />
+                            },
+                            {
+                                path: "inventory-receipts/:id",
+                                element: <InventoryReceiptDetail />
                             }
                         ]
                     },
@@ -244,10 +270,18 @@ export const router = createBrowserRouter([
                         element: <OtkInspection />
                     },
                     {
-                        path: "cost/:id",
+                        path: "cost/:id/:dsId",
                         element: <OtkCostCalculation />
                     }
                 ]
+            },
+            {
+                path: "inventory/receipt/:otkId/:receiptId",
+                element: <InventoryReceiptDetail />
+            },
+            {
+                path: "warehouse/stock/:warehouseId",
+                element: <WarehouseStockPage />
             }
         ]
     },

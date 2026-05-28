@@ -4,8 +4,8 @@ import type { ConfigLimitResponse } from "@/types";
 export const getFilterDelivery = (suppliers: ConfigLimitResponse[]): FilterItem[] => {
     return [
         {
-            label: 'Mã hợp đồng',
-            key: 'contract_id',
+            label: 'Mã lịch giao hàng',
+            key: 'cid',
             type: 'text',
         },
         {

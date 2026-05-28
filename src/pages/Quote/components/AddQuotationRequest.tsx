@@ -61,7 +61,7 @@ const AddQuotationRequest: React.FC = () => {
     const [openConfirm, setOpenConfirm] = useState(false);
 
     const statusAccess = useMemo(() => !decodedId || (purchaseQuotation &&
-        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(purchaseQuotation?.status))
+        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED].includes(purchaseQuotation?.status))
     , [purchaseQuotation]);
 
     const generateCID = useCallback(() => {

@@ -34,3 +34,30 @@
     flex-direction: column;
     flex: 1;
 }
+
+.delivery-badge {
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 0.688rem;
+    font-weight: 600;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.delivery-future {
+    background: #fef9c3;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.delivery-today {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.delivery-past {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}

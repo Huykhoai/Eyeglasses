@@ -1,4 +1,4 @@
-import { Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from "@mui/material";
+import { Box, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
 import {
     Tune as TuneIcon,
@@ -89,7 +89,8 @@ const OtkPage: React.FC = () => {
     const handleOpenCost = useCallback(() => {
         if (!selectedOtk) return;
         const encodedId = encode(selectedOtk.id);
-        navigate(`/otk/cost/${encodedId}`);
+        const deliveryId = encode(selectedOtk?.deliverySchedule?.id || 0);
+        navigate(`/otk/cost/${encodedId}/${deliveryId}?cid=${encode(selectedOtk?.cid || '')}`);
         setAnchorEl(null);
     }, [selectedOtk, encode, navigate]);
 
@@ -119,7 +120,12 @@ const OtkPage: React.FC = () => {
         setAnchorEl(null);
     }, []);
 
-    const columns = useMemo(() => columnsOtkTable(page, size), [page, size]);
+    const handleViewDelivery = useCallback((id: number) => {
+        const encodedId = encode(id);
+        navigate(`/xnk/delivery-schedule/update/${encodedId}`);
+    }, [encode, navigate]);
+
+    const columns = useMemo(() => columnsOtkTable(page, size, handleViewDelivery), [page, size, handleViewDelivery]);
 
     const handleFilterChange = useCallback((filter: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -262,16 +268,21 @@ const OtkPage: React.FC = () => {
                     </ListItemIcon>
                     <Typography variant="body2" fontWeight={500}>Kiểm tra hàng hóa</Typography>
                 </MenuItem>
-                <MenuItem
-                    onClick={handleOpenCost}
-                    disabled={selectedOtk?.status !== DeliveryEnum.APPROVED}
-                    sx={{ borderRadius: '8px', mb: 0.5 }}
-                >
-                    <ListItemIcon>
-                        <CalculateIcon fontSize="small" color={selectedOtk?.status === DeliveryEnum.APPROVED ? 'success' : 'disabled'} />
-                    </ListItemIcon>
-                    <Typography variant="body2" fontWeight={500}>Tính tiền</Typography>
-                </MenuItem>
+                <Tooltip title={DeliveryEnum.APPROVED.includes(selectedOtk?.status || '') ? '' : 'Phiếu OTK cần duyệt'}>
+                    <span>
+                        <MenuItem
+                            onClick={handleOpenCost}
+                            disabled={!DeliveryEnum.APPROVED.includes(selectedOtk?.status || '')}
+                            sx={{ borderRadius: '8px', mb: 0.5 }}
+                        >
+                            <ListItemIcon>
+                                <CalculateIcon fontSize="small" color={DeliveryEnum.APPROVED.includes(selectedOtk?.status || '')
+                                    ? 'success' : 'disabled'} />
+                            </ListItemIcon>
+                            <Typography variant="body2" fontWeight={500}>Tính tiền</Typography>
+                        </MenuItem>
+                    </span>
+                </Tooltip>
                 <MenuItem onClick={handleOpenEdit} sx={{ borderRadius: '8px', mb: 0.5 }}>
                     <ListItemIcon>
                         <EditIcon fontSize="small" color="primary" />

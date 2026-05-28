@@ -15,7 +15,7 @@ import type { DeliverySchedule } from './config/types';
 import axiosClient from '@/api/axiosClient';
 import PurchaseQuotationStatus from '@/utils/PurchaseQuotationEnum';
 import Loading from '@/components/ui/Loading/Loading';
-import { IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
+import { Box, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
 import { Tune, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import Pagination from '@/components/common/Pagination/Pagination';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
@@ -105,7 +105,7 @@ const DeliverySchedulePage = () => {
         },
         onSuccess: (response: any) => {
             const message = response?.data?.message;
-            if (response.status === 400) {
+            if (response?.data?.status === 400) {
                 showNotification('error', message || 'Lỗi khi xóa lịch giao', 'Thất bại');
                 return;
             }
@@ -213,13 +213,28 @@ const DeliverySchedulePage = () => {
                     </table>
                 </div>
                 {(deliveries?.totalItems ?? 0) > 0 && (
-                    <div style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{ display: "flex", gap: 2, alignItems: "center", minWidth: '15vw' }}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Box className="delivery-past" sx={{ width: 12, height: 12, p: 0, borderRadius: '3px' }} />
+                                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Đã giao</Typography>
+                            </Box>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Box className="delivery-today" sx={{ width: 12, height: 12, p: 0, borderRadius: '3px' }} />
+                                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Hôm nay</Typography>
+                            </Box>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Box className="delivery-future" sx={{ width: 12, height: 12, p: 0, borderRadius: '3px' }} />
+                                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>Dự kiến</Typography>
+                            </Box>
+                        </Box>
                         <Pagination
                             totalItems={deliveries?.totalItems ?? 0}
                             page={page}
                             size={size}
                             onChange={handlePageChange}
                         />
+                        <div style={{ minWidth: '15vw' }}></div>
                     </div>
                 )}
             </div>

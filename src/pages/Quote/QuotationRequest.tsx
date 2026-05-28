@@ -95,6 +95,12 @@ const Quote: React.FC = () => {
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
+        if (selectedItem.status === PurchaseQuotationStatus.APPROVED) {
+            showNotification('error', 'Báo giá đã được duyệt không thể xóa', 'Thất bại');
+            setOpenConfirm(false);
+            setAnchorEl(null);
+            return;
+        }
         createMutation.mutate(selectedItem.id);
         setOpenConfirm(false);
         setAnchorEl(null);

@@ -3,6 +3,7 @@ import type { DeliveryItem, SimpleDeliveryItem } from "./types"
 import { Typography } from "@mui/material"
 import { formatPrice } from "@/utils/formatPrice"
 import type { Contract } from "@/pages/Contract/config/types"
+import { useBase64 } from "@/utils/base64"
 
 export const columnsTableDeliveryItem = (
     page: number, size: number,
@@ -21,8 +22,11 @@ export const columnsTableDeliveryItem = (
             width: '10%',
             align: 'center',
             render: (item: DeliveryItem) => (
-                <span className="badge-chip badge-info" style={{ fontSize: 10 }}>
-                    {contractsMap.get(item.contractId)?.cid || '-'}
+                <span className="badge-chip badge-info"
+                    style={{ fontSize: 10, cursor: 'pointer' }}>
+                    <a href={`/xnk/contracts/update/${useBase64().encode(item.contractId)}`}>
+                        {contractsMap.get(item.contractId)?.cid || '-'}
+                    </a>
                 </span>
             ),
         },
@@ -81,14 +85,21 @@ export const columnsTableDeliveryItem = (
             header: 'Thành tiền',
             width: '15%',
             align: 'right',
-            render: (item: DeliveryItem) => {
-                const currentQty = itemsMap.get(item.contractItemId)?.scheduledQty || 0;
-                const price = item.unitPrice || 0;
-                return (
-                    <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
-                        {formatPrice(price * currentQty)}
-                    </Typography>
-                );
-            },
+            render: (item: DeliveryItem) => (
+                <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
+                    {formatPrice(item.lineTotal || 0)}
+                </Typography>
+            ),
+        },
+        {
+            key: 'lineTotalVnd',
+            header: 'Thành tiền (VND)',
+            width: '10%',
+            align: 'right',
+            render: (item: DeliveryItem) => (
+                <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
+                    {formatPrice(item.lineTotalVnd || 0)}
+                </Typography>
+            ),
         },
     ]

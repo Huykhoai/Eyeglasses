@@ -2,6 +2,7 @@ import type { ColumnDef } from "@/types"
 import type { ContractItem, Quotation, SimpleContractItem } from "./types"
 import { Typography } from "@mui/material"
 import { formatPrice } from "@/utils/formatPrice"
+import { useBase64 } from "@/utils/base64"
 
 export const columnsTableContractItem = (
     page: number, size: number,
@@ -18,8 +19,10 @@ export const columnsTableContractItem = (
         width: '6%',
         align: 'center',
         render: (item: ContractItem) => (
-            <span className="badge-chip badge-info" style={{ fontSize: 10 }}>
-                {quotationsMap.get(item.quotationId)?.cid}
+            <span className="badge-chip badge-info" style={{ fontSize: 10, cursor: 'pointer' }}>
+                <a href={`/xnk/orders/quotation-request/update/${useBase64().encode(item.quotationId)}`}>
+                    {quotationsMap.get(item.quotationId)?.cid}
+                </a>
             </span>
         ),
     },

@@ -1,19 +1,25 @@
 import {
-    Box, Grid, IconButton, Stack, Typography,
+    Box, Grid, Stack, Typography,
 } from "@mui/material";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-    ArrowBack as ArrowBackIcon,
     Receipt as ReceiptIcon,
     Calculate as CalculateIcon,
+    ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
-import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import axiosClient from "@/api/axiosClient";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Loading from "@/components/ui/Loading/Loading";
 import { useBase64 } from "@/utils/base64";
-import type { OtkItemResponse } from "../config/otkTypes";
 import '../../DeliverySchedule/components/AddDeliverySchedule.css';
+import { useFetchDeliveryFee } from "@/pages/DeliverySchedule/hooks/useFetchDeliveryFee";
+import { useFetchOtkCostItemByOtkId } from "../hooks/useFetchOtkCostItemByOtkId";
+import { columnsOtkCostCalculation } from "../config/columnsOtkCostCalculation";
+import Pagination from "@/components/common/Pagination/Pagination";
+import Select from "@/components/common/Select/Select";
+import MultiFilterBar from "@/components/common/MultiFilterBar/MultiFilterBar";
+import { formatPrice } from "@/utils/formatPrice";
+import { getFilterOtkReceipt } from "../config/getFilterOtkReceipt";
+import Button from "@/components/common/Button/Button";
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
@@ -21,139 +27,113 @@ interface FeeRow {
     label: string;
     value: number;
     type: 'fee' | 'tax' | 'total';
+    capitalizable: boolean;
 }
 
 const OtkCostCalculation = () => {
     const navigate = useNavigate();
-    const { decode } = useBase64();
+    const { decode, encode } = useBase64();
+    const [searchParams] = useSearchParams();
+
+    const otkCid = decode(searchParams.get('cid') || '');
     const { id: encodedOtkId, dsId: encodedDsId } = useParams();
     const otkId = Number(decode(encodedOtkId || ''));
     const dsId = Number(decode(encodedDsId || ''));
 
-    // Fetch delivery schedule (for fees/taxes)
-    const { data: delivery, isLoading: isLoadingDelivery } = useQuery({
-        queryKey: ['delivery-cost', dsId],
-        queryFn: async () => {
-            const res = await axiosClient.get(`/api/delivery/${dsId}`);
-            return res.data;
-        },
-        enabled: !!dsId,
-    });
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(20);
+    const [filter, setFilter] = useState<Record<string, any>>({});
 
-    // Fetch OTK detail
-    const { data: otk, isLoading: isLoadingOtk } = useQuery({
-        queryKey: ['otk-cost', otkId],
-        queryFn: async () => {
-            const res = await axiosClient.get(`/api/otk/${otkId}`);
-            return res.data;
-        },
-        enabled: !!otkId,
-    });
+    const { data: delivery, isLoading: isLoadingDelivery } = useFetchDeliveryFee(dsId);
+    const { data: otkItems, isLoading: isLoadingItems } = useFetchOtkCostItemByOtkId(otkId, page, size, filter);
 
-    // Fetch OTK items (full detail)
-    const { data: otkItems, isLoading: isLoadingItems } = useQuery<OtkItemResponse[]>({
-        queryKey: ['otk-cost-items', otkId],
-        queryFn: async () => {
-            const res = await axiosClient.get(`/api/otk/items/${otkId}`);
-            return res.data;
-        },
-        enabled: !!otkId,
-    });
-
-    // Fee table data
     const feeRows: FeeRow[] = useMemo(() => {
         if (!delivery) return [];
         return [
-            { label: 'Phí bảo hiểm', value: Number(delivery.feeInsurance) || 0, type: 'fee' },
-            { label: 'Phí môi trường', value: Number(delivery.feeEnvironment) || 0, type: 'fee' },
-            { label: 'Phí vận chuyển bộ', value: Number(delivery.feeDelivery) || 0, type: 'fee' },
-            { label: 'Phí vận chuyển biển', value: Number(delivery.feeDeliverySea) || 0, type: 'fee' },
-            { label: 'Phí khác', value: Number(delivery.feeOther) || 0, type: 'fee' },
+            { label: 'Phí bảo hiểm', value: Number(delivery.feeInsurance) || 0, type: 'fee', capitalizable: true },
+            { label: 'Phí môi trường', value: Number(delivery.feeEnvironment) || 0, type: 'fee', capitalizable: true },
+            { label: 'Phí vận chuyển bộ', value: Number(delivery.feeDelivery) || 0, type: 'fee', capitalizable: true },
+            { label: 'Phí vận chuyển biển', value: Number(delivery.feeDeliverySea) || 0, type: 'fee', capitalizable: true },
+            { label: 'Phí khác', value: Number(delivery.feeOther) || 0, type: 'fee', capitalizable: true },
             {
                 label: `Thuế nhập khẩu ${delivery.isImportTaxPercentage ? `(${delivery.taxImport}%)` : ''}`,
-                value: Number(delivery.taxImport) || 0,
-                type: 'tax'
+                value: delivery.isImportTaxPercentage
+                    ? (Number(delivery.taxImport || 0) / 100) * Number(delivery.totalAmountVnd || 0)
+                    : Number(delivery.taxImport || 0),
+                type: 'tax',
+                capitalizable: true
             },
             {
                 label: `Thuế VAT ${delivery.isVatPercentage ? `(${delivery.taxVat}%)` : ''}`,
-                value: Number(delivery.taxVat) || 0,
-                type: 'tax'
+                value: delivery.isVatPercentage
+                    ? (Number(delivery.taxVat || 0) / 100) * Number(delivery.totalAmountVnd || 0)
+                    : Number(delivery.taxVat || 0),
+                type: 'tax',
+                capitalizable: false
             },
             {
                 label: `Thuế khác ${delivery.isOtherTaxPercentage ? `(${delivery.taxOther}%)` : ''}`,
-                value: Number(delivery.taxOther) || 0,
-                type: 'tax'
+                value: delivery.isOtherTaxPercentage
+                    ? (Number(delivery.taxOther || 0) / 100) * Number(delivery.totalAmountVnd || 0)
+                    : Number(delivery.taxOther || 0),
+                type: 'tax',
+                capitalizable: false
             },
         ];
     }, [delivery]);
 
-    const totalFees = useMemo(() => feeRows.filter(r => r.type === 'fee').reduce((s, r) => s + r.value, 0), [feeRows]);
+    const columns = useMemo(() => columnsOtkCostCalculation(page, size), [page, size]);
+    const categories = useMemo(() => getFilterOtkReceipt(), []);
+    const productItems = otkItems?.items || [];
+    const totalItems = otkItems?.totalItems || 0;
 
-    // Product table with cost allocation
-    const productRows = useMemo(() => {
-        if (!otkItems || !delivery) return [];
+    const isLoading = isLoadingDelivery || isLoadingItems;
 
-        const totalAmountVnd = Number(delivery.totalAmountVnd) || 1;
 
-        return otkItems.map(item => {
-            const accepted = item.acceptedQty || 0;
-            const scheduled = item.scheduledQty || 1; // Tránh chia cho 0
-            const lineTotalVnd = item.lineTotalVnd || 0;
+    const handleFilterChange = useCallback((filter: Record<string, any>) => {
+        let mapperFilter: Record<string, any> = {};
+        Object.entries(filter).forEach(([key, value]) => {
+            if (typeof value === 'object') {
+                mapperFilter[key] = value.id;
+            } else {
+                mapperFilter[key] = value;
+            }
+        })
+        setFilter(mapperFilter);
+        setPage(1);
+    }, [])
 
-            // Đơn giá VNĐ quy đổi từ contract (lineTotalVnd / scheduledQty)
-            const unitPriceVnd = lineTotalVnd / scheduled;
+    const handlePageChange = useCallback((page: number) => {
+        setPage(page);
+    }, [])
 
-            // Tỉ trọng giá trị của line này trong tổng lô hàng để phân bổ phí
-            const weight = totalAmountVnd > 0 ? lineTotalVnd / totalAmountVnd : 0;
-            const allocatedFee = totalFees * weight;
-
-            // Giá trị hàng đạt = Đơn giá VNĐ * SL đạt
-            const acceptedValue = unitPriceVnd * accepted;
-
-            // Giá vốn/SP = (Giá trị hàng đạt + Chi phí phân bổ) / SL đạt
-            // Lưu ý: Chi phí phân bổ cho line này được gánh toàn bộ bởi số lượng đạt
-            const landedCostPerUnit = accepted > 0
-                ? (acceptedValue + allocatedFee) / accepted
-                : 0;
-
-            return {
-                ...item,
-                unitPriceVnd,
-                accepted,
-                acceptedValue,
-                weight,
-                allocatedFee,
-                landedCostPerUnit,
-            };
-        });
-    }, [otkItems, delivery, totalFees]);
-
-    const isLoading = isLoadingDelivery || isLoadingOtk || isLoadingItems;
-
-    if (isLoading) return <Loading fullPage message="Đang tải dữ liệu tính tiền..." />;
-
-    const formatNumber = (val: number) => val.toLocaleString('vi-VN', { maximumFractionDigits: 2 });
-
+    const handleImportToStock = useCallback(() => {
+        navigate(`/inventory/receipt/${encodedOtkId}/${encodedDsId}?cid=${encode(otkCid)}`);
+    }, [encodedOtkId, encodedDsId, navigate])
     return (
         <Box className="add-delivery-page-wapper">
-            {/* Header */}
             <Box className="add-delivery-header">
                 <Stack direction="row" spacing={2} alignItems="center">
-                    <IconButton onClick={() => navigate(-1)}>
-                        <ArrowBackIcon />
-                    </IconButton>
+                    <Button variant="outline" onClick={() => navigate(-1)}>
+                        Quay lại
+                    </Button>
                     <Box>
                         <Typography variant="h6" fontWeight={700}>
-                            Tính tiền — {otk?.cid}
+                            Tính tiền — {otkCid}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Lịch giao: {delivery?.cid} — {delivery?.name}
                         </Typography>
                     </Box>
                 </Stack>
+                <Button variant="primary" onClick={handleImportToStock}>
+                    Nhập kho
+                    <ArrowForwardIcon fontSize="small" />
+                </Button>
             </Box>
 
-            {/* Card 1: Fee/Tax table */}
+            {isLoading && <Loading fullPage message="Đang tải dữ liệu tính tiền..." />}
+
             <Box className="glass-card">
                 <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ReceiptIcon sx={{ color: primaryColor }} /> Bảng chi phí lịch giao hàng
@@ -171,7 +151,7 @@ const OtkCostCalculation = () => {
                                 <tr style={{ background: `${primaryColor}08` }}>
                                     <td><Typography variant="body2" fontSize={12} fontWeight={700}>Tổng giá hàng (VNĐ)</Typography></td>
                                     <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right" color={primaryColor}>
-                                        {formatNumber(Number(delivery?.totalAmountVnd) || 0)}
+                                        {formatPrice(Number(delivery?.totalAmountVnd) || 0)}
                                     </Typography></td>
                                 </tr>
                                 {feeRows.map((row, idx) => (
@@ -185,7 +165,7 @@ const OtkCostCalculation = () => {
                                         <td>
                                             <Typography variant="body2" fontSize={12} align="right"
                                                 color={row.value > 0 ? 'text.primary' : 'text.secondary'}>
-                                                {formatNumber(row.value)}
+                                                {formatPrice(row.value)}
                                             </Typography>
                                         </td>
                                     </tr>
@@ -193,7 +173,7 @@ const OtkCostCalculation = () => {
                                 <tr style={{ borderTop: '2px solid #e2e8f0', background: '#f0fdf4' }}>
                                     <td><Typography variant="body2" fontSize={12} fontWeight={700}>Tổng phí phân bổ</Typography></td>
                                     <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right" color="#16a34a">
-                                        {formatNumber(totalFees)}
+                                        {formatPrice(delivery?.totalFees || 0)}
                                     </Typography></td>
                                 </tr>
                             </tbody>
@@ -226,81 +206,76 @@ const OtkCostCalculation = () => {
                 </Grid>
             </Box>
 
-            {/* Card 2: Product cost allocation table */}
-            <Box className="glass-card" sx={{ flex: 1 }}>
-                <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CalculateIcon sx={{ color: primaryColor }} /> Phân bổ chi phí theo sản phẩm
-                </Typography>
-                <div className="table-scroll-container" style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 480px)' }}>
+            <Box className="glass-card">
+                <Box className="d-flex align-items-center justify-content-between" sx={{ mb: 1 }}>
+                    <Typography variant="subtitle1" fontWeight={700} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalculateIcon sx={{ color: primaryColor }} /> Phân bổ chi phí theo sản phẩm ({totalItems} sản phẩm)
+                    </Typography>
+                    <div style={{ width: '35%' }}>
+                        <MultiFilterBar
+                            categories={categories}
+                            onFilterChange={handleFilterChange}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <div style={{ minWidth: 80 }}>
+                            <Select
+                                value={size}
+                                options={[
+                                    { label: '20', value: 20 },
+                                    { label: '50', value: 50 },
+                                    { label: '100', value: 100 },
+                                ]}
+                                onChangeSize={(value) => setSize(Number(value))}
+                            />
+                        </div>
+                        <Pagination
+                            totalItems={totalItems}
+                            page={page}
+                            size={size}
+                            onChange={handlePageChange}
+                        />
+                    </div>
+
+                </Box>
+                <div className="table-scroll-container" style={{ flex: 1, height: 'calc(100vh - 250px)' }}>
                     <table className="table-premium">
                         <thead>
                             <tr>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="center">STT</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="center">Mã SP</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700}>Tên SP</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="center">HĐ</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">SL OTK</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">SL Đạt</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">SL Lỗi</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">Đơn giá</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">Giá trị hàng</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">Tỉ trọng</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">Chi phí PB</Typography></th>
-                                <th><Typography variant="subtitle2" fontSize={10} fontWeight={700} align="right">Giá vốn/SP</Typography></th>
+                                {columns.map((col) => (
+                                    <th key={col.key} style={{ width: col.width }}>
+                                        <Typography variant="subtitle2" fontSize={10} fontWeight={700} align="center">
+                                            {col.header}
+                                        </Typography>
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {productRows.length > 0 ? productRows.map((row, index) => (
-                                <tr key={row.id}>
-                                    <td><Typography variant="body2" fontSize={11} align="center">{index + 1}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="center" fontWeight={600} color={primaryColor}>{row.cid}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11}>{row.name}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="center">{row.contractCid || '-'}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right">{row.otkQty || 0}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right" fontWeight={600} color="success.main">{row.accepted}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right" fontWeight={600} color="error.main">{row.deniedQty}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right">{formatNumber(row.unitPriceVnd)}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right">{formatNumber(row.acceptedValue)}</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right" color="text.secondary">{(row.weight * 100).toFixed(2)}%</Typography></td>
-                                    <td><Typography variant="body2" fontSize={11} align="right" color="#f59e0b" fontWeight={600}>{formatNumber(row.allocatedFee)}</Typography></td>
-                                    <td>
-                                        <Typography variant="body2" fontSize={12} align="right" fontWeight={700}
-                                            color={row.landedCostPerUnit > 0 ? primaryColor : 'text.secondary'}>
-                                            {row.accepted > 0 ? formatNumber(row.landedCostPerUnit) : '-'}
+                            {productItems.length > 0 ? productItems.map((item, index) => (
+                                <tr key={item.id || index}>
+                                    {columns.map((col) => (
+                                        <td key={col.key} style={{ width: col.width, textAlign: col.align }}>
+                                            {col.render ? (
+                                                col.render(item, index)
+                                            ) : (
+                                                <Typography variant="body2" fontSize={11} align={col.align}>
+                                                    {(item as any)[col.key] || '-'}
+                                                </Typography>
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan={columns.length} align="center">
+                                        <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                                            Không có dữ liệu
                                         </Typography>
                                     </td>
                                 </tr>
-                            )) : (
-                                <tr><td colSpan={12} align="center">
-                                    <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>Không có dữ liệu</Typography>
-                                </td></tr>
                             )}
                         </tbody>
-                        {productRows.length > 0 && (
-                            <tfoot>
-                                <tr style={{ background: `${primaryColor}08`, fontWeight: 700 }}>
-                                    <td colSpan={4}><Typography variant="body2" fontSize={12} fontWeight={700}>Tổng cộng</Typography></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right">
-                                        {productRows.reduce((s, r) => s + (r.otkQty || 0), 0)}
-                                    </Typography></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right" color="success.main">
-                                        {productRows.reduce((s, r) => s + r.accepted, 0)}
-                                    </Typography></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right" color="error.main">
-                                        {productRows.reduce((s, r) => s + r.deniedQty, 0)}
-                                    </Typography></td>
-                                    <td></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right">
-                                        {formatNumber(productRows.reduce((s, r) => s + r.acceptedValue, 0))}
-                                    </Typography></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right">100%</Typography></td>
-                                    <td><Typography variant="body2" fontSize={12} fontWeight={700} align="right" color="#f59e0b">
-                                        {formatNumber(productRows.reduce((s, r) => s + r.allocatedFee, 0))}
-                                    </Typography></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        )}
                     </table>
                 </div>
             </Box>

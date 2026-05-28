@@ -6,6 +6,30 @@ import DeliveryEnum from "@/utils/DeliveryEnum";
 
 export const columnsTable: ColumnDef[] = [
     {
+        key: 'deliveryDate',
+        header: 'Ngày giao',
+        width: '8vw',
+        align: 'center',
+        render: (item: DeliverySchedule) => {
+            let badgeClass = "delivery-badge";
+            const deliveryDate = new Date(item.deliveryDate);
+            const today = new Date();
+            if (deliveryDate > today) {
+                badgeClass += " delivery-future";
+            } else if (deliveryDate.getTime() === today.getTime()) {
+                badgeClass += " delivery-today";
+            } else {
+                badgeClass += " delivery-past";
+            }
+            return (
+                <Typography variant="body2" fontSize={11} align="center" className={badgeClass}>
+                    {item.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString('vi-VN') : '-'}
+                </Typography>
+            )
+        }
+
+    },
+    {
         key: 'cid',
         header: 'Mã LGH',
         width: '5vw',
@@ -85,13 +109,13 @@ export const columnsTable: ColumnDef[] = [
         }
     },
     {
-        key: 'deliveryDate',
-        header: 'Ngày giao',
+        key: 'totalProduct',
+        header: 'Tổng sản phẩm',
         width: '8vw',
-        align: 'center',
+        align: 'right',
         render: (item: DeliverySchedule) => (
-            <Typography variant="body2" fontSize={11} align="center">
-                {item.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString('vi-VN') : '-'}
+            <Typography variant="body2" fontSize={11} align="right">
+                {item.totalProduct || 0}
             </Typography>
         )
     },
@@ -103,6 +127,17 @@ export const columnsTable: ColumnDef[] = [
         render: (item: DeliverySchedule) => (
             <Typography variant="body2" fontSize={11} align="right" color="error">
                 {formatPrice(item.totalAmountForeign)}
+            </Typography>
+        )
+    },
+    {
+        key: 'totalAmountVnd',
+        header: 'Tổng tiền (VND)',
+        width: '10vw',
+        align: 'right',
+        render: (item: DeliverySchedule) => (
+            <Typography variant="body2" fontSize={11} align="right" color="error">
+                {formatPrice(item.totalAmountVnd)}
             </Typography>
         )
     },

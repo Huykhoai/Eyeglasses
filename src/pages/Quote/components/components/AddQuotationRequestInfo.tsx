@@ -21,7 +21,7 @@ const AddQuotationRequestInfo: React.FC<{ generateCID: () => string }> = ({ gene
     const { data: currencies } = useCurrency();
 
     const statusAccess = useMemo(() => !id || (status &&
-        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[]).includes(status))
     , [status]);
 
     const getNameEmployee = useCallback((empl: EntityType) => {

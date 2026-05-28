@@ -13,7 +13,7 @@ const statusColor: Record<string, 'default' | 'warning' | 'success' | 'error' | 
     CANCELLED: 'error',
 };
 
-export const columnsOtkTable = (page: number, size: number): ColumnDef[] => [
+export const columnsOtkTable = (page: number, size: number, handleViewDelivery: (id: number) => void): ColumnDef[] => [
     {
         key: 'stt',
         header: 'STT',
@@ -31,7 +31,13 @@ export const columnsOtkTable = (page: number, size: number): ColumnDef[] => [
         width: '8vw',
         align: 'center',
         render: (item: OtkResponse) => (
-            <span className="badge-chip badge-info">{item.deliverySchedule?.cid || '-'}</span>
+            <span
+                className="badge-chip badge-info"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleViewDelivery(item.deliverySchedule?.id || 0)}
+            >
+                {item.deliverySchedule?.cid || '-'}
+            </span>
         )
     },
     {

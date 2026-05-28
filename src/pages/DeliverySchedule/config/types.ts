@@ -24,6 +24,7 @@ export interface DeliverySchedule {
     isOtherTaxPercentage: boolean;
     declarationDate: string;
     deliveryDate: string;
+    totalProduct: number;
     totalAmountForeign: number;
     totalAmountVnd: number;
     supplier: NamedEntity | null;
@@ -50,5 +51,26 @@ export interface DeliveryItem {
     unitPrice: number;
     scheduledQty: number;
     lineTotal: number;
+    lineTotalVnd: number;
+}
+
+export interface DeliveryFee {
+    id: number;
+    cid: string;
+    name: string;
+    feeEnvironment: number;
+    feeInsurance: number;
+    feeDelivery: number;
+    feeDeliverySea: number;
+    feeOther: number;
+    taxImport: number;
+    isImportTaxPercentage: boolean;
+    taxVat: number;
+    isVatPercentage: boolean;
+    taxOther: number;
+    isOtherTaxPercentage: boolean;
+    totalAmountForeign: number;
+    totalAmountVnd: number;
+    totalFees: number;
 }
 
