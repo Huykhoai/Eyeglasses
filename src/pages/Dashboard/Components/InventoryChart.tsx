@@ -12,12 +12,27 @@ import {
 } from 'recharts';
 import type { MonthlyImportData } from '../config/types';
 import { useStatisticalProduct } from '../hooks/useStatisticalProduct';
+import { useState } from 'react';
+import Button from '@/components/common/Button/Button';
 
 const chartColor = '#3b82f6';
 
 const InventoryChart = () => {
-    const { data, isLoading } = useStatisticalProduct();
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const { data, isLoading } = useStatisticalProduct(currentMonth);
 
+
+    const handlePrev = () => {
+        const prevMonth = new Date(currentMonth);
+        prevMonth.setMonth(currentMonth.getMonth() - 1);
+        setCurrentMonth(prevMonth);
+    };
+
+    const handleNext = () => {
+        const nextMonth = new Date(currentMonth);
+        nextMonth.setMonth(currentMonth.getMonth() + 1);
+        setCurrentMonth(nextMonth);
+    };
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const monthData = payload[0].payload as MonthlyImportData;
@@ -40,7 +55,7 @@ const InventoryChart = () => {
                             </Typography>
                             {monthData.topProducts.map((p, idx) => (
                                 <Stack key={idx} direction="row" justifyContent="space-between" spacing={2} sx={{ mt: 0.5 }}>
-                                    <Typography variant="caption" sx={{ color: '#334155', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <Typography variant="caption" sx={{ color: '#334155', maxWidth: '11vw', textOverflow: 'ellipsis' }}>
                                         {idx + 1}. {p.name}
                                     </Typography>
                                     <Typography variant="caption" fontWeight={600} sx={{ color: '#475569' }}>
@@ -72,6 +87,25 @@ const InventoryChart = () => {
                         </Typography>
                     </Box>
                 </Stack>
+                <Stack direction="row" alignItems='center' spacing={2}>
+                    
+                    <Button
+                        variant='outline'
+                        onClick={handlePrev}
+                        
+                    >
+                        <i className='bi bi-caret-left'></i>
+                        Trước
+                    </Button>
+                     <Button
+                        variant='outline'
+                        onClick={handleNext}
+                    >
+                        Sau
+                        <i className='bi bi-caret-right'></i>
+                    </Button>
+                </Stack>
+
             </div>
 
             <div className="card-body" style={{ marginTop: 16 }}>
@@ -80,7 +114,7 @@ const InventoryChart = () => {
                 {!isLoading && data && data.length === 0 && (
                     <div className="empty-state" style={{ height: '100%' }}>
                         <Typography variant="body2" color="text.secondary">
-                            Chưa có dữ liệu nhập kho trong 6 tháng qua
+                            Chưa có dữ liệu nhập kho trong
                         </Typography>
                     </div>
                 )}
