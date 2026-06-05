@@ -1,4 +1,4 @@
-import { Box, Typography, Stack } from '@mui/material';
+import { Box, Typography, Stack, TextField } from '@mui/material';
 import { Inventory as InventoryIcon } from '@mui/icons-material';
 import Loading from '@/components/ui/Loading/Loading';
 import {
@@ -13,26 +13,35 @@ import {
 import type { MonthlyImportData } from '../config/types';
 import { useStatisticalProduct } from '../hooks/useStatisticalProduct';
 import { useState } from 'react';
-import Button from '@/components/common/Button/Button';
 
 const chartColor = '#3b82f6';
 
 const InventoryChart = () => {
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-    const { data, isLoading } = useStatisticalProduct(currentMonth);
+    const formatDate = (date: Date) => {
+        const d = new Date(date);
+        return d.toISOString().split('T')[0];
+    }
+    const currentDate = new Date();
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
+    const [preMonth, setPreMonth] = useState<string>(formatDate(sixMonthsAgo));
+    const [nextMonth, setNextMonth] = useState<string>(formatDate(currentDate));
 
-    const handlePrev = () => {
-        const prevMonth = new Date(currentMonth);
-        prevMonth.setMonth(currentMonth.getMonth() - 1);
-        setCurrentMonth(prevMonth);
+    const handleShift = (months: number) => {
+        const prev = new Date(preMonth || new Date());
+        prev.setMonth(prev.getMonth() + months);
+        setPreMonth(formatDate(prev));
+
+        const next = new Date(nextMonth || new Date());
+        next.setMonth(next.getMonth() + months);
+        setNextMonth(formatDate(next));
     };
 
-    const handleNext = () => {
-        const nextMonth = new Date(currentMonth);
-        nextMonth.setMonth(currentMonth.getMonth() + 1);
-        setCurrentMonth(nextMonth);
-    };
+    const { data, isLoading } = useStatisticalProduct(preMonth, nextMonth);
+
+
+
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const monthData = payload[0].payload as MonthlyImportData;
@@ -80,7 +89,7 @@ const InventoryChart = () => {
                     </Box>
                     <Box>
                         <Typography variant="subtitle1" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-                            Lưu lượng nhập kho (6 tháng)
+                            Lưu lượng nhập kho
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Tổng số lượng sản phẩm hoàn tất nhập kho theo từng tháng
@@ -88,22 +97,40 @@ const InventoryChart = () => {
                     </Box>
                 </Stack>
                 <Stack direction="row" alignItems='center' spacing={2}>
-                    
-                    <Button
-                        variant='outline'
-                        onClick={handlePrev}
-                        
+                    <Stack direction="row" alignItems='center' spacing={1}
+                        className='btn btn-outline'
                     >
-                        <i className='bi bi-caret-left'></i>
-                        Trước
-                    </Button>
-                     <Button
-                        variant='outline'
-                        onClick={handleNext}
+                        <Box component="i" className='bi bi-caret-left' onClick={() => handleShift(-6)} sx={{ cursor: 'pointer', p: 0.5 }} />
+                        <TextField
+                            type='date'
+                            size='small'
+                            value={preMonth}
+                            onChange={(e) => setPreMonth(e.target.value)}
+                            variant='standard'
+                            slotProps={{
+                                input: {
+                                    sx: { borderRadius: '10px', fontSize: '0.875rem' }
+                                }
+                            }}
+                        />
+                    </Stack>
+                    <Stack direction="row" alignItems='center' spacing={1}
+                        className='btn btn-outline'
                     >
-                        Sau
-                        <i className='bi bi-caret-right'></i>
-                    </Button>
+                        <TextField
+                            type='date'
+                            size='small'
+                            value={nextMonth}
+                            onChange={(e) => setNextMonth(e.target.value)}
+                            variant='standard'
+                            slotProps={{
+                                input: {
+                                    sx: { borderRadius: '10px', fontSize: '0.875rem' }
+                                }
+                            }}
+                        />
+                        <Box component="i" className='bi bi-caret-right' onClick={() => handleShift(6)} sx={{ cursor: 'pointer', p: 0.5 }} />
+                    </Stack>
                 </Stack>
 
             </div>

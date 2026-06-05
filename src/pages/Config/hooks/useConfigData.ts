@@ -17,7 +17,7 @@ export const useConfigData = () => {
     ], []);
 
     const specificCategory: ConfigCategory[] = useMemo(() => [
-        { name: "Chất liệu", items: [{ name: "Vật liệu", url: "/material" }, { name: "Chiết suất", url: "/refractive-index" }] },
+        { name: "Chất liệu", items: [{ name: "Chất liệu", url: "/material" }, { name: "Chiết suất", url: "/refractive-index" }] },
         { name: "Thiết kế", items: [{ name: "Thiết kế", url: "/design" }, { name: "Hình dạng", url: "/shape" }, { name: "Kiểu gọng", url: "/frame" }, { name: "Càng", url: "/temple" }, { name: "Loại gọng", url: "/frame-type" }] },
         { name: "Tích hợp", items: [{ name: "UV", url: "/uv" }, { name: "Lớp phủ", url: "/coating" }, { name: "VE", url: "/ve" }, { name: "Màu sắc", url: "/color" }] }
     ], []);

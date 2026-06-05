@@ -184,7 +184,7 @@ const Product: React.FC = () => {
             );
             return;
         }
-        showNotification('info', 'Chức năng đang phát triển', 'Thông báo');
+        navigate('/xnk/products/add-by-excel');
     }, [roleAccess, user]);
 
 

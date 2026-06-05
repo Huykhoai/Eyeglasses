@@ -308,7 +308,7 @@ const Config: React.FC = () => {
                         </div>
                     </header>
 
-                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 230px)' }}>
+                    <div className="table-scroll-container" style={{ height: 'calc(100vh - 235px)' }}>
                         <table className="table-premium">
                             <thead>
                                 <tr>

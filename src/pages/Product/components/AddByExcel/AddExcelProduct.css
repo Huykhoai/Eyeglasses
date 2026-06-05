@@ -21,3 +21,386 @@
     top: 16px;
     z-index: 100;
 }
+
+.excel-upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 16px;
+    flex: 1;
+    padding: 48px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.excel-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 520px;
+    min-height: 220px;
+    border: 2px dashed #c5d0dc;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #fafbfd;
+    padding: 32px;
+}
+
+.excel-dropzone:hover {
+    border-color: #2E5BBA;
+    background: #f0f4ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(46, 91, 186, 0.1);
+}
+
+/* ───────────── Validation Section ───────────── */
+
+.excel-validation-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.validation-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+}
+
+.summary-card--total {
+    color: #2E5BBA;
+}
+
+.summary-card--valid {
+    color: #27ae60;
+}
+
+.summary-card--invalid {
+    color: #e74c3c;
+}
+
+.summary-card--image {
+    color: #8e44ad;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.summary-label {
+    font-size: 13px;
+    color: #777;
+    font-weight: 500;
+}
+
+.file-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+    color: #555;
+}
+
+/* ───────────── Error List ───────────── */
+
+.error-list-section {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.error-row-card {
+    border: 1px solid #f0e0e0;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.error-row-card:hover {
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.08);
+}
+
+.error-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: #fef9f9;
+    transition: background 0.15s;
+}
+
+.error-row-header:hover {
+    background: #fdf3f3;
+}
+
+.error-row-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.error-row-name {
+    font-size: 13px;
+    color: #777;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.error-row-list {
+    list-style: none;
+    padding: 8px 16px 12px 42px;
+    margin: 0;
+    background: #fff;
+    border-top: 1px solid #f5e5e5;
+}
+
+.error-row-list li {
+    position: relative;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #c0392b;
+}
+
+.error-row-list li::before {
+    content: '•';
+    position: absolute;
+    left: -14px;
+    color: #e74c3c;
+}
+
+/* ───────────── Image Mapping Section ───────────── */
+
+.excel-image-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.image-map-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.image-map-card {
+    border: 2px solid #e8ecf0;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    background: #fafbfd;
+}
+
+.image-map-card:hover {
+    border-color: #b0c4de;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.image-map-card--matched {
+    border-color: #27ae60;
+    background: #f0fdf4;
+}
+
+.image-map-card--matched:hover {
+    border-color: #219a52;
+}
+
+.image-map-card--unmatched {
+    border-color: #e74c3c;
+    background: #fef2f2;
+}
+
+.image-map-card--unmatched:hover {
+    border-color: #c0392b;
+}
+
+.image-map-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    cursor: pointer;
+    gap: 8px;
+    padding: 16px;
+    transition: background 0.2s;
+}
+
+.image-map-dropzone span {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+}
+
+.image-map-dropzone:hover {
+    background: #f0f4ff;
+}
+
+.image-map-preview {
+    position: relative;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+}
+
+.image-map-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: 8px;
+}
+
+.image-map-remove {
+    position: absolute !important;
+    top: 4px;
+    right: 4px;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.image-map-remove:hover {
+    background: #fee !important;
+    color: #e74c3c !important;
+}
+
+.image-map-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-top: 1px solid #eee;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+.image-map-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ───────────── Product Preview (Step 4) ───────────── */
+
+.excel-preview-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.preview-table-wrapper {
+    max-height: 60vh;
+    overflow: auto;
+    border-radius: 10px;
+    border: 1px solid #e8ecf0;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.preview-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.preview-table th {
+    background: #34495E;
+    color: white;
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+}
+
+.preview-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+.preview-table .row-even {
+    background: #fafbfc;
+}
+
+.preview-table tbody tr:hover {
+    background: #f0f4ff;
+}
+
+.preview-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.preview-no-img {
+    color: #ccc;
+    font-size: 16px;
+}
+
+.cell-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.cell-price {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* ───────────── Responsive ───────────── */
+
+@media (max-width: 768px) {
+    .validation-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
