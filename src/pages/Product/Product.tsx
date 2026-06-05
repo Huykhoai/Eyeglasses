@@ -184,8 +184,8 @@ const Product: React.FC = () => {
             );
             return;
         }
-        navigate('/xnk/products/add-by-excel');
-    }, [roleAccess, user]);
+        navigate(`/xnk/products/add-by-excel?type=${productType.toLowerCase()}`);
+    }, [roleAccess, user, productType]);
 
 
     return (

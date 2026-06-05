@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Button from '@/components/common/Button/Button';
 import './AddExcelProduct.css';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Chip, LinearProgress, Alert, AlertTitle, Tooltip } from '@mui/material';
 import {
     Download as DownloadIcon,
@@ -14,9 +14,10 @@ import {
     Visibility as ViewIcon,
     QrCode as QrCodeIcon,
 } from '@mui/icons-material';
-import exportExcelLensTemplate from './ExcelImportLens';
-import { readLensExcel, buildLookupMap } from './excelLensReader';
-import type { ExcelReadResult, CategoryMaps } from './Config/types';
+import exportExcelFrameTemplate from './ExcelImportFrame';
+import { readFrameExcel } from './excelFrameReader';
+import { buildLookupMap } from './excelLensReader';
+import type { ExcelFrameReadResult, CategoryMapsFrame, ImageMapping } from './Config/types';
 import {
     useBrand,
     useGroup,
@@ -24,40 +25,35 @@ import {
     useCountry,
     useCurrency,
     useMaterial,
-    useRefractiveIndex,
-    useDesign,
-    useUv,
-    useColor,
     useCoating,
+    useColor,
     useWarranty,
+    useFrame,
+    useFrameType,
+    useShape,
+    useVe,
+    useTemple,
 } from '@/hooks/UseAllData';
 import StepIndicator from './Components/StepIndicator';
 import ErrorRow from './Components/ErrorRow';
-import type { ImageMapping } from './Config/types';
 import ImageMapCard from './Components/ImageMapCard';
-import TableProduct from './Components/TableProduct';
+import TableProductFrame from './Components/TableProductFrame';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import axiosClient from '@/api/axiosClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Loading from '@/components/ui/Loading/Loading';
-import AddExcelFrame from './AddExcelFrame';
 
 const TOTAL_STEPS = 5;
 
-const AddExcelProduct = () => {
+const AddExcelFrame: React.FC = () => {
     const navigate = useNavigate();
     const { showNotification } = useNotification();
-    const [searchParams] = useSearchParams();
     const queryClient = useQueryClient();
-
-    if (searchParams.get('type') === 'frame') {
-        return <AddExcelFrame />;
-    }
 
     const [currentStep, setCurrentStep] = useState(1);
     const [excelFile, setExcelFile] = useState<File | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [readResult, setReadResult] = useState<ExcelReadResult | null>(null);
+    const [readResult, setReadResult] = useState<ExcelFrameReadResult | null>(null);
     const [imageMappings, setImageMappings] = useState<ImageMapping[]>([]);
     const [showAllErrors, setShowAllErrors] = useState(false);
 
@@ -67,30 +63,35 @@ const AddExcelProduct = () => {
     const { data: countries } = useCountry();
     const { data: currencies } = useCurrency();
     const { data: materials } = useMaterial();
-    const { data: refractiveIndexes } = useRefractiveIndex();
-    const { data: designs } = useDesign();
-    const { data: uvs } = useUv();
-    const { data: colors } = useColor();
     const { data: coatings } = useCoating();
+    const { data: colors } = useColor();
     const { data: warranties } = useWarranty();
+    const { data: frames } = useFrame();
+    const { data: frameTypes } = useFrameType();
+    const { data: shapes } = useShape();
+    const { data: ves } = useVe();
+    const { data: temples } = useTemple();
 
-    const buildCategoryMaps = useCallback((): CategoryMaps => ({
+    const buildCategoryMaps = useCallback((): CategoryMapsFrame => ({
         group: buildLookupMap(groups),
         brand: buildLookupMap(brands),
         supplier: buildLookupMap(suppliers),
         country: buildLookupMap(countries),
         currency: buildLookupMap(currencies),
         material: buildLookupMap(materials),
-        refractiveIndex: buildLookupMap(refractiveIndexes),
-        design: buildLookupMap(designs),
-        uv: buildLookupMap(uvs),
-        color: buildLookupMap(colors),
         coating: buildLookupMap(coatings),
+        color: buildLookupMap(colors),
         warranty: buildLookupMap(warranties),
-    }), [groups, brands, suppliers, countries, currencies, materials, refractiveIndexes, designs, uvs, colors, coatings, warranties]);
+        frame: buildLookupMap(frames),
+        frameType: buildLookupMap(frameTypes),
+        shape: buildLookupMap(shapes),
+        ve: buildLookupMap(ves),
+        temple: buildLookupMap(temples),
+        gender: buildLookupMap([{ id: 1, cid: '1', name: "Nam" }, { id: 2, cid: '2', name: "Nữ" }, { id: 3, cid: '3', name: "Unisex" }])
+    }), [groups, brands, suppliers, countries, currencies, materials, coatings, colors, warranties, frames, frameTypes, shapes, ves, temples]);
 
     const handleDownloadTemplate = useCallback(async () => {
-        await exportExcelLensTemplate();
+        await exportExcelFrameTemplate();
     }, []);
 
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +103,7 @@ const AddExcelProduct = () => {
 
         try {
             const maps = buildCategoryMaps();
-            const result = await readLensExcel(file, maps);
+            const result = await readFrameExcel(file, maps);
             setReadResult(result);
 
             setImageMappings(
@@ -119,7 +120,7 @@ const AddExcelProduct = () => {
         } finally {
             setIsProcessing(false);
         }
-    }, [buildCategoryMaps]);
+    }, [buildCategoryMaps, showNotification]);
 
     const handleImageFileSelect = useCallback((name: string, file: File) => {
         const url = URL.createObjectURL(file);
@@ -179,7 +180,10 @@ const AddExcelProduct = () => {
             const message = error.response?.data?.message || 'Lỗi tạo CID';
             showNotification('error', message, 'Lỗi tạo mã sản phẩm');
         }
-    })
+    });
+
+    const validRows = useMemo(() => readResult?.rows.filter((r) => r.isValid) ?? [], [readResult]);
+
     const { mutateAsync: handleSubmit, isPending: isSubmitting } = useMutation({
         mutationFn: async () => {
             if (!readResult) return;
@@ -209,7 +213,7 @@ const AddExcelProduct = () => {
             const message = error.response?.data?.message || 'Lỗi tạo CID';
             showNotification('error', message, 'Lỗi tạo mã sản phẩm');
         }
-    })
+    });
 
     const errorRows = useMemo(() => readResult?.rows.filter((r) => !r.isValid) ?? [], [readResult]);
     const displayedErrors = useMemo(() => showAllErrors ? errorRows : errorRows.slice(0, 5), [showAllErrors, errorRows]);
@@ -223,7 +227,6 @@ const AddExcelProduct = () => {
         return map;
     }, [imageMappings]);
 
-    const validRows = useMemo(() => readResult?.rows.filter((r) => r.isValid) ?? [], [readResult]);
 
     return (
         <div className="from-excel-product-container">
@@ -233,7 +236,7 @@ const AddExcelProduct = () => {
                         Quay lại
                     </Button>
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        Thêm sản phẩm bằng Excel
+                        Thêm sản phẩm gọng bằng Excel
                     </Typography>
                 </Box>
                 <Box className="d-flex align-items-center gap-2">
@@ -365,7 +368,7 @@ const AddExcelProduct = () => {
                                 <AlertTitle>Một số dòng chứa dữ liệu không hợp lệ</AlertTitle>
                                 Vui lòng kiểm tra và sửa lại trong file Excel, sau đó tải lên lại. Các dòng lỗi sẽ bị bỏ qua nếu bạn tiếp tục.
                             </Alert>
-                            {displayedErrors.map((r) => (
+                            {displayedErrors.map((r: any) => (
                                 <ErrorRow key={r.rowIndex} result={r} />
                             ))}
                             {errorRows.length > 5 && (
@@ -438,7 +441,7 @@ const AddExcelProduct = () => {
             {(currentStep === 4 || currentStep === 5) && readResult && (
                 <div className="excel-preview-section">
                     {(isGeneratingCid || isSubmitting) && <Loading fullPage message={isGeneratingCid ? 'Đang tạo mã CID cho sản phẩm...' : 'Đang tạo sản phẩm...'} />}
-                    <TableProduct
+                    <TableProductFrame
                         rows={validRows}
                         imagePreviewMap={imagePreviewMap}
                         categoryMaps={buildCategoryMaps()}
@@ -448,7 +451,6 @@ const AddExcelProduct = () => {
                         <Button variant="outline" onClick={() => setCurrentStep(3)}>
                             Quay lại
                         </Button>
-
                     </Box>
                 </div>
             )}
@@ -456,4 +458,4 @@ const AddExcelProduct = () => {
     );
 };
 
-export default AddExcelProduct;
+export default AddExcelFrame;

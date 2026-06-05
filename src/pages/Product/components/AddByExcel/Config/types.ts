@@ -38,10 +38,95 @@ export interface CategoryMaps {
     warranty: Record<string, ConfigLimitResponse>;
 }
 
+export interface CategoryMapsFrame {
+    group: Record<string, ConfigLimitResponse>;
+    brand: Record<string, ConfigLimitResponse>;
+    supplier: Record<string, ConfigLimitResponse>;
+    country: Record<string, ConfigLimitResponse>;
+    currency: Record<string, ConfigItem>;
+    warranty: Record<string, ConfigLimitResponse>;
+    frame: Record<string, ConfigLimitResponse>;
+    frameType: Record<string, ConfigLimitResponse>;
+    shape: Record<string, ConfigLimitResponse>;
+    ve: Record<string, ConfigLimitResponse>;
+    temple: Record<string, ConfigLimitResponse>;
+    material: Record<string, ConfigLimitResponse>;
+    coating: Record<string, ConfigLimitResponse>;
+    color: Record<string, ConfigLimitResponse>;
+    gender: Record<string, { id: number, name: string, cid: string }>;
+}
+
+export interface FrameRowData {
+    rowIndex: number;
+    Group: string;
+    Image: string;
+    FullName: string;
+    Unit: string;
+    Brand: string;
+    Supplier: string;
+    Country: string;
+    Season: string;
+    Model: string;
+    Serial: string;
+    Gender: string;
+    Temple_Length: string;
+    Bridge_Width: string;
+    Lens_Width: string;
+    Lens_Height: string;
+    Color_Code: string;
+    Frame: string;
+    Frame_Type: string;
+    Shape: string;
+    Ve: string;
+    Color_Lens: string;
+    Coating: string;
+    Temple: string;
+    Material_Front: string;
+    Material_Temple: string;
+    Material_Ve: string;
+    Material_Temple_Tip: string;
+    Material_Lens: string;
+    Color_Front: string;
+    Color_Temple: string;
+    Supplier_Warranty: string;
+    Warranty: string;
+    Warranty_Retail: string;
+    Original_Price: string;
+    Currency: string;
+    Retail_Price: string;
+    Tax: string;
+    Use: string;
+    Guide: string;
+    Warning: string;
+    Preserve: string;
+    Note: string;
+}
+
+export interface RowValidationFrameResult {
+    rowIndex: number;
+    dto?: ProductDto;
+    errors: string[];
+    isValid: boolean;
+}
+
+export interface ExcelFrameReadResult {
+    rows: RowValidationFrameResult[];
+    uniqueImageNames: string[];
+    totalRows: number;
+    validRows: number;
+    invalidRows: number;
+}
+
 export interface TableProductProps {
     rows: RowValidationResult[];
     imagePreviewMap: Record<string, string>;
     categoryMaps: CategoryMaps;
+}
+
+export interface TableProductFrameProps {
+    rows: RowValidationFrameResult[];
+    imagePreviewMap: Record<string, string>;
+    categoryMaps: CategoryMapsFrame;
 }
 
 export interface LensAttributeDto {

@@ -208,13 +208,6 @@ export async function readLensExcel(
                 } else {
                     generatedCid += "000";
                 }
-            } else if (groupType === "Gọng") {
-                if (data.Model) {
-                    const flStr = data.Model.replace(/[^0-9a-zA-Z]/g, '').substring(0, 3).toUpperCase().padEnd(3, '0');
-                    generatedCid += flStr;
-                } else {
-                    generatedCid += "000";
-                }
             } else {
                 generatedCid += "000";
             }
