@@ -3,6 +3,7 @@ export interface User {
     email: string;
     positions: string[];
     roles: string[];
+    mfaEnabled: boolean;
 }
 
 export interface LoginCredentials {

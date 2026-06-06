@@ -51,7 +51,7 @@ const Login: React.FC = () => {
         },
         onSuccess: (data: any) => {
             const { token, ...user } = data;
-            login(token, user);
+            login(token, {...user, mfaEnabled: true});
             showNotification('success', 'Xác thực thành công!', 'Chào mừng bạn quay trở lại!');
             navigate('/dashboard');
         },

@@ -15,6 +15,7 @@ import { useNotification } from '@/components/ui/Notification/NotificationContex
 import axiosClient from '@/api/axiosClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Loading from '@/components/ui/Loading/Loading';
+import { useAuth } from '@/context/AuthContext';
 
 interface DialogMfaSetupProps {
     open: boolean;
@@ -23,6 +24,7 @@ interface DialogMfaSetupProps {
 
 const DialogMfaSetup: React.FC<DialogMfaSetupProps> = ({ open, onClose }) => {
     const { showNotification } = useNotification();
+    const { token, login, user } = useAuth();
     const [otp, setOtp] = useState('');
 
     const { data: stepSetup, isLoading } = useQuery({
@@ -39,7 +41,7 @@ const DialogMfaSetup: React.FC<DialogMfaSetupProps> = ({ open, onClose }) => {
         },
         enabled: open,
     });
-    
+
     const verifyMutation = useMutation({
         mutationFn: async (otpCode: string) => {
             const response = await axiosClient.post('/api/account/mfa/verify-setup', { otp: otpCode });
@@ -48,10 +50,11 @@ const DialogMfaSetup: React.FC<DialogMfaSetupProps> = ({ open, onClose }) => {
         onSuccess: (data: any) => {
             if (data.status === 400) {
                 showNotification('error', data?.message || 'Kích hoạt xác thực 2 lớp thất bại!', 'Thất bại');
-            } else {
-                showNotification('success', data?.message || 'Kích hoạt xác thực 2 lớp thành công!', 'Thành công');
-                handleClose();
+                return;
             }
+            showNotification('success', data?.message || 'Kích hoạt xác thực 2 lớp thành công!', 'Thành công');
+            login(token!, { ...user!, mfaEnabled: true });
+            handleClose();
         },
         onError: (error: any) => {
             const message = error?.response?.data?.message || 'Có lỗi xảy ra khi xác thực OTP';

@@ -11,25 +11,25 @@ import {
     BusinessCenter as BriefcaseIcon,
     Security as SecurityIcon,
     PowerSettingsNew as PowerSettingsNewIcon,
-    QrCode2 as QrCodeIcon,
 } from '@mui/icons-material';
 import { type EmployeeType } from '../Employee/config/type';
 import DialogChangePassword from './components/DialogChangePassword';
 import DialogMfaSetup from './components/DialogMfaSetup';
 import './Profile.css';
-import { Tooltip } from '@mui/material';
+import { Tooltip, Typography } from '@mui/material';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { useNotification } from '@/components/ui/Notification/NotificationContext';
 import { roleLabels } from '@/utils/roles';
 const url = import.meta.env.VITE_API_URL;
 
 const Profile: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, login, token } = useAuth();
     const { showNotification } = useNotification();
 
     const [openChangePassword, setOpenChangePassword] = React.useState(false);
     const [openMfaSetup, setOpenMfaSetup] = React.useState(false);
     const [openLogout, setOpenLogout] = React.useState(false);
+    const [openDisableMfa, setOpenDisableMfa] = React.useState(false);
 
     const { data: profile, isLoading } = useQuery<EmployeeType>({
         queryKey: ['my-profile', user?.username],
@@ -62,11 +62,34 @@ const Profile: React.FC = () => {
         }
     });
 
+    const disableMfaMutation = useMutation({
+        mutationFn: async () => {
+            const response = await axiosClient.put('/api/account/mfa/disable');
+            return response.data;
+        },
+        onSuccess: (data: any) => {
+            showNotification('success', data.message || 'Tắt bảo mật 2 lớp thành công', 'Thành công');
+            setOpenDisableMfa(false);
+            login(token!, { ...user!, mfaEnabled: false })
+        },
+        onError: (error: any) => {
+            const message = error.response?.data?.message || 'Có lỗi xảy ra khi tắt bảo mật 2 lớp';
+            showNotification('error', message, 'Lỗi tắt bảo mật 2 lớp');
+        }
+    });
+
     const initials = useMemo(() => {
         if (!profile?.name) return user?.username?.substring(0, 2).toUpperCase() || '??';
         return profile.name.split(' ').slice(-1).map(n => n[0]).join('').toUpperCase();
     }, [profile, user]);
 
+    const handleEnableMfa = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setOpenMfaSetup(true);
+        } else {
+            setOpenDisableMfa(true);
+        }
+    };
     if (isLoading) return <Loading fullPage message="Đang tải hồ sơ của bạn..." />;
 
     return (
@@ -97,16 +120,23 @@ const Profile: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                    <div className="d-flex align-items-center gap-5 mt-1">
+                        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 14 }}>
+                            Bảo mật 2 lớp
+                        </Typography>
+                        <div className="form-check form-switch p-0">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                checked={user?.mfaEnabled}
+                                onChange={handleEnableMfa}
+                                style={{ backgroundColor: user?.mfaEnabled ? "#ff9800" : "#ccc" }}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <div style={{ marginLeft: 'auto', zIndex: 2, display: 'flex', gap: 10 }}>
-                    <Button
-                        variant="outline"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.3)' }}
-                        onClick={() => setOpenMfaSetup(true)}
-                    >
-                        <QrCodeIcon sx={{ mr: 1, fontSize: 18 }} />Bảo mật 2 lớp
-                    </Button>
                     <Button
                         variant="outline"
                         style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.3)' }}
@@ -221,6 +251,13 @@ const Profile: React.FC = () => {
                 onConfirm={() => logoutMutation.mutate()}
                 title="Xác nhận đăng xuất"
                 content="Bạn có chắc chắn muốn đăng xuất?"
+            />
+            <ConfirmDialog
+                open={openDisableMfa}
+                onClose={() => setOpenDisableMfa(false)}
+                onConfirm={() => disableMfaMutation.mutate()}
+                title="Xác nhận vô hiệu hóa xác thực 2 lớp"
+                content="Bạn có chắc chắn muốn vô hiệu hóa xác thực 2 lớp?"
             />
         </div>
     );
