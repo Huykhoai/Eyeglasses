@@ -5,35 +5,61 @@ import Loading from '@/components/ui/Loading/Loading';
 import './Login.css';
 import axios from '@/api/axiosClient';
 import { useAuth } from '@/context/AuthContext';
+import { useMutation } from '@tanstack/react-query';
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const { showNotification } = useNotification();
-    const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [mfaRequired, setMfaRequired] = useState(false);
+    const [otp, setOtp] = useState('');
     const [formData, setFormData] = useState({
         username: '',
         password: '',
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
+    const { mutateAsync: handleSubmit , isPending} = useMutation({
+        mutationFn: async (e: React.FormEvent) => {
+            e.preventDefault();
             const response = await axios.post('/api/auth/login', formData);
-            const { token, ...user } = response.data;
-
+            return response.data;
+        },
+        onSuccess: (data: any) => {
+            if (data?.mfaRequired) {
+                setMfaRequired(true);
+                showNotification('info', data?.message || 'Vui lòng nhập mã cài đặt trên ứng dụng.', 'Xác thực 2 lớp');
+                return;
+            }
+            const { token, ...user } = data;
             login(token, user);
             showNotification('success', 'Chào mừng bạn quay trở lại!', 'Đăng nhập thành công');
             navigate('/dashboard');
-        } catch (error: any) {
+        },
+        onError: (error: any) => {
             const errorMessage = error.response?.data?.message || error.message || 'Đăng nhập thất bại. Vui lòng thử lại!';
             showNotification('error', errorMessage, "Lỗi đăng nhập");
-        } finally {
-            setIsLoading(false);
         }
-    };
+        
+    });
+
+    const { mutateAsync: handleVerifyOtp, isPending: isPendingVerifyOtp } = useMutation({
+        mutationFn: async (e: React.FormEvent) => {
+            e.preventDefault();
+            const response = await axios.post('/api/auth/mfa/verify', { otp });
+            return response.data;
+        },
+        onSuccess: (data: any) => {
+            const { token, ...user } = data;
+            login(token, user);
+            showNotification('success', 'Xác thực thành công!', 'Chào mừng bạn quay trở lại!');
+            navigate('/dashboard');
+        },
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || 'Mã OTP không chính xác. Vui lòng thử lại!';
+            showNotification('error', errorMessage, "Lỗi xác thực");
+        }
+    });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -44,7 +70,8 @@ const Login: React.FC = () => {
     };
     return (
         <div className="login-container">
-            {isLoading && <Loading fullPage message="Đang xác thực tài khoản..." />}
+            {isPending && <Loading fullPage message="Đang xác thực tài khoản..." />}
+            {isPendingVerifyOtp && <Loading fullPage message="Đang xác thực OTP..." />}
             <div className="login-left">
                 <div className="login-branding">
                     <div className="glasses-icon">
@@ -96,83 +123,136 @@ const Login: React.FC = () => {
 
             <div className="login-right">
                 <div className="login-form-container">
-                    <div className="login-header">
-                        <h2>Đăng nhập tài khoản</h2>
-                        <p>Chào mừng bạn quay trở lại!</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="login-form">
-                        <div className="form-group">
-                            <div className="input-wrapper">
-                                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                    <polyline points="22,6 12,13 2,6" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    id="username"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleInputChange}
-                                    placeholder="Tên đăng nhập hoặc Email"
-                                    required
-                                />
+                    {!mfaRequired ? (
+                        <>
+                            <div className="login-header">
+                                <h2>Đăng nhập tài khoản</h2>
+                                <p>Chào mừng bạn quay trở lại!</p>
                             </div>
-                        </div>
 
-                        <div className="form-group">
-                            <div className="input-wrapper">
-                                <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                </svg>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    placeholder="Mật khẩu"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                >
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        {showPassword ? (
-                                            <>
-                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </>
-                                        )}
-                                    </svg>
+                            <form onSubmit={handleSubmit} className="login-form">
+                                <div className="form-group">
+                                    <div className="input-wrapper">
+                                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                            <polyline points="22,6 12,13 2,6" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="username"
+                                            name="username"
+                                            value={formData.username}
+                                            onChange={handleInputChange}
+                                            placeholder="Tên đăng nhập hoặc Email"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <div className="input-wrapper">
+                                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                        </svg>
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            id="password"
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            placeholder="Mật khẩu"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="toggle-password"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                {showPassword ? (
+                                                    <>
+                                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </>
+                                                )}
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="form-options">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                        />
+                                    </label>
+                                    <a href="#" className="forgot-password">Quên mật khẩu?</a>
+                                </div>
+
+                                <button type="submit" className="login-button">
+                                    Đăng nhập
                                 </button>
+                            </form>
+                        </>
+                    ) : (
+                        <>
+                            <div className="login-header">
+                                <h2>Bảo vệ 2 lớp (MFA)</h2>
+                                <p>Nhập mã 6 số từ Google Authenticator</p>
                             </div>
-                        </div>
 
-                        <div className="form-options">
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                />
-                            </label>
-                            <a href="#" className="forgot-password">Quên mật khẩu?</a>
-                        </div>
+                            <form onSubmit={handleVerifyOtp} className="login-form">
+                                <div className="form-group">
+                                    <div className="input-wrapper">
+                                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                        </svg>
+                                        <input
+                                            type="text"
+                                            id="otp"
+                                            name="otp"
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').substring(0, 6))}
+                                            placeholder="......"
+                                            style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '1.2rem', fontWeight: 600 }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                        <button type="submit" className="login-button">
-                            Đăng nhập
-                        </button>
-                    </form>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                                    <button
+                                        type="button"
+                                        className="login-button"
+                                        style={{ background: '#e2e8f0', color: '#1e293b' }}
+                                        onClick={() => {
+                                            setMfaRequired(false);
+                                            setOtp('');
+                                        }}
+                                    >
+                                        Quay lại
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="login-button"
+                                        disabled={otp.length !== 6 || isPendingVerifyOtp}
+                                    >
+                                        Xác nhận
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -11,9 +11,11 @@ import {
     BusinessCenter as BriefcaseIcon,
     Security as SecurityIcon,
     PowerSettingsNew as PowerSettingsNewIcon,
+    QrCode2 as QrCodeIcon,
 } from '@mui/icons-material';
 import { type EmployeeType } from '../Employee/config/type';
 import DialogChangePassword from './components/DialogChangePassword';
+import DialogMfaSetup from './components/DialogMfaSetup';
 import './Profile.css';
 import { Tooltip } from '@mui/material';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
@@ -26,17 +28,24 @@ const Profile: React.FC = () => {
     const { showNotification } = useNotification();
 
     const [openChangePassword, setOpenChangePassword] = React.useState(false);
+    const [openMfaSetup, setOpenMfaSetup] = React.useState(false);
     const [openLogout, setOpenLogout] = React.useState(false);
 
     const { data: profile, isLoading } = useQuery<EmployeeType>({
         queryKey: ['my-profile', user?.username],
         queryFn: async () => {
-            const response = await axiosClient.get('/api/employee/me');
-            return response.data;
+            try {
+                const response = await axiosClient.get('/api/employee/me');
+                return response.data;
+            } catch (error: any) {
+                const message = error?.response?.data?.message || 'Có lỗi xảy ra khi lấy thông tin hồ sơ';
+                showNotification('error', message, 'Thất bại');
+                throw error;
+            }
         },
         enabled: !!user?.username,
     });
-    
+
     const logoutMutation = useMutation({
         mutationFn: async () => {
             const response = await axiosClient.post('/api/account/logout');
@@ -90,7 +99,14 @@ const Profile: React.FC = () => {
                     </div>
                 </div>
 
-                <div style={{ marginLeft: 'auto', zIndex: 2 }}>
+                <div style={{ marginLeft: 'auto', zIndex: 2, display: 'flex', gap: 10 }}>
+                    <Button
+                        variant="outline"
+                        style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.3)' }}
+                        onClick={() => setOpenMfaSetup(true)}
+                    >
+                        <QrCodeIcon sx={{ mr: 1, fontSize: 18 }} />Bảo mật 2 lớp
+                    </Button>
                     <Button
                         variant="outline"
                         style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'white', border: '1px solid rgba(255, 255, 255, 0.3)' }}
@@ -191,9 +207,13 @@ const Profile: React.FC = () => {
                 </div>
             </div>
 
-            <DialogChangePassword 
+            <DialogChangePassword
                 open={openChangePassword}
                 onClose={() => setOpenChangePassword(false)}
+            />
+            <DialogMfaSetup
+                open={openMfaSetup}
+                onClose={() => setOpenMfaSetup(false)}
             />
             <ConfirmDialog
                 open={openLogout}
