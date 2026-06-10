@@ -21,6 +21,7 @@ import type { ProductStockResponse } from "./config/types";
 import { columnsWarehouseStock } from "./config/columnsWarehouseStock";
 import { getFilters } from "./config/getFilter";
 import { useBrand, useGroup } from "@/hooks/UseAllData";
+import WarehouseLogDialog from "./Components/WarehouseLogDialog";
 
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#6366f1';
 
@@ -40,6 +41,8 @@ const WarehouseStockPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [filter, setFilter] = useState<Record<string, any>>({});
+
+    const [openLogId, setOpenLogId] = useState<number | null>(null);
 
     const categories = useMemo(() => getFilters(brands || [], groups || []), [groups, brands]);
     const columns = useMemo(() => columnsWarehouseStock(page, size), [page, size]);
@@ -80,7 +83,7 @@ const WarehouseStockPage: React.FC = () => {
                         <InventoryIcon sx={{ color: primaryColor }} /> Tồn kho: <span style={{ color: primaryColor }}>{warehouseName}</span>
                     </Typography>
                 </Stack>
-                <div style={{ width: "15vw", flex: 1}}>
+                <div style={{ width: "15vw", flex: 1 }}>
                     <MultiFilterBar categories={categories} onFilterChange={handleFilterChange} initialFilters={filter} />
                 </div>
                 <div style={{ minWidth: 70 }}>
@@ -108,7 +111,12 @@ const WarehouseStockPage: React.FC = () => {
                         <tbody>
                             {(data?.items ?? []).length > 0 ? (
                                 (data?.items ?? []).map((item, index) => (
-                                    <tr key={item.id || index}>
+                                    <tr
+                                        key={item.id || index}
+                                        onClick={() => setOpenLogId(item.id)}
+                                        style={{ cursor: 'pointer' }}
+                                        className="hover-row"
+                                    >
                                         {columns.map((col) => (
                                             <td key={col.key} style={{ textAlign: col.align as any }}>
                                                 {col.render ? (
@@ -140,6 +148,11 @@ const WarehouseStockPage: React.FC = () => {
                     </Box>
                 )}
             </div>
+
+            <WarehouseLogDialog
+                productStockId={openLogId}
+                onClose={() => setOpenLogId(null)}
+            />
         </Box>
     );
 };

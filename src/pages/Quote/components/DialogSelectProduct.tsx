@@ -43,7 +43,7 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [filters, setFilters] = useState<Record<string, any>>({});
-    const [localProducts, setLocalProducts] = useState<Map<number, any>>(getValues('products'));
+    const [localProducts, setLocalProducts] = useState<Record<number, any>>(getValues('products') || {});
     const [productType, setProductType] = useState<ProductType>('LENS');
 
     const filterOptions = useMemo(() => filterDialogProduct, []);
@@ -98,17 +98,50 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
         setSize(size);
     }, []);
 
-    const handleAddItems = useCallback((items: Map<number, any>) => {
+    const handleAddItems = useCallback((items: Record<number, any>) => {
         setLocalProducts(items);
     }, []);
 
+    const isAllSelected = useMemo(() => {
+        if (products.length === 0) return false;
+        return products.every((item) => !!localProducts[item.productId]);
+    }, [products, localProducts]);
+
+    const isIndeterminate = useMemo(() => {
+        if (products.length === 0) return false;
+        const selectedCount = products.filter(item => !!localProducts[item.productId]).length;
+        return selectedCount > 0 && selectedCount < products.length;
+    }, [products, localProducts]);
+
+    const handleToggleSelectAll = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const nextMap = { ...localProducts };
+        if (e.target.checked) {
+            products.forEach((item) => {
+                if (!nextMap[item.productId]) {
+                    nextMap[item.productId] = {
+                        productId: item.productId,
+                        requestQty: 1,
+                        expectedPrice: item.lastPurchasePrice || item.originalPrice || 0,
+                        quotedQty: 1,
+                        quotedPrice: item.lastPurchasePrice || item.originalPrice || 0,
+                    };
+                }
+            });
+        } else {
+            products.forEach((item) => {
+                delete nextMap[item.productId];
+            });
+        }
+        handleAddItems(nextMap);
+    }, [products, localProducts, handleAddItems]);
+
     const handleConfirm = useCallback(() => {
-        if (localProducts.size === 0) return;
+        if (Object.keys(localProducts).length === 0) return;
         setValue('products', localProducts, { shouldDirty: true });
         onClose();
     }, [onClose, localProducts, setValue]);
 
-    const columnsTable = columns(localProducts, handleAddItems);
+    const columnsTable = columns(localProducts, handleAddItems, isAllSelected, isIndeterminate, handleToggleSelectAll);
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth PaperProps={{ sx: { borderRadius: '16px', minWidth: '90vw', height: '90vh' } }}>
@@ -221,10 +254,10 @@ const DialogSelectProduct: React.FC<DialogSelectProductProps> = ({ open, onClose
                     <Button
                         variant="primary"
                         onClick={handleConfirm}
-                        disabled={localProducts.size === 0}
+                        disabled={Object.keys(localProducts).length === 0}
                         icon={<AddIcon fontSize="small" />}
                     >
-                        Thêm ({localProducts.size}) sản phẩm
+                        Thêm ({Object.keys(localProducts).length}) sản phẩm
                     </Button>
                 </Box>
             </DialogActions>

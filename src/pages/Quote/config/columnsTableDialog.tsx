@@ -5,68 +5,82 @@ import { Box, Checkbox, Typography } from "@mui/material";
 import TextField from "@/components/common/TextField/TextField";
 import type { SelectedProduct } from "./types";
 
-export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<number, any>) => void): ColumnDef[] => useMemo(() => {
+export const columns = (
+    productsMap: Record<number, any>,
+    onAddItems: (items: Record<number, any>) => void,
+    isAllSelected: boolean,
+    isIndeterminate: boolean,
+    handleToggleSelectAll: (e: React.ChangeEvent<HTMLInputElement>) => void
+): ColumnDef[] => useMemo(() => {
 
     const handleToggleSelect = (product: SelectedProduct) => {
-        const newSelected = new Map(productsMap);
-        if (newSelected.has(product.productId)) {
-            newSelected.delete(product.productId);
+        const newSelected = { ...productsMap };
+        if (newSelected[product.productId]) {
+            delete newSelected[product.productId];
         } else {
-            newSelected.set(product.productId, {
+            newSelected[product.productId] = {
                 productId: product.productId,
                 requestQty: 1,
                 expectedPrice: product.lastPurchasePrice || product.originalPrice || 0,
                 quotedQty: 1,
                 quotedPrice: product.lastPurchasePrice || product.originalPrice || 0,
-            });
+            };
         }
         onAddItems(newSelected);
     };
 
     const handleUpdateQty = (id: number, qty: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
+        const newSelected = { ...productsMap };
+        const item = newSelected[id];
         if (item) {
-            newSelected.set(id, { ...item, requestQty: qty || 0, quotedQty: qty || 0 });
+            newSelected[id] = { ...item, requestQty: qty || 0, quotedQty: qty || 0 };
         }
         onAddItems(newSelected);
     };
 
     const handleUpdatePrice = (id: number, price: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
+        const newSelected = { ...productsMap };
+        const item = newSelected[id];
         if (item) {
-            newSelected.set(id, { ...item, expectedPrice: price, quotedPrice: price });
+            newSelected[id] = { ...item, expectedPrice: price, quotedPrice: price };
         }
         onAddItems(newSelected);
     };
 
     const handleUpdateQuoteQty = (id: number, qty: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
+        const newSelected = { ...productsMap };
+        const item = newSelected[id];
         if (item) {
-            newSelected.set(id, { ...item, quotedQty: qty || 0 });
+            newSelected[id] = { ...item, quotedQty: qty || 0 };
         }
         onAddItems(newSelected);
     };
 
     const handleUpdateQuotePrice = (id: number, price: number) => {
-        const newSelected = new Map(productsMap);
-        const item = newSelected.get(id);
+        const newSelected = { ...productsMap };
+        const item = newSelected[id];
         if (item) {
-            newSelected.set(id, { ...item, quotedPrice: price });
+            newSelected[id] = { ...item, quotedPrice: price };
         }
         onAddItems(newSelected);
     };
     return [
         {
             key: 'select',
-            header: '',
+            header: (
+                <Checkbox
+                    size="small"
+                    checked={isAllSelected}
+                    indeterminate={isIndeterminate}
+                    onChange={handleToggleSelectAll}
+                />
+            ),
             width: '4vw',
             align: 'center',
             render: (item: SelectedProduct) => (
                 <Checkbox
-                    checked={!!productsMap.get(item.productId)}
+                    size="small"
+                    checked={!!productsMap[item.productId]}
                     onChange={() => handleToggleSelect(item)}
                 />
             ),
@@ -130,16 +144,16 @@ export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<n
             header: 'SL dự kiến',
             align: 'right',
             render: (item: SelectedProduct) => {
-                const isSelected = !!productsMap.get(item.productId);
+                const isSelected = !!productsMap[item.productId];
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'right' }}>
                         {isSelected ? (
                             <TextField
                                 name='requestQty'
                                 isNumber
-                                value={productsMap.get(item.productId)?.requestQty}
+                                value={productsMap[item.productId]?.requestQty}
                                 onChange={(e) => handleUpdateQty(item.productId, Number(e.target.value))}
-                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                             />
                         ) : (
                             <Typography variant="body2" fontSize={12} fontWeight={600}>
@@ -155,16 +169,16 @@ export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<n
             header: 'Giá dự kiến',
             align: 'right',
             render: (item: SelectedProduct) => {
-                const isSelected = !!productsMap.get(item.productId);
+                const isSelected = !!productsMap[item.productId];
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'right' }}>
                         {isSelected ? (
                             <TextField
                                 name='expectedPrice'
                                 isNumber
-                                value={productsMap.get(item.productId)?.expectedPrice}
+                                value={productsMap[item.productId]?.expectedPrice}
                                 onChange={(e) => handleUpdatePrice(item.productId, Number(e.target.value))}
-                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                             />
                         ) : (
                             <Typography variant="body2" fontSize={12} fontWeight={600}>
@@ -180,16 +194,16 @@ export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<n
             header: 'SL báo giá',
             align: 'right',
             render: (item: SelectedProduct) => {
-                const isSelected = !!productsMap.get(item.productId);
+                const isSelected = !!productsMap[item.productId];
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'right' }}>
                         {isSelected ? (
                             <TextField
                                 name='quotedQty'
                                 isNumber
-                                value={productsMap.get(item.productId)?.quotedQty}
+                                value={productsMap[item.productId]?.quotedQty}
                                 onChange={(e) => handleUpdateQuoteQty(item.productId, Number(e.target.value))}
-                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                             />
                         ) : (
                             <Typography variant="body2" fontSize={12} fontWeight={600}>
@@ -205,16 +219,16 @@ export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<n
             header: 'Giá báo giá',
             align: 'right',
             render: (item: SelectedProduct) => {
-                const isSelected = !!productsMap.get(item.productId);
+                const isSelected = !!productsMap[item.productId];
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'right' }}>
                         {isSelected ? (
                             <TextField
                                 name='quotedPrice'
                                 isNumber
-                                value={productsMap.get(item.productId)?.quotedPrice}
+                                value={productsMap[item.productId]?.quotedPrice}
                                 onChange={(e) => handleUpdateQuotePrice(item.productId, Number(e.target.value))}
-                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, style: { textAlign: 'center', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                             />
                         ) : (
                             <Typography variant="body2" fontSize={12} fontWeight={600}>
@@ -230,7 +244,7 @@ export const columns = (productsMap: Map<number, any>, onAddItems: (items: Map<n
             header: 'Tổng tiền',
             align: 'right',
             render: (item: SelectedProduct) => {
-                const isSelected = productsMap.get(item.productId);
+                const isSelected = productsMap[item.productId];
                 return (
                     <Typography variant="body2" fontSize={12} fontWeight={600} color="error">
                         {`$${formatPrice((isSelected?.quotedPrice || 0) * (isSelected?.quotedQty || 0))}`}

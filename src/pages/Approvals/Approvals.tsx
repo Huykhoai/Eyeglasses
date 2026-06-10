@@ -24,14 +24,12 @@ const DETAIL_COMPONENTS: Record<string, React.FC<any>> = {
     "purchase-quotations": ApprovalsDetail,
     "contracts": ApprovalsContractDetail,
     "otks": ApprovalsOtkDetail,
-    "purchase-orders": () => <Box p={3}>Chưa cấu hình giao diện Đơn hàng</Box>,
 };
 
 const API_PATH_MAPPING: Record<string, string> = {
     "purchase-quotations": "purchase-quotation",
     "contracts": "contract",
     "otks": "otk",
-    "purchase-orders": "purchase-order",
 };
 
 const Approvals: React.FC = () => {
@@ -109,7 +107,11 @@ const Approvals: React.FC = () => {
             const response = await axiosClient.post(`/api/approvals/${id}`, params);
             return response.data;
         },
-        onSuccess: () => {
+        onSuccess: (response) => {
+            if (response.status === 400) {
+                showNotification('error', response?.message || 'Lỗi khi phê duyệt', 'Thất bại');
+                return;
+            }
             queryClient.invalidateQueries({ queryKey: ['approvals'] });
             switch (selectedType) {
                 case "purchase-quotations":
@@ -121,13 +123,11 @@ const Approvals: React.FC = () => {
                 case "otks":
                     queryClient.invalidateQueries({ queryKey: ['otk'] });
                     break;
-                case "purchase-orders":
-                    queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
-                    break;
             }
             setSelectedRow(null);
             setOpenDialog(false);
             setDialogData(null);
+            showNotification('success', response?.message || 'Thành công', 'Thành công');
         },
         onError: (error: any) => {
             const message = error?.response?.data?.message || 'Lỗi khi phê duyệt';
@@ -159,7 +159,6 @@ const Approvals: React.FC = () => {
                                 { label: "Yêu cầu báo giá", value: "purchase-quotations" },
                                 { label: "Hợp đồng", value: "contracts" },
                                 { label: "OTK", value: "otks" },
-                                { label: "Đơn hàng", value: "purchase-orders" },
                             ]}
                             value={selectedType}
                             onChangeSize={handleTypeChange}

@@ -16,9 +16,9 @@ import { useNotification } from "@/components/ui/Notification/NotificationContex
 import { useFormContext } from "react-hook-form";
 import PurchaseQuotationStatus from "@/utils/PurchaseQuotationEnum";
 interface DialogImportRightProps {
-    quotationsMap: Map<number, Quotation>;
-    initialItems: Map<number, SimpleContractItem>;
-    onAddItems: (items: Map<number, SimpleContractItem>) => void;
+    quotationsMap: Record<number, Quotation>;
+    initialItems: Record<number, SimpleContractItem>;
+    onAddItems: (items: Record<number, SimpleContractItem>) => void;
 }
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR;
 const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, initialItems, onAddItems }) => {
@@ -31,9 +31,13 @@ const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, in
     const [size, setSize] = useState<number>(20);
     const [filter, setFilter] = useState<Record<string, any>>({});
 
-    const quotationIds = quotationsMap ? Array.from(quotationsMap.keys()).map(Number) : [];
+    const isDraft = useMemo(() =>
+        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED]
+            .includes(status), [status])
+
+    const quotationIds = quotationsMap ? Object.keys(quotationsMap).map(Number) : [];
     const { quotationItems, isLoading, totalItems } = useFetchItemsFromQuotations(quotationIds, page, size, filter);
-    const categories = useMemo(() => filterDialog(Array.from(quotationsMap.values()), brands || []), [brands, quotationsMap])
+    const categories = useMemo(() => filterDialog(Object.values(quotationsMap || {}), brands || []), [brands, quotationsMap])
 
     const handleFilterChange = useCallback((filter: Record<string, any>) => {
         let mapperFilter: Record<string, any> = {};
@@ -54,25 +58,24 @@ const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, in
             return response.data;
         },
         onSuccess: (allItems: SimpleContractItem[]) => {
-            const newItems = new Map(initialItems);
+            const newItems = { ...initialItems };
             allItems.forEach((item) => {
-                if (newItems.has(item.quotationItemId)) return;
+                if (newItems[item.quotationItemId]) return;
 
-                const oldContractQty = initialQtyMap.get(item.quotationItemId) || 0;
+                const oldContractQty = initialQtyMap[item.quotationItemId] || 0;
                 let allowedQty = item.allowedQty || 0;
-                const isDraft = [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(status)
 
                 if (id && isDraft) {
                     allowedQty += oldContractQty;
                 }
 
                 if (allowedQty <= 0) return;
-                newItems.set(item.quotationItemId, {
+                newItems[item.quotationItemId] = {
                     quotationItemId: item.quotationItemId,
                     quotationId: item.quotationId,
                     allowedQty: allowedQty,
                     contractQty: allowedQty || 0
-                });
+                };
             });
             onAddItems(newItems);
         },
@@ -84,13 +87,54 @@ const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, in
 
     const handleSelectAllProduct = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.checked) {
-            onAddItems(new Map<number, SimpleContractItem>());
+            onAddItems({} as Record<number, SimpleContractItem>);
             return;
         }
         fetchAllItems();
     }, [onAddItems, fetchAllItems]);
 
-    const columns = columnsTableDialog({ id, status, initialQtyMap, initialItems, quotationsMap, onAddItems });
+    const isAllSelectedPage = useMemo(() => {
+        if (!quotationItems || quotationItems.length === 0) return false;
+        return quotationItems.every((item) => !!initialItems[item.id]);
+    }, [quotationItems, initialItems]);
+
+    const isIndeterminatePage = useMemo(() => {
+        if (!quotationItems || quotationItems.length === 0) return false;
+        const selectedCount = quotationItems.filter(item => !!initialItems[item.id]).length;
+        return selectedCount > 0 && selectedCount < quotationItems.length;
+    }, [quotationItems, initialItems]);
+
+    const handleToggleSelectAllPage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const nextMap = { ...initialItems };
+        if (e.target.checked) {
+            quotationItems.forEach((item) => {
+                if (!nextMap[item.id]) {
+                    const oldContractQty = initialQtyMap[item.id] || 0;
+                    let allowedQty = item.allowedQty || 0;
+
+                    if (id && isDraft) {
+                        allowedQty += oldContractQty;
+                    }
+
+                    if (allowedQty > 0) {
+                        nextMap[item.id] = {
+                            quotationItemId: item.id,
+                            quotationId: item.quotationId,
+                            allowedQty: allowedQty,
+                            contractQty: allowedQty
+                        };
+                    }
+                }
+            });
+        } else {
+            quotationItems.forEach((item) => {
+                delete nextMap[item.id];
+            });
+        }
+        onAddItems(nextMap);
+    }, [quotationItems, initialItems, onAddItems, initialQtyMap, id, isDraft]);
+
+    const columns = columnsTableDialog({ id, status, initialQtyMap, initialItems, quotationsMap, onAddItems, isAllSelectedPage, isIndeterminatePage, handleToggleSelectAllPage });
     return (
         <Box className="glass-card" sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {(isLoading || isFetchingAll) && <Loading fullPage message="Đang tải dữ liệu..." />}
@@ -115,8 +159,8 @@ const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, in
                                 size="small"
                                 sx={{ p: 0.5, color: primaryColor, '&.Mui-checked': { color: primaryColor } }}
                                 onChange={handleSelectAllProduct}
-                                checked={initialItems.size > 0 && initialItems.size >= totalItems}
-                                indeterminate={initialItems.size > 0 && initialItems.size < totalItems}
+                                checked={Object.keys(initialItems || {}).length > 0 && Object.keys(initialItems || {}).length >= totalItems}
+                                indeterminate={Object.keys(initialItems || {}).length > 0 && Object.keys(initialItems || {}).length < totalItems}
                             />
                             <Typography color="#1e293b" fontSize="0.9rem" fontWeight={500} noWrap>
                                 Tất cả
@@ -158,9 +202,8 @@ const DialogImportRight: React.FC<DialogImportRightProps> = ({ quotationsMap, in
                     <tbody>
                         {(quotationItems && quotationItems.length > 0)
                             ? quotationItems.map((item, index) => {
-                                const oldContractQty = initialQtyMap.get(item.id) || 0;
+                                const oldContractQty = initialQtyMap[item.id] || 0;
                                 let allowedQty = item.allowedQty || 0;
-                                const isDraft = [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING].includes(status)
                                 if (id && isDraft) {
                                     allowedQty += oldContractQty;
                                 }

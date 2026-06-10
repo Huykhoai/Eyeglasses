@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 
 export const columns = (
-    productsMap: Map<number, any>,
+    productsMap: Record<number, any>,
     page: number,
     size: number,
     onDelete: (id: number) => void): ColumnDef[] => {
@@ -18,46 +18,46 @@ export const columns = (
     const [id, status] = getValues(['id', 'status'])
 
     const statusAccess = useMemo(() => !id || (status &&
-        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
-    , [status]);
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[]).includes(status))
+        , [status]);
 
     const handleUpdateQty = (id: number, qty: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
+        const newMap = { ...productsMap };
+        const item = newMap[id];
         if (item) {
             const quantity = qty > 0 ? qty : 1;
-            newMap.set(id, { ...item, requestQty: quantity, quotedQty: quantity });
-            setValue('products', newMap, { shouldValidate: true });
+            newMap[id] = { ...item, requestQty: quantity, quotedQty: quantity };
+            setValue('products', newMap, { shouldValidate: true, shouldDirty: true });
         }
     };
 
     const handleUpdatePrice = (id: number, price: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
+        const newMap = { ...productsMap };
+        const item = newMap[id];
         if (item) {
             const priceValue = price > 0 ? price : 1;
-            newMap.set(id, { ...item, expectedPrice: priceValue, quotedPrice: priceValue });
-            setValue('products', newMap, { shouldValidate: true });
+            newMap[id] = { ...item, expectedPrice: priceValue, quotedPrice: priceValue };
+            setValue('products', newMap, { shouldValidate: true, shouldDirty: true });
         }
     };
 
     const handleUpdateQuoteQty = (id: number, qty: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
+        const newMap = { ...productsMap };
+        const item = newMap[id];
         if (item) {
             const quantity = qty > 0 ? qty : 1;
-            newMap.set(id, { ...item, quotedQty: quantity });
-            setValue('products', newMap, { shouldValidate: true });
+            newMap[id] = { ...item, quotedQty: quantity };
+            setValue('products', newMap, { shouldValidate: true, shouldDirty: true });
         }
     };
 
     const handleUpdateQuotePrice = (id: number, price: number) => {
-        const newMap = new Map(productsMap);
-        const item = newMap.get(id);
+        const newMap = { ...productsMap };
+        const item = newMap[id];
         if (item) {
             const priceValue = price > 0 ? price : 1;
-            newMap.set(id, { ...item, quotedPrice: priceValue });
-            setValue('products', newMap, { shouldValidate: true });
+            newMap[id] = { ...item, quotedPrice: priceValue };
+            setValue('products', newMap, { shouldValidate: true, shouldDirty: true });
         }
     };
     return [
@@ -129,9 +129,9 @@ export const columns = (
                     name='requestQty'
                     isNumber
                     disabled={!statusAccess}
-                    value={productsMap.get(item.productId)?.requestQty || item.requestQty}
+                    value={productsMap[item.productId]?.requestQty || item.requestQty}
                     onChange={(e) => handleUpdateQty(item.productId, Number(e.target.value))}
-                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                 />
             )
 
@@ -145,9 +145,9 @@ export const columns = (
                     name='expectedPrice'
                     isNumber
                     disabled={!statusAccess}
-                    value={productsMap.get(item.productId)?.expectedPrice || item.expectedPrice}
+                    value={productsMap[item.productId]?.expectedPrice || item.expectedPrice}
                     onChange={(e) => handleUpdatePrice(item.productId, Number(e.target.value))}
-                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                 />
             )
         },
@@ -160,9 +160,9 @@ export const columns = (
                     name='quotedQty'
                     isNumber
                     disabled={!statusAccess}
-                    value={productsMap.get(item.productId)?.quotedQty || item.quotedQty}
+                    value={productsMap[item.productId]?.quotedQty || item.quotedQty}
                     onChange={(e) => handleUpdateQuoteQty(item.productId, Number(e.target.value))}
-                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                 />
             )
         },
@@ -175,9 +175,9 @@ export const columns = (
                     name='quotedPrice'
                     isNumber
                     disabled={!statusAccess}
-                    value={productsMap.get(item.productId)?.quotedPrice || item.quotedPrice}
+                    value={productsMap[item.productId]?.quotedPrice || item.quotedPrice}
                     onChange={(e) => handleUpdateQuotePrice(item.productId, Number(e.target.value))}
-                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px' } }}
+                    props={{ min: 0, style: { textAlign: 'right', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                 />
             )
         },
@@ -187,7 +187,7 @@ export const columns = (
             align: 'right',
             render: (item: SelectedProduct) => (
                 <Typography variant="body2" fontSize={12} fontWeight={700} color="error">
-                    {`$${formatPrice((productsMap.get(item.productId)?.quotedPrice || item.quotedPrice) * (productsMap.get(item.productId)?.quotedQty || item.quotedQty))}`}
+                    {`$${formatPrice((productsMap[item.productId]?.quotedPrice || item.quotedPrice) * (productsMap[item.productId]?.quotedQty || item.quotedQty))}`}
                 </Typography>
             ),
         },

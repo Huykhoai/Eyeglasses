@@ -41,7 +41,7 @@ interface FormValues {
     status: PurchaseQuotationEnum | null;
     currency: ConfigLimitResponse | null;
     currencyValue: number | null;
-    products: Map<number, any>;
+    products: Record<number, any>;
 }
 
 const AddQuotationRequest: React.FC = () => {
@@ -62,7 +62,7 @@ const AddQuotationRequest: React.FC = () => {
 
     const statusAccess = useMemo(() => !decodedId || (purchaseQuotation &&
         [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED].includes(purchaseQuotation?.status))
-    , [purchaseQuotation]);
+        , [purchaseQuotation]);
 
     const generateCID = useCallback(() => {
         return `RFQ-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -78,26 +78,26 @@ const AddQuotationRequest: React.FC = () => {
             note: '',
             currency: null,
             currencyValue: null,
-            products: new Map<number, any>(),
+            products: {} as Record<number, any>,
             status: null
         },
         values: (decodedId && purchaseQuotation) ? {
             ...purchaseQuotation,
-            products: new Map<number, any>(purchaseQuotation?.products?.map((item: any) => [
-                item.productId, {
+            products: purchaseQuotation?.products?.reduce((acc: any, item: any) => {
+                acc[item.productId] = {
                     id: item.id,
                     productId: item.productId,
                     requestQty: item.requestQty,
                     expectedPrice: item.expectedPrice,
                     quotedQty: item.quotedQty,
                     quotedPrice: item.quotedPrice,
-                }
-            ])
-            )
+                };
+                return acc;
+            }, {}) || {}
         } : undefined
     });
 
-    const { handleSubmit, control } = methods;
+    const { handleSubmit, control, formState: { isDirty } } = methods;
     const [cid, supplier] = useWatch({ control, name: ['cid', 'supplier'] });
 
     const createMutation = useMutation({
@@ -128,26 +128,26 @@ const AddQuotationRequest: React.FC = () => {
             showNotification('error', 'Không thể chỉnh sửa yêu cầu báo giá đã được duyệt', 'Thất bại');
             return;
         }
-        const selectedProducts: any[] = Array.from(data.products.values());
-            const payload = {
-                id: data.id,
-                cid: data.cid,
-                name: data.name,
-                supplierId: data.supplier?.id,
-                currencyId: data.currency?.id,
-                currencyValue: data.currencyValue,
-                requestDate: data.requestDate,
-                expectedDate: data.expectedDate,
-                note: data.note,
-                status: status,
-                items: selectedProducts.map(p => ({
-                    productId: p.productId,
-                    requestQty: p.requestQty,
-                    expectedPrice: p.expectedPrice,
-                    quotedQty: p.quotedQty,
-                    quotedPrice: p.quotedPrice,
-                }))
-            };
+        const selectedProducts: any[] = Object.values(data.products);
+        const payload = {
+            id: data.id,
+            cid: data.cid,
+            name: data.name,
+            supplierId: data.supplier?.id,
+            currencyId: data.currency?.id,
+            currencyValue: data.currencyValue,
+            requestDate: data.requestDate,
+            expectedDate: data.expectedDate,
+            note: data.note,
+            status: status,
+            items: selectedProducts.map(p => ({
+                productId: p.productId,
+                requestQty: p.requestQty,
+                expectedPrice: p.expectedPrice,
+                quotedQty: p.quotedQty,
+                quotedPrice: p.quotedPrice,
+            }))
+        };
 
         createMutation.mutate(payload);
     };
@@ -175,7 +175,7 @@ const AddQuotationRequest: React.FC = () => {
         if (!data.currencyValue) {
             message += ' Tỉ giá,';
         }
-        if (data.products.size === 0) {
+        if (Object.keys(data.products).length === 0) {
             message += ' Sản phẩm';
         }
         if (message !== 'Vui lòng điền đầy đủ thông tin:') {
@@ -193,7 +193,7 @@ const AddQuotationRequest: React.FC = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Button variant="outline" onClick={() => navigate(-1)} style={{ padding: '4px 12px', height: '32px' }}>Quay lại</Button>
                             <Divider orientation="vertical" flexItem sx={{ height: 20, my: 'auto', opacity: 0.5 }} />
-                            <Typography variant="h5" fontWeight={800} color="#1e293b" letterSpacing="-0.02em">
+                            <Typography variant="h6" fontWeight={700} color="#1e293b" sx={{ lineHeight: 1.2 }}>
                                 {decodedId ? 'Cập nhật báo giá' : 'Tạo mới báo giá'}
                             </Typography>
                         </Box>
@@ -210,7 +210,7 @@ const AddQuotationRequest: React.FC = () => {
                         </Button>
                         <Button
                             variant="primary"
-                            disabled={!statusAccess}
+                            disabled={!statusAccess || !isDirty}
                             icon={<SaveIcon fontSize="small" />}
                             onClick={handleSubmit((data) => {
                                 if (validate(data)) {
@@ -253,7 +253,7 @@ const AddQuotationRequest: React.FC = () => {
                                     <FormIcon fontSize="small" />
                                 </Box>
                                 <Box>
-                                    <Typography variant="h6" fontWeight={800} color="#1e293b" sx={{ lineHeight: 1.2 }}>
+                                    <Typography variant="h6" fontWeight={700} color="#1e293b" sx={{ lineHeight: 1.2 }}>
                                         {cid || 'RFQ-XXXX'}
                                     </Typography>
                                 </Box>

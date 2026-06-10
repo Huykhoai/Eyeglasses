@@ -22,8 +22,8 @@ const AddContractInfo = ({ generateCID }: { generateCID: () => string }) => {
     const { data: currencies } = useCurrency();
 
     const statusAccess = useMemo(() => !id || (status &&
-        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
-    , [status]);
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[])
+            .includes(status)), [status]);
 
     const handleRegenerateCID = useCallback(() => {
         setValue('cid', generateCID(), { shouldValidate: true });

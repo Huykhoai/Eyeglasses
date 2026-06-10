@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Contract, Quotation, SimpleContractItem } from "../config/types";
+import type { Quotation, SimpleContractItem } from "../config/types";
 import axiosClient from "@/api/axiosClient";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 
 export const useFetchContractById = (id: number) => {
     const { showNotification } = useNotification();
-    return useQuery<Contract>({
+    return useQuery({
         queryKey: ['contract', 'detail', id],
         queryFn: async () => {
             try {
@@ -13,9 +13,18 @@ export const useFetchContractById = (id: number) => {
                 const itemsRaw: SimpleContractItem[] = response.data?.items || [];
                 return {
                     ...response.data,
-                    items: new Map<number, SimpleContractItem>(itemsRaw.map((item: SimpleContractItem) => [item.quotationItemId, item])),
-                    initialQtyMap: new Map<number, number>(itemsRaw.map((item: SimpleContractItem) => [item.quotationItemId, item.contractQty])),
-                    quotations: new Map<number, Quotation>(response.data?.quotations?.map((item: Quotation) => [item.id, item])),
+                    items: itemsRaw.reduce((acc: any, item: SimpleContractItem) => {
+                        acc[item.quotationItemId] = item;
+                        return acc;
+                    }, {} as Record<number, SimpleContractItem>),
+                    initialQtyMap: itemsRaw.reduce((acc: any, item: SimpleContractItem) => {
+                        acc[item.quotationItemId] = item.contractQty;
+                        return acc;
+                    }, {} as Record<number, number>),
+                    quotations: response.data?.quotations?.reduce((acc: any, item: Quotation) => {
+                        acc[item.id] = item;
+                        return acc;
+                    }, {} as Record<number, Quotation>) || {},
                 };
             } catch (error: any) {
                 const message = error?.response?.data?.message || 'Lỗi khi lấy thông tin hợp đồng';

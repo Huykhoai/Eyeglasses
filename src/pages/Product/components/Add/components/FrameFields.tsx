@@ -244,61 +244,61 @@ const FrameFields: React.FC = () => {
             </div>
             <div className="body-card-grid">
                 <LayoutGrid>
-                    <Label label="Dài gọng" />
+                    <Label label="Độ dài gọng" />
                     <RHFTextField
                         name="frameAttribute.templeLength"
-                        placeholder="Nhập dài gọng"
+                        placeholder="Nhập độ dài gọng"
                         props={{ style: { maxWidth: "15vw" } }}
                         rules={{
-                            required: "Dài gọng là bắt buộc",
+                            required: "Độ dài gọng là bắt buộc",
                             pattern: {
                                 value: /^[0-9]+$/,
-                                message: "Dài gọng phải là số"
+                                message: "Độ dài gọng phải là số"
                             }
                         }}
                     />
                 </LayoutGrid>
                 <LayoutGrid>
-                    <Label label="Rộng mắt" />
+                    <Label label="Độ dài mắt" />
                     <RHFTextField
                         name="frameAttribute.lensWidth"
-                        placeholder="Nhập độ rộng mắt"
-                        props={{ style: { maxWidth: "15vw" } }}
-                        rules={{
-                            required: "Rộng mắt là bắt buộc",
-                            pattern: {
-                                value: /^[0-9]+$/,
-                                message: "Rộng mắt phải là số"
-                            }
-                        }}
-                    />
-                </LayoutGrid>
-                <LayoutGrid>
-                    <Label label="Dài mắt" />
-                    <RHFTextField
-                        name="frameAttribute.lensHeight"
                         placeholder="Nhập độ dài mắt"
                         props={{ style: { maxWidth: "15vw" } }}
                         rules={{
-                            required: "Dài mắt là bắt buộc",
+                            required: "Độ dài mắt là bắt buộc",
                             pattern: {
                                 value: /^[0-9]+$/,
-                                message: "Dài mắt phải là số"
+                                message: "Độ dài mắt phải là số"
                             }
                         }}
                     />
                 </LayoutGrid>
                 <LayoutGrid>
-                    <Label label="Dài cầu" />
+                    <Label label="Độ cao tròng mắt" />
+                    <RHFTextField
+                        name="frameAttribute.lensHeight"
+                        placeholder="Nhập độ cao tròng mắt"
+                        props={{ style: { maxWidth: "15vw" } }}
+                        rules={{
+                            required: "Độ cao tròng mắt là bắt buộc",
+                            pattern: {
+                                value: /^[0-9]+$/,
+                                message: "Độ cao tròng mắt phải là số"
+                            }
+                        }}
+                    />
+                </LayoutGrid>
+                <LayoutGrid>
+                    <Label label="Độ dài cầu" />
                     <RHFTextField
                         name="frameAttribute.bridgeWidth"
                         placeholder="Nhập độ dài cầu"
                         props={{ style: { maxWidth: "15vw" } }}
                         rules={{
-                            required: "Dài cầu là bắt buộc",
+                            required: "Độ dài cầu là bắt buộc",
                             pattern: {
                                 value: /^[0-9]+$/,
-                                message: "Dài cầu phải là số"
+                                message: "Độ dài cầu phải là số"
                             }
                         }}
                     />

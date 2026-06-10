@@ -48,11 +48,11 @@ const ApprovalsPurchaseDetail = ({ data }: { data: PurchaseQuotationType }) => {
             key: "index",
             header: "STT",
             align: "center",
-            width: "2vw",
+            width: "3vw",
             render: (_, index) => {
                 const idx = index ?? 0;
                 return (
-                    <Typography variant="body2" align="center">
+                    <Typography variant="body2" align="center" fontSize={12} noWrap>
                         {(page - 1) * size + idx + 1}
                     </Typography>
                 )

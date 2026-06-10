@@ -9,22 +9,25 @@ import { useCallback, useMemo } from "react";
 interface DialogImportRightProps {
     id: number;
     status: PurchaseQuotationEnum;
-    initialQtyMap: Map<number, number>;
-    initialItems: Map<number, SimpleContractItem>;
-    quotationsMap: Map<number, Quotation>;
-    onAddItems: (items: Map<number, SimpleContractItem>) => void;
+    initialQtyMap: Record<number, number>;
+    initialItems: Record<number, SimpleContractItem>;
+    quotationsMap: Record<number, Quotation>;
+    onAddItems: (items: Record<number, SimpleContractItem>) => void;
+    isAllSelectedPage: boolean;
+    isIndeterminatePage: boolean;
+    handleToggleSelectAllPage: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
-export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, quotationsMap, onAddItems }: DialogImportRightProps): ColumnDef[] => {
+export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, quotationsMap, onAddItems, isAllSelectedPage, isIndeterminatePage, handleToggleSelectAllPage }: DialogImportRightProps): ColumnDef[] => {
 
-    const isDraft = useMemo(() => ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[])
+    const isDraft = useMemo(() => ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[])
         .includes(status), [status])
 
     const handleToggleSelect = useCallback((item: QuotationItem) => {
-        const currentMap = new Map(initialItems);
-        if (currentMap.has(item.id)) {
-            currentMap.delete(item.id);
+        const currentMap = { ...initialItems };
+        if (currentMap[item.id]) {
+            delete currentMap[item.id];
         } else {
-            const oldContractQty = initialQtyMap.get(item.id) || 0;
+            const oldContractQty = initialQtyMap[item.id] || 0;
             let allowedQty = item.allowedQty || 0;
             if (id && isDraft) {
                 allowedQty += oldContractQty;
@@ -32,29 +35,29 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
 
             if (allowedQty <= 0) return;
 
-            currentMap.set(item.id, {
+            currentMap[item.id] = {
                 quotationItemId: item.id,
                 quotationId: item.quotationId,
                 allowedQty: allowedQty,
                 contractQty: allowedQty || 1
-            });
+            };
         }
         onAddItems(currentMap);
     }, [initialItems, onAddItems, id, isDraft, initialQtyMap]);
 
     const handleUpdateQty = useCallback((id: number, qty: number) => {
-        const currentMap = new Map(initialItems);
-        const item = currentMap.get(id);
+        const currentMap = { ...initialItems };
+        const item = currentMap[id];
 
         if (item) {
-            const oldContractQty = initialQtyMap.get(id) || 0;
+            const oldContractQty = initialQtyMap[id] || 0;
             let allowedQty = item.allowedQty || 0;
             if (id && isDraft) {
                 allowedQty += oldContractQty;
             }
 
             if (allowedQty <= 0) return;
-            currentMap.set(id, { ...item, contractQty: Math.max(0, Math.min(qty, allowedQty)) });
+            currentMap[id] = { ...item, contractQty: Math.max(0, Math.min(qty, allowedQty)) };
         }
         onAddItems(currentMap);
     }, [initialItems, onAddItems, id, isDraft, initialQtyMap]);
@@ -62,19 +65,27 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
     return [
         {
             key: 'select',
-            header: '',
+            header: (
+                <Checkbox
+                    size="small"
+                    checked={isAllSelectedPage}
+                    indeterminate={isIndeterminatePage}
+                    onChange={handleToggleSelectAllPage}
+                />
+            ),
             width: '5%',
             align: 'center',
             render: (item: QuotationItem) => {
                 let allowedQty = item.allowedQty || 0;
-                const isSelected = !!initialItems.get(item.id);
-                const oldContractQty = initialQtyMap.get(item.id) || 0;
+                const isSelected = !!initialItems[item.id];
+                const oldContractQty = initialQtyMap[item.id] || 0;
 
                 if (id && isDraft) {
                     allowedQty += oldContractQty;
                 }
                 return (
                     <Checkbox
+                        size="small"
                         checked={isSelected}
                         onChange={() => handleToggleSelect(item)}
                         disabled={allowedQty <= 0}
@@ -89,7 +100,7 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
             align: 'center',
             render: (item: QuotationItem) => (
                 <span className="badge-chip badge-info" style={{ fontSize: 10 }}>
-                    {quotationsMap.get(item.quotationId)?.cid}
+                    {quotationsMap[item.quotationId]?.cid}
                 </span>
             ),
         },
@@ -161,7 +172,7 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
             align: 'right',
             render: (item: QuotationItem) => {
                 let allocatedQty = item.allocatedQty || 0;
-                const oldContractQty = initialQtyMap.get(item.id) || 0;
+                const oldContractQty = initialQtyMap[item.id] || 0;
 
                 if (id && isDraft) {
                     allocatedQty -= oldContractQty;
@@ -179,9 +190,9 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
             width: '10%',
             align: 'center',
             render: (item: QuotationItem) => {
-                const isSelected = !!initialItems.get(item.id);
-                const contractQty = initialItems.get(item.id)?.contractQty || 0;
-                const oldContractQty = initialQtyMap.get(item.id) || 0;
+                const isSelected = !!initialItems[item.id];
+                const contractQty = initialItems[item.id]?.contractQty || 0;
+                const oldContractQty = initialQtyMap[item.id] || 0;
                 let allowedQty = item.allowedQty || 0;
                 if (id && isDraft) {
                     allowedQty += oldContractQty;
@@ -195,7 +206,7 @@ export const columnsTableDialog = ({ id, status, initialQtyMap, initialItems, qu
                                 isNumber
                                 value={contractQty}
                                 onChange={(e) => handleUpdateQty(item.id, Number(e.target.value))}
-                                props={{ min: 0, max: allowedQty, style: { textAlign: 'center', width: '5vw', padding: '3px 8px' } }}
+                                props={{ min: 0, max: allowedQty, style: { textAlign: 'center', width: '5vw', padding: '3px 8px', fontSize: 12 } }}
                             />
                         ) : (
                             <Typography fontWeight="medium" fontSize={13}

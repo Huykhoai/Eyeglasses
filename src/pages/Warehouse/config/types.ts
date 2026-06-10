@@ -10,3 +10,15 @@ export interface ProductStockResponse {
     costPrice: number;
     lastUpdate: string;
 }
+
+export interface WarehouseLog {
+    id: number;
+    time: string;
+    quantity: number;
+    quantityOld: number;
+    unitPrice: number;
+    otkId: number;
+    receiptId: string;
+    receiptCid: string;
+    productStockId: number;
+}

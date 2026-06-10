@@ -22,8 +22,8 @@ const AddContractTable = () => {
     const { getValues } = useFormContext();
     const [id, status] = getValues(['id', 'status']);
     const supplier = useWatch({ name: 'supplier' });
-    const quotationsMap: Map<number, Quotation> = useWatch({ name: 'quotations' });
-    const items: Map<number, SimpleContractItem> = useWatch({ name: 'items' });
+    const quotationsMap: Record<number, Quotation> = useWatch({ name: 'quotations' }) || {};
+    const items: Record<number, SimpleContractItem> = useWatch({ name: 'items' }) || {};
 
     const { showNotification } = useNotification();
     const [page, setPage] = useState(1);
@@ -32,8 +32,8 @@ const AddContractTable = () => {
     const columns = useMemo(() => columnsTableContractItem(page, size, quotationsMap, items), [page, size, quotationsMap, items]);
 
     const statusAccess = useMemo(() => !id || (status &&
-        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(status))
-    , [status]);
+        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[])
+            .includes(status)), [status]);
 
     const handleChangePage = useCallback((page: number) => {
         setPage(page);
@@ -44,7 +44,7 @@ const AddContractTable = () => {
         setPage(1);
     }, []);
 
-    const selectedProducts = useMemo(() => Array.from(items.values()), [items]);
+    const selectedProducts = useMemo(() => Object.values(items), [items]);
     const displayProducts = useMemo(() => {
         return selectedProducts.slice((page - 1) * size, page * size);
     }, [selectedProducts, page, size]);
@@ -111,15 +111,15 @@ const AddContractTable = () => {
                         <Box>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', display: 'block' }}>Tổng đơn hàng</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="subtitle1" fontWeight={600} color={primaryColor}>{quotationsMap.size}</Typography>
-                                {quotationsMap.size > 0 && (
+                                <Typography variant="subtitle1" fontWeight={600} color={primaryColor}>{Object.keys(quotationsMap).length}</Typography>
+                                {Object.keys(quotationsMap).length > 0 && (
                                     <Tooltip
                                         title={
                                             <Box sx={{ p: 0.5 }}>
                                                 <Typography variant="caption" fontWeight={600} sx={{ display: 'block', mb: 0.5, borderBottom: '1px solid rgba(255,255,255,0.2)', pb: 0.5 }}>
                                                     Danh sách mã đơn:
                                                 </Typography>
-                                                {Array.from(quotationsMap.values()).map((quotation, idx) => (
+                                                {Object.values(quotationsMap).map((quotation, idx) => (
                                                     <Typography key={idx} variant="caption" sx={{ display: 'block', py: 0.2 }}>
                                                         • {quotation?.cid || "N/A"}
                                                     </Typography>
@@ -148,13 +148,13 @@ const AddContractTable = () => {
                         </Box>
                         <Box>
                             <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', display: 'block' }}>Tổng số lượng sản phẩm</Typography>
-                            <Typography variant="subtitle1" fontWeight={600} color={primaryColor}>{items.size}</Typography>
+                            <Typography variant="subtitle1" fontWeight={600} color={primaryColor}>{Object.keys(items).length}</Typography>
                         </Box>
                     </Box>
                 </Stack>
                 {supplier ? (
                     <Box className="d-flex gap-2">
-                        {items.size > 0 && (
+                        {Object.keys(items).length > 0 && (
                             <Select
                                 value={size}
                                 options={[
@@ -220,7 +220,7 @@ const AddContractTable = () => {
             {true && (
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Pagination
-                        totalItems={items.size}
+                        totalItems={Object.keys(items).length}
                         size={size}
                         page={page}
                         onChange={handleChangePage}

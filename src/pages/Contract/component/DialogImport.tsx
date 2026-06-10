@@ -10,7 +10,7 @@ import type { Quotation, SimpleContractItem } from "../config/types";
 interface DialogImportProps {
     open: boolean;
     onClose: () => void;
-    quotationsMap: Map<number, Quotation>;
+    quotationsMap: Record<number, Quotation>;
 }
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR;
 
@@ -18,18 +18,19 @@ const DialogImport: React.FC<DialogImportProps> = ({ open, onClose, quotationsMa
     const { getValues, setValue } = useFormContext();
     const [cid, supplier, items] = getValues(["cid", "supplier", "items"]);
 
-    const [localItems, setLocalItems] = useState<Map<number, SimpleContractItem>>(new Map(items));
+    const [localItems, setLocalItems] = useState<Record<number, SimpleContractItem>>(items || {});
 
-    const handleAddItems = useCallback((items: Map<number, SimpleContractItem>) => {
+    const handleAddItems = useCallback((items: Record<number, SimpleContractItem>) => {
         setLocalItems(items);
     }, []);
 
     const handleRemoveItemsByQuotation = useCallback((quotationId: number) => {
         setLocalItems(prev => {
-            const newMap = new Map(prev);
-            Array.from(newMap.keys()).forEach(key => {
-                if (newMap.get(key)?.quotationId === quotationId) {
-                    newMap.delete(key);
+            const newMap = { ...prev };
+            Object.keys(newMap).forEach(key => {
+                const numKey = Number(key);
+                if (newMap[numKey]?.quotationId === quotationId) {
+                    delete newMap[numKey];
                 }
             });
             return newMap;
@@ -37,8 +38,8 @@ const DialogImport: React.FC<DialogImportProps> = ({ open, onClose, quotationsMa
     }, []);
 
     const handleConfirm = useCallback(() => {
-        if (localItems.size === 0) return;
-        setValue('items', localItems, { shouldDirty: true });
+        if (Object.keys(localItems).length === 0) return;
+        setValue('items', localItems, { shouldDirty: true, shouldValidate: true });
         onClose();
     }, [onClose, localItems, setValue]);
 
@@ -80,12 +81,12 @@ const DialogImport: React.FC<DialogImportProps> = ({ open, onClose, quotationsMa
                     <Stack direction="row" spacing={3}>
                         <Box>
                             <Typography variant="caption" color="text.secondary">Sản phẩm đã chọn</Typography>
-                            <Typography sx={{ fontSize: '0.9rem' }} fontWeight={700} color={primaryColor}>{localItems.size}</Typography>
+                            <Typography sx={{ fontSize: '0.9rem' }} fontWeight={700} color={primaryColor}>{Object.keys(localItems || {}).length}</Typography>
                         </Box>
                         <Box>
                             <Typography variant="caption" color="text.secondary">Từ số lượng đơn hàng</Typography>
                             <Typography sx={{ fontSize: '0.9rem' }} fontWeight={700} color={primaryColor}>
-                                {quotationsMap.size}
+                                {Object.keys(quotationsMap || {}).length}
                             </Typography>
                         </Box>
                     </Stack>
@@ -94,7 +95,7 @@ const DialogImport: React.FC<DialogImportProps> = ({ open, onClose, quotationsMa
                         <Button
                             variant="contained" className="btn-premium"
                             sx={{ backgroundColor: primaryColor, px: 4, borderRadius: '10px' }}
-                            disabled={localItems.size === 0}
+                            disabled={Object.keys(localItems || {}).length === 0}
                             onClick={handleConfirm}
                         >
                             Xác nhận

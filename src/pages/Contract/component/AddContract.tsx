@@ -48,8 +48,8 @@ const AddContract = () => {
     const [openConfirm, setOpenConfirm] = useState(false);
 
     const statusAccess = useMemo(() => !decodedId || (contract &&
-        ([PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING] as PurchaseQuotationEnum[]).includes(contract?.status))
-        , [contract]);
+        [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED].includes(contract?.status))
+        , [decodedId, contract]);
 
     const generateCID = useCallback(() => {
         return `CT-${dayjs().format('YYYYMMDD')}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -70,24 +70,29 @@ const AddContract = () => {
             currency: null,
             step: 0,
             isSideBar: true,
-            items: new Map<number, SimpleContractItem>(),
-            quotations: new Map<number, Quotation>(),
-            initialQtyMap: new Map<number, number>(),
+            items: {} as Record<number, SimpleContractItem>,
+            quotations: {} as Record<number, Quotation>,
+            initialQtyMap: {} as Record<number, number>,
         },
         values: (decodedId && contract) ? {
             ...contract,
             isSideBar: true,
             step: contract.status === PurchaseQuotationStatus.PENDING
                 ? 1
-                : contract.status === PurchaseQuotationStatus.APPROVED || contract.status === PurchaseQuotationStatus.CANCELLED
+                : ([PurchaseQuotationStatus.APPROVED, PurchaseQuotationStatus.CANCELLED, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[])
+                            .includes(contract.status)
                     ? 2
                     : 0,
         } : undefined
     });
 
-    const { handleSubmit, watch, getValues } = methods;
+    const { handleSubmit, watch, getValues, formState: { isDirty } } = methods;
 
-    const steps = ["Tạo mới", "Chờ xét duyệt", getValues('status') === PurchaseQuotationStatus.CANCELLED ? "Đã hủy" : "Đã duyệt"];
+    const steps = ["Tạo mới", "Chờ xét duyệt", getValues('status') === PurchaseQuotationStatus.CANCELLED 
+        ? "Đã hủy" 
+        : getValues('status') === PurchaseQuotationStatus.REJECTED
+            ? "Đã từ chối"
+            : "Đã duyệt"];
     const isSideBar = watch('isSideBar');
 
     const { mutate, isPending } = useMutation({
@@ -131,7 +136,7 @@ const AddContract = () => {
             expectedDeliveryDate: data.expectedDeliveryDate,
             supplierId: data.supplier?.id,
             currencyId: data.currency?.id,
-            items: Array.from(data.items.values()).map((item: any) => ({
+            items: Object.values(data.items).map((item: any) => ({
                 id: item.id,
                 quotationId: item.quotationId,
                 quotationItemId: item.quotationItemId,
@@ -164,7 +169,7 @@ const AddContract = () => {
         if (!data.expectedDeliveryDate) {
             message += 'Ngày dự kiến giao hàng, ';
         }
-        if (!data.items || data.items.size === 0) {
+        if (!data.items || Object.keys(data.items).length === 0) {
             message += 'Danh sách sản phẩm, ';
         }
 
@@ -198,7 +203,7 @@ const AddContract = () => {
                                 </Button>
                                 <Button
                                     variant="primary"
-                                    disabled={!statusAccess}
+                                    disabled={!statusAccess || !isDirty}
                                     icon={<SaveIcon fontSize="small" />}
                                     onClick={handleSubmit((data) => {
                                         if (validate(data)) {
@@ -230,7 +235,10 @@ const AddContract = () => {
                                                     borderRadius: '50%',
                                                     backgroundColor: isActive
                                                         ? getValues('status') === PurchaseQuotationStatus.CANCELLED
-                                                            ? THEME_COLORS.danger : THEME_COLORS.primary
+                                                            ? THEME_COLORS.danger 
+                                                            : getValues('status') === PurchaseQuotationStatus.REJECTED
+                                                                ? THEME_COLORS.danger 
+                                                                : THEME_COLORS.primary
                                                         : isCompleted ? THEME_COLORS.completed : THEME_COLORS.inactive,
                                                     display: "flex",
                                                     alignItems: "center",
@@ -246,7 +254,9 @@ const AddContract = () => {
                                                 color: isActive
                                                     ? (getValues('status') === PurchaseQuotationStatus.CANCELLED && index === 2
                                                         ? THEME_COLORS.danger
-                                                        : THEME_COLORS.primary)
+                                                        : getValues('status') === PurchaseQuotationStatus.REJECTED && index === 2
+                                                            ? THEME_COLORS.danger
+                                                            : THEME_COLORS.primary)
                                                     : "#64748b"
                                             }}>
                                                 {step}
@@ -295,7 +305,7 @@ const AddContract = () => {
                             }}>
                             <AttachmentDisplay />
                         </Box>
-                         <Box className="glass-card"
+                        <Box className="glass-card"
                             sx={{
                                 position: "relative",
                                 transition: "all 0.3s ease",

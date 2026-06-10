@@ -29,7 +29,7 @@ const QuotationItem = styled(Paper)<{ selected: boolean }>(({ theme, selected })
 
 interface DialogImportLeftProps {
     supplierId: number;
-    quotationsMap: Map<number, Quotation>;
+    quotationsMap: Record<number, Quotation>;
     onRemoveItemsByQuotation?: (quotationId: number) => void;
 }
 
@@ -51,17 +51,17 @@ const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotati
     }, []);
 
     const handleSelectQuotation = useCallback((quotation: Quotation) => {
-        const newMap = new Map(quotationsMap);
-        const isSelected = newMap.has(quotation.id);
+        const newMap = { ...quotationsMap };
+        const isSelected = !!newMap[quotation.id];
         if (isSelected) {
-            newMap.delete(quotation.id);
+            delete newMap[quotation.id];
             if (onRemoveItemsByQuotation) {
                 onRemoveItemsByQuotation(quotation.id);
             }
         } else {
-            newMap.set(quotation.id, quotation);
+            newMap[quotation.id] = quotation;
         }
-        setValue('quotations', newMap, { shouldDirty: true });
+        setValue('quotations', newMap, { shouldDirty: true, shouldValidate: true });
     }, [setValue, quotationsMap, onRemoveItemsByQuotation]);
 
     return (
@@ -101,7 +101,7 @@ const DialogImportLeft: React.FC<DialogImportLeftProps> = ({ supplierId, quotati
                         <Typography variant="body1" fontWeight={600}>Không có dữ liệu</Typography>
                     </Box>
                 ) : quotations?.items?.map((quotation) => {
-                    const isSelected = quotationsMap.has(quotation.id);
+                    const isSelected = !!quotationsMap[quotation.id];
                     return (
                         <QuotationItem
                             key={quotation.id}

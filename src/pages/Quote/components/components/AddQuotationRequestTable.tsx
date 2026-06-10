@@ -17,8 +17,8 @@ const AddQuotationRequestTable = ({
     const { setValue } = useFormContext();
     const { showNotification } = useNotification();
 
-    const productsMap = useWatch({ name: 'products' }) || new Map();
-    const selectedProducts: any[] = useMemo(() => Array.from(productsMap.values()), [productsMap])
+    const productsMap = useWatch({ name: 'products' }) || {};
+    const selectedProducts: any[] = useMemo(() => Object.values(productsMap), [productsMap])
 
     const displayProducts = useMemo(() => {
         return selectedProducts.slice((page - 1) * size, page * size);
@@ -54,9 +54,9 @@ const AddQuotationRequestTable = ({
     const convertedTotal = useMemo(() => totalAmount * currencyValue, [totalAmount, currencyValue]);
 
     const handleRemoveProduct = (id: number) => {
-        const newMap = new Map(productsMap);
-        newMap.delete(id);
-        setValue('products', newMap, { shouldValidate: true });
+        const newMap = { ...productsMap };
+        delete newMap[id];
+        setValue('products', newMap, { shouldValidate: true, shouldDirty: true });
     };
 
     const columnsTable = columns(productsMap, page, size, handleRemoveProduct);

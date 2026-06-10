@@ -38,9 +38,9 @@ export interface Contract {
     requestedBy: NamedEntity | null;
     approvedBy: NamedEntity | null;
     approvedDate: string | null;
-    quotations: Map<number, Quotation>;
-    items: Map<number, SimpleContractItem>;
-    initialQtyMap?: Map<number, number>;
+    quotations: Record<number, Quotation>;
+    items: Record<number, SimpleContractItem>;
+    initialQtyMap?: Record<number, number>;
 }
 export interface SimpleContractItem {
     id?: number;
