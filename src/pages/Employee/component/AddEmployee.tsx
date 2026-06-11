@@ -83,11 +83,11 @@ const AddEmployee: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [confirmDialog, setConfirmDialog] = useState(false);
     const methods = useForm<EmployeeType>({
-        defaultValues: {...initialForm, statusEm: statusList[0]},
-        values: employeeData,
+        defaultValues: { ...initialForm, statusEm: statusList[0] },
+        values: (decodeId && employeeData) ? employeeData : undefined,
     });
 
-    const { control, handleSubmit } = methods;
+    const { control, handleSubmit, formState: { isDirty }, trigger } = methods;
 
     const handleImageChange = useCallback((file: File | null) => {
         setSelectedFile(file);
@@ -110,51 +110,17 @@ const AddEmployee: React.FC = () => {
         }
     }, []);
 
-    const getDiffValues = useCallback((current: any, original: any) => {
-        const diff: any = {};
-        if (!original) return current;
-
-        Object.keys(current).forEach(key => {
-            const currentValue = current[key];
-            const originalValue = original[key];
-
-            if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue)) {
-                if ('id' in currentValue) {
-                    if (currentValue.id !== originalValue?.id) {
-                        diff[key] = currentValue;
-                    }
-                } else {
-                    const nestedDiff = getDiffValues(currentValue, originalValue);
-                    if (Object.keys(nestedDiff).length > 0) {
-                        diff[key] = nestedDiff;
-                    }
-                }
-            } else if (currentValue !== originalValue) {
-                diff[key] = currentValue;
-            }
-        });
-        return diff;
-    }, []);
-
     const handlePrepareConfirm = async () => {
-        const isValid = await methods.trigger();
+        const isValid = await trigger();
         if (!isValid) return;
         setConfirmDialog(true);
     }
-    const saveMutation = useMutation({
+    const { mutateAsync: saveEmployee, isPending: savePending } = useMutation({
         mutationFn: async (formData: EmployeeType) => {
             const dataToSave = new FormData();
-            
-            let dataForBody = formData;
-            if (decodeId && employeeData) {
-                dataForBody = getDiffValues(formData, employeeData);
-                if (Object.keys(dataForBody).length === 0 && !selectedFile) {
-                    return Promise.reject({ response: { data: { message: "Không có thay đổi nào để cập nhật" } } });
-                }
-            }
 
             const employeeDto: Record<string, any> = {};
-            Object.entries(dataForBody).forEach(([key, value]) => {
+            Object.entries(formData).forEach(([key, value]) => {
                 buildProductObject(employeeDto, key, value);
             });
 
@@ -164,7 +130,7 @@ const AddEmployee: React.FC = () => {
             dataToSave.append('employee', new Blob([JSON.stringify(employeeDto)], { type: 'application/json' }));
 
             if (decodeId) {
-                return axiosClient.patch( `/api/employee/update/${decodeId}`, dataToSave);
+                return axiosClient.patch(`/api/employee/update/${decodeId}`, dataToSave);
             }
             return axiosClient.post('/api/employee/create', dataToSave);
         },
@@ -190,7 +156,7 @@ const AddEmployee: React.FC = () => {
             showNotification('error', 'Chỉ có Admin và Manager mới có quyền thêm nhân viên', 'Thất bại');
             return;
         }
-        saveMutation.mutate(data);
+        saveEmployee(data);
     };
 
     return (
@@ -215,7 +181,7 @@ const AddEmployee: React.FC = () => {
                     <Button
                         variant="primary"
                         onClick={handlePrepareConfirm}
-                        disabled={saveMutation.isPending}
+                        disabled={savePending || (!isDirty && !selectedFile)}
                     >
                         <SaveIcon fontSize="small" />
                         {decodeId ? 'Lưu thay đổi' : 'Lưu nhân viên'}
@@ -484,6 +450,7 @@ const AddEmployee: React.FC = () => {
                 content={`Bạn có chắc chắn muốn ${decodeId ? 'cập nhật' : 'thêm'} nhân viên này?`}
                 onClose={() => setConfirmDialog(false)}
                 onConfirm={handleSubmit(onSubmit)}
+                loading={savePending}
             />
         </FormProvider>
     );

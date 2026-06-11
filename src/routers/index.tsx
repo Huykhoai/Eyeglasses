@@ -29,6 +29,8 @@ import InventoryReceiptDetail from "@/pages/Inventory/InventoryReceiptDetail";
 import WarehousePage from "@/pages/Warehouse/WarehousePage";
 import WarehouseStockPage from "@/pages/Warehouse/WarehouseStockPage";
 import PublicProductByQr from "@/pages/Product/components/LandingPageProduct";
+import VerifyEmailPage from "@/pages/Login/VerifyEmailPage";
+import ResetPasswordPage from "@/pages/Login/ResetPasswordPage";
 export const router = createBrowserRouter([
     {
         path: "/",
@@ -37,6 +39,14 @@ export const router = createBrowserRouter([
     {
         path: "/login",
         element: <Login />
+    },
+    {
+        path: "/verify-email",
+        element: <VerifyEmailPage />
+    },
+    {
+        path: "/reset-password",
+        element: <ResetPasswordPage />
     },
     {
         path: "/product/:id",

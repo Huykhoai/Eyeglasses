@@ -13,13 +13,15 @@ const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [mfaRequired, setMfaRequired] = useState(false);
+    const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
     const [otp, setOtp] = useState('');
     const [formData, setFormData] = useState({
         username: '',
         password: '',
     });
 
-    const { mutateAsync: handleSubmit , isPending} = useMutation({
+    const { mutateAsync: handleSubmit, isPending } = useMutation({
         mutationFn: async (e: React.FormEvent) => {
             e.preventDefault();
             const response = await axios.post('/api/auth/login', formData);
@@ -40,7 +42,7 @@ const Login: React.FC = () => {
             const errorMessage = error.response?.data?.message || error.message || 'Đăng nhập thất bại. Vui lòng thử lại!';
             showNotification('error', errorMessage, "Lỗi đăng nhập");
         }
-        
+
     });
 
     const { mutateAsync: handleVerifyOtp, isPending: isPendingVerifyOtp } = useMutation({
@@ -51,13 +53,30 @@ const Login: React.FC = () => {
         },
         onSuccess: (data: any) => {
             const { token, ...user } = data;
-            login(token, {...user, mfaEnabled: true});
+            login(token, { ...user, mfaEnabled: true });
             showNotification('success', 'Xác thực thành công!', 'Chào mừng bạn quay trở lại!');
             navigate('/dashboard');
         },
         onError: (error: any) => {
             const errorMessage = error.response?.data?.message || 'Mã OTP không chính xác. Vui lòng thử lại!';
             showNotification('error', errorMessage, "Lỗi xác thực");
+        }
+    });
+
+    const { mutateAsync: handleForgotPassword, isPending: isPendingForgot } = useMutation({
+        mutationFn: async (e: React.FormEvent) => {
+            e.preventDefault();
+            const response = await axios.post('/api/auth/forgot-password', { email: forgotEmail });
+            return response.data;
+        },
+        onSuccess: (data: any) => {
+            showNotification('success', data?.message || 'Vui lòng kiểm tra email của bạn.', 'Đã gửi yêu cầu');
+            setForgotPasswordMode(false);
+            setForgotEmail('');
+        },
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu.';
+            showNotification('error', errorMessage, "Lỗi");
         }
     });
 
@@ -123,7 +142,50 @@ const Login: React.FC = () => {
 
             <div className="login-right">
                 <div className="login-form-container">
-                    {!mfaRequired ? (
+                    {forgotPasswordMode ? (
+                        <>
+                            <div className="login-header">
+                                <h2>Quên mật khẩu</h2>
+                                <p>Nhập email tài khoản để nhận hướng dẫn đặt lại mật khẩu.</p>
+                            </div>
+
+                            <form onSubmit={handleForgotPassword} className="login-form">
+                                <div className="form-group">
+                                    <div className="input-wrapper">
+                                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                            <polyline points="22,6 12,13 2,6" />
+                                        </svg>
+                                        <input
+                                            type="email"
+                                            value={forgotEmail}
+                                            onChange={(e) => setForgotEmail(e.target.value)}
+                                            placeholder="Địa chỉ email đã xác nhận"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                                    <button
+                                        type="button"
+                                        className="login-button"
+                                        style={{ background: '#e2e8f0', color: '#1e293b' }}
+                                        onClick={() => setForgotPasswordMode(false)}
+                                    >
+                                        Quay lại
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="login-button"
+                                        disabled={!forgotEmail || isPendingForgot}
+                                    >
+                                        Gửi yêu cầu
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    ) : !mfaRequired ? (
                         <>
                             <div className="login-header">
                                 <h2>Đăng nhập tài khoản</h2>
@@ -195,7 +257,14 @@ const Login: React.FC = () => {
                                             onChange={(e) => setRememberMe(e.target.checked)}
                                         />
                                     </label>
-                                    <a href="#" className="forgot-password">Quên mật khẩu?</a>
+                                    <button
+                                        type="button"
+                                        className="forgot-password"
+                                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                                        onClick={() => setForgotPasswordMode(true)}
+                                    >
+                                        Quên mật khẩu?
+                                    </button>
                                 </div>
 
                                 <button type="submit" className="login-button">
