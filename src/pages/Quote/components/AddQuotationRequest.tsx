@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import {
     Box,
     Paper,
@@ -29,8 +29,12 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { useFetchPurchaseQuotationById } from '../hooks/useFetchPurchaseQuotationById';
 import Loading from '@/components/ui/Loading/Loading';
 import { useBase64 } from '@/utils/base64';
+import { exportQuoteToExcel } from './components/quoteExcelHelper';
+import { readExcelData } from './readExcelData';
+import { useCurrency, useSupplier } from '@/hooks/UseAllData';
+import ExcelMenu from '@/components/ui/MenuExcel/ExcelMenu';
 
-interface FormValues {
+export interface FormValues {
     id?: number;
     cid: string;
     name: string;
@@ -53,12 +57,18 @@ const AddQuotationRequest: React.FC = () => {
     const { id: encodedId } = useParams();
     const decodedId = decode(encodedId || '');
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { data: suppliers } = useSupplier();
+    const { data: currencies } = useCurrency();
+
     const { data: purchaseQuotation, isLoading } = useFetchPurchaseQuotationById(Number(decodedId));
 
     const [openProductDialog, setOpenProductDialog] = useState(false);
     const [page, setPage] = useState(1);
     const [size, setSize] = useState(20);
     const [openConfirm, setOpenConfirm] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     const statusAccess = useMemo(() => !decodedId || (purchaseQuotation &&
         [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED].includes(purchaseQuotation?.status))
@@ -185,6 +195,62 @@ const AddQuotationRequest: React.FC = () => {
         return true;
     };
 
+    const handleExportExcel = async () => {
+        const data = methods.getValues();
+        const simpleProducts = Object.values(data.products);
+        let products = [];
+        if (simpleProducts.length !== 0) {
+            try {
+                setIsExporting(true);
+                const res = await axiosClient.post('/api/purchase-quotation/items-detail', simpleProducts);
+                products = res.data;
+            } catch (error) {
+                showNotification('error', 'Không thể lấy thông tin sản phẩm', 'Lỗi kết nối');
+            } finally {
+                setIsExporting(false);
+            }
+        }
+        const exportData = {
+            ...data,
+            products: products
+        };
+
+        await exportQuoteToExcel(exportData as FormValues);
+    };
+
+    const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsExporting(true);
+        try {
+            const result = await readExcelData(file, currencies || [], suppliers || []);
+
+            if (result.errors && result.errors.length > 0) {
+                showNotification('warning', result.errors.join('\n'), 'Chi tiết lỗi nhập excel');
+            }
+
+            if (result.success && result.data) {
+
+                methods.setValue('products', result.data.products, { shouldDirty: true });
+                methods.setValue('cid', result.data.cid, { shouldDirty: true });
+                methods.setValue('name', result.data.name, { shouldDirty: true });
+                methods.setValue('expectedDate', result.data.expectedDate, { shouldDirty: true });
+                methods.setValue('note', result.data.note, { shouldDirty: true });
+                methods.setValue('currency', result.data.currency, { shouldDirty: true });
+                methods.setValue('currencyValue', result.data.currency?.value || 0, { shouldDirty: true });
+                methods.setValue('supplier', result.data.supplier, { shouldDirty: true });
+                showNotification('success', 'Đã nhập dữ liệu thành công', 'Thành công');
+            }
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.message;
+            showNotification('error', message, 'Lỗi');
+        } finally {
+            setIsExporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     return (
         <FormProvider {...methods}>
             <Box className="add-quote-page-wapper">
@@ -200,9 +266,22 @@ const AddQuotationRequest: React.FC = () => {
                     </Box>
 
                     <Stack direction="row" spacing={2}>
+                        <input
+                            type="file"
+                            accept=".xlsx, .xls"
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleImportExcel}
+                        />
+                        <ExcelMenu
+                            title='Nhập xuất'
+                            onImport={() => fileInputRef.current?.click()}
+                            onExport={handleExportExcel}
+                            disabled={!statusAccess}
+                        />
                         <Button
                             variant="outline"
-                            disabled={!statusAccess}
+                            disabled={!statusAccess || !isDirty}
                             onClick={handleSubmit((data) => onSubmit(data, PurchaseQuotationStatus.DRAFT))}
                             style={{ height: '40px', padding: '0 24px', borderColor: '#e2e8f0' }}
                         >
@@ -223,7 +302,7 @@ const AddQuotationRequest: React.FC = () => {
                         </Button>
                     </Stack>
                 </Box>
-                {isLoading && <Loading fullPage message='Đang tải dữ liệu...' />}
+                {(isLoading || isExporting) && <Loading fullPage message='Đang tải dữ liệu...' />}
                 <Stack spacing={3}>
                     <Paper sx={{
                         p: 0,

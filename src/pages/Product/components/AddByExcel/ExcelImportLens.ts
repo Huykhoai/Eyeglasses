@@ -327,6 +327,9 @@ export default async function exportExcelLensTemplate() {
         { key: 'note', width: 25 },
     ];
 
+    worksheet.getColumn(24).numFmt = '#,##0.00';
+    worksheet.getColumn(26).numFmt = '#,##0.00';
+
     for (let i = 11; i <= 110; i++) {
         worksheet.getRow(i).eachCell((cell) => {
             cell.border = {
