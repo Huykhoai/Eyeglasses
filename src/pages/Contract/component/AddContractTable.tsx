@@ -1,5 +1,5 @@
 import { Box, Stack, Tooltip, Typography } from "@mui/material";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef } from "react";
 import {
     Inventory as InventoryIcon,
     Add as AddIcon,
@@ -17,13 +17,16 @@ import Pagination from "@/components/common/Pagination/Pagination";
 import Select from "@/components/common/Select/Select";
 import { useFormContext } from "react-hook-form";
 import PurchaseQuotationStatus, { type PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
+import { readQuotationExcelForContract } from "./quotationExcelImportHelper";
 const primaryColor = import.meta.env.VITE_PRIMARY_COLOR;
 const AddContractTable = () => {
-    const { getValues } = useFormContext();
+    const { getValues, setValue } = useFormContext();
     const [id, status] = getValues(['id', 'status']);
     const supplier = useWatch({ name: 'supplier' });
     const quotationsMap: Record<number, Quotation> = useWatch({ name: 'quotations' }) || {};
     const items: Record<number, SimpleContractItem> = useWatch({ name: 'items' }) || {};
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isImporting, setIsImporting] = useState(false);
 
     const { showNotification } = useNotification();
     const [page, setPage] = useState(1);
@@ -81,8 +84,46 @@ const AddContractTable = () => {
         setOpenDialog(false);
     }, []);
 
-    const handleImportExcel = useCallback(() => {
-    }, []);
+    const handleImportExcel = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !supplier) return;
+
+        setIsImporting(true);
+        try {
+            const result = await readQuotationExcelForContract(file, supplier.id, id);
+
+            if (result.errors && result.errors.length > 0) {
+                showNotification('error', result.errors.join('\n'), 'Lỗi nhập excel báo giá');
+            } else if (result.success && result.quotation && result.items) {
+                if (result.warnings && result.warnings.length > 0) {
+                    showNotification('warning', result.warnings.join('\n'), 'Cảnh báo');
+                }
+
+                const currentQuotations = { ...(getValues('quotations') || {}) };
+                currentQuotations[result.quotation.id] = result.quotation;
+
+                // Merge items
+                const currentItems: Record<number, SimpleContractItem> = { ...(getValues('items') || {}) };
+                result.items.forEach((newItem: any) => {
+                    const quotationItemId = newItem.quotationItemId;
+                    currentItems[quotationItemId] = {
+                        ...currentItems[quotationItemId],
+                        ...newItem
+                    };
+                });
+
+                setValue('quotations', currentQuotations, { shouldDirty: true });
+                setValue('items', currentItems, { shouldDirty: true, shouldValidate: true });
+
+                showNotification('success', `Đã thêm ${result.items.length} sản phẩm từ báo giá.`, 'Thành công');
+            }
+        } catch (error) {
+            showNotification('error', 'Có lỗi khi import dữ liệu.', 'Thất bại');
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    }, [supplier, getValues, setValue, showNotification]);
 
     return (
         <Box>
@@ -165,10 +206,18 @@ const AddContractTable = () => {
                                 onChangeSize={handleChangeSize}
                             />
                         )}
+                        <input
+                            type="file"
+                            accept=".xlsx, .xls"
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleImportExcel}
+                        />
                         <AddProductMenu
                             onAdd={handleImport}
-                            onBulkAdd={handleImportExcel}
-                            disabled={!statusAccess} />
+                            onBulkAdd={() => fileInputRef.current?.click()}
+                            title={isImporting ? 'Đang đọc...' : 'Thêm sản phẩm'}
+                            disabled={!statusAccess || isImporting} />
                     </Box>
                 ) : (
                     <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 600, fontStyle: 'italic' }}>

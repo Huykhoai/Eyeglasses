@@ -11,7 +11,7 @@ import { Box, Divider, Grid, Stack, Typography } from "@mui/material";
 import { useNotification } from "@/components/ui/Notification/NotificationContext";
 import { useBase64 } from "@/utils/base64";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import type { PurchaseQuotationEnum } from "@/utils/PurchaseQuotationEnum";
 import PurchaseQuotationStatus from "@/utils/PurchaseQuotationEnum";
@@ -24,6 +24,10 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog/ConfirmDialog";
 import { useFetchContractById } from "../hooks/useFetchContractById";
 import Loading from "@/components/ui/Loading/Loading";
 import ContractHistory from "./ContractHistory";
+import ExcelMenu from "@/components/ui/MenuExcel/ExcelMenu";
+import { readContractExcel } from "./contractExcelImportHelper";
+import { exportContractToExcel } from "./contractExcelHelper";
+import { useSupplier, useCurrency } from "@/hooks/UseAllData";
 
 interface FormContract extends Contract {
     step: number;
@@ -46,6 +50,12 @@ const AddContract = () => {
     const decodedId = decode(encodedId || '');
     const { data: contract } = useFetchContractById(Number(decodedId));
     const [openConfirm, setOpenConfirm] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
+
+    const { data: suppliers } = useSupplier();
+    const { data: currencies } = useCurrency();
 
     const statusAccess = useMemo(() => !decodedId || (contract &&
         [PurchaseQuotationStatus.DRAFT, PurchaseQuotationStatus.PENDING, PurchaseQuotationStatus.REJECTED].includes(contract?.status))
@@ -80,7 +90,7 @@ const AddContract = () => {
             step: contract.status === PurchaseQuotationStatus.PENDING
                 ? 1
                 : ([PurchaseQuotationStatus.APPROVED, PurchaseQuotationStatus.CANCELLED, PurchaseQuotationStatus.REJECTED] as PurchaseQuotationEnum[])
-                            .includes(contract.status)
+                    .includes(contract.status)
                     ? 2
                     : 0,
         } : undefined
@@ -88,8 +98,8 @@ const AddContract = () => {
 
     const { handleSubmit, watch, getValues, formState: { isDirty } } = methods;
 
-    const steps = ["Tạo mới", "Chờ xét duyệt", getValues('status') === PurchaseQuotationStatus.CANCELLED 
-        ? "Đã hủy" 
+    const steps = ["Tạo mới", "Chờ xét duyệt", getValues('status') === PurchaseQuotationStatus.CANCELLED
+        ? "Đã hủy"
         : getValues('status') === PurchaseQuotationStatus.REJECTED
             ? "Đã từ chối"
             : "Đã duyệt"];
@@ -118,7 +128,87 @@ const AddContract = () => {
             const message = error?.response?.data?.message || 'Lỗi khi lưu hợp đồng';
             showNotification('error', message, 'Thất bại');
         }
-    })
+    });
+
+    const handleImportExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        try {
+            const result = await readContractExcel(
+                file,
+                currencies || [],
+                suppliers || [],
+                decodedId ? Number(decodedId) : undefined
+            );
+
+            if (!result.success) {
+                result.errors?.forEach((e: string) => showNotification('error', e, 'Lỗi'));
+                return;
+            }
+
+            if (result.supplier) methods.setValue('supplier', result.supplier as any, { shouldDirty: true });
+            if (result.currency) {
+                methods.setValue('currency', result.currency as any, { shouldDirty: true });
+                methods.setValue('contractCurrencyValue', Number(result.currency.value) || 0, { shouldDirty: true });
+            }
+            if (result.contractName) methods.setValue('name', result.contractName, { shouldDirty: true });
+            if (result.note) methods.setValue('note', result.note, { shouldDirty: true });
+
+            if (result.quotations && result.quotations.length > 0) {
+                const newQuotations = { ...getValues('quotations') };
+                result.quotations.forEach((q: any) => {
+                    newQuotations[q.id] = q;
+                });
+                methods.setValue('quotations', newQuotations, { shouldDirty: true });
+            }
+
+            if (result.items && Object.keys(result.items).length > 0) {
+                const currentItems = { ...getValues('items') };
+                result.items.forEach((item: any) => {
+                    currentItems[item.quotationItemId] = {
+                        ...currentItems[item.quotationItemId],
+                        ...item
+                    };
+                });
+                methods.setValue('items', currentItems, { shouldDirty: true, shouldValidate: true });
+            }
+
+            showNotification('success', 'Import dữ liệu từ file Excel hợp đồng thành công', 'Thành công');
+            if (result.warnings && result.warnings.length > 0) {
+                result.warnings.forEach((w: string) => showNotification('warning', w, 'Cảnh báo'));
+            }
+
+        } catch (error) {
+            showNotification('error', 'Lỗi khi import file', 'Thất bại');
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleExportExcel = async () => {
+        const data = methods.getValues();
+        const simpleItems = Object.values(data.items);
+        let detailedItems: any[] = [];
+
+        if (simpleItems.length > 0) {
+            try {
+                setIsExporting(true);
+                const res = await axiosClient.post('/api/contract/items-detail', simpleItems);
+                detailedItems = res.data;
+            } catch (error) {
+                showNotification('error', 'Lỗi khi tải chi tiết sản phẩm', 'Lỗi');
+                return;
+            } finally {
+                setIsExporting(false);
+            }
+        }
+
+        await exportContractToExcel(data, data.quotations, detailedItems);
+    };
+
     const onSubmit = (data: FormContract, status: PurchaseQuotationEnum) => {
         if (!statusAccess) {
             showNotification('error', 'Không thể chỉnh sửa hợp đồng đã được duyệt', 'Thất bại');
@@ -183,9 +273,10 @@ const AddContract = () => {
     return (
         <FormProvider {...methods}>
             <Box className="add-contract-page-wapper" sx={{ overflow: 'hidden' }}>
-                {isPending && <Loading fullPage message="Đang xử lý" />}
+                {(isPending || isExporting || isImporting) && <Loading fullPage message="Đang xử lý" />}
+                <input type="file" ref={fileInputRef} hidden onChange={handleImportExcel} accept=".xlsx,.xls" />
                 <Grid container spacing={5}>
-                    <Grid size={{ xs: 12, sm: 5 }}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                         <Box className="add-contract-header">
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                 <Button variant="outline" onClick={() => navigate(-1)} style={{ padding: '4px 12px', height: '32px' }}>Quay lại</Button>
@@ -193,6 +284,12 @@ const AddContract = () => {
                             </Box>
 
                             <Stack direction="row" spacing={2}>
+                                <ExcelMenu
+                                    title="Nhập xuất"
+                                    onImport={() => fileInputRef.current?.click()}
+                                    onExport={() => handleExportExcel()}
+                                    disabled={!statusAccess}
+                                />
                                 <Button
                                     variant="outline"
                                     disabled={!statusAccess}
@@ -217,7 +314,7 @@ const AddContract = () => {
                             </Stack>
                         </Box>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 7 }}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                         <Box className="glass-card" sx={{ height: '100%', display: 'flex', alignItems: 'center', gap: 2, flexWrap: "wrap" }}>
                             {steps.map((step, index) => {
                                 const stepCurrency = getValues('step');
@@ -235,9 +332,9 @@ const AddContract = () => {
                                                     borderRadius: '50%',
                                                     backgroundColor: isActive
                                                         ? getValues('status') === PurchaseQuotationStatus.CANCELLED
-                                                            ? THEME_COLORS.danger 
+                                                            ? THEME_COLORS.danger
                                                             : getValues('status') === PurchaseQuotationStatus.REJECTED
-                                                                ? THEME_COLORS.danger 
+                                                                ? THEME_COLORS.danger
                                                                 : THEME_COLORS.primary
                                                         : isCompleted ? THEME_COLORS.completed : THEME_COLORS.inactive,
                                                     display: "flex",

@@ -32,7 +32,6 @@ const ExcelMenu = ({ title, onImport, onExport, disabled }: ExcelMenuProps) => {
     return (
         <div className="add-product-menu" ref={containerRef}>
             <Button
-                disabled={disabled}
                 onClick={() => setIsOpen(!isOpen)}
                 icon={<CloudSyncIcon fontSize="small" />}
             >
@@ -54,7 +53,7 @@ const ExcelMenu = ({ title, onImport, onExport, disabled }: ExcelMenuProps) => {
             {isOpen && (
                 <div className="add-menu-dropdown">
                     <div
-                        className="add-menu-item"
+                        className={`add-menu-item ${disabled ? 'disabled' : ''}`}
                         onClick={() => { onImport(); setIsOpen(false); }}
                     >
                         <CloudDownloadIcon fontSize="small" />
