@@ -1,73 +1,104 @@
-# React + TypeScript + Vite
+# Optic ERP - Frontend System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Optic ERP Cover]([CHÈN_LIÊN_KẾT_ẢNH_TỔNG_QUAN_DỰ_ÁN_VÀO_ĐÂY])
 
-Currently, two official plugins are available:
+Optic ERP is a comprehensive, enterprise-level Web Application designed to streamline the Supply Chain and Warehouse Management processes specifically for the Eyewear Industry. It handles the complete lifecycle from Quotation, Contract Management, Delivery Scheduling, Quality Control (OTK), to Inventory Receipt and Landed Cost Allocation.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Key Features
 
-## React Compiler
+*   **Supply Chain Module:** Manage Purchase Quotations, Contracts, and Delivery Schedules.
+*   **Warehouse & Inventory:** Real-time inventory tracking, Quality Control (OTK), and dynamic cost allocation (Landed Cost).
+*   **Excel Data Interoperability (Data Round-tripping):** Import/Export templates for Quotations and Contracts with deep client-side offline validation using `ExcelJS`.
+*   **Real-time Notifications:** WebSocket (STOMP) integration for live business alerts.
+*   **Role-Based Access Control (RBAC):** Secure module access and specialized views based on user roles (Admin, Procurement, Warehouse Staff, Manager).
+*   **Dynamic Data Filtering:** Robust Data Grids with URL-synced pagination and complex filter states.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Tech Stack
 
-## Expanding the ESLint configuration
+*   **Framework:** React 18 / Vite
+*   **Language:** TypeScript
+*   **State Management & Data Fetching:** React Query (TanStack V5), Zustand / Context API
+*   **Forms & Validation:** React Hook Form, Yup / Zod
+*   **Styling & UI:** Material UI (MUI), SCSS
+*   **Other Libraries:** Axios, ExcelJS, SockJS/STOMP (WebSockets)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📸 Screenshots
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Dashboard | Products | Excel Products |
+|:---:|:---:|:---:|
+| ![Dashboard](./src/assets/dashboard.png) | ![Products](./src/assets/product.png) | ![Excel Products](./src/assets/excel_product.png) |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Quotation | Contract |
+|:---:|:---:|
+| ![Quotation](./src/assets/quotation.png) | ![Contract](./src/assets/contract.png) |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Delivery Schedule | OTK |
+|:---:|:---:|
+| ![Delivery Schedule](./src/assets/delivery.png) | ![OTK](./src/assets/otk.png) |
+
+| Inventory Receipt | Landed Cost |
+|:---:|:---:|
+| ![Inventory Receipt](./src/assets/receipt.png) | ![Landed Cost](./src/assets/landed_cost.png) |
+
+## 💻 Running the Project Locally
+
+### Prerequisites
+*   Node.js (v18 or higher)
+*   npm or yarn
+
+### Installation Steps
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/vnoptic_fe.git
+    cd vnoptic_fe
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
+
+3.  **Environment Variables:**
+    Create a `.env` file in the root directory by copying the `.env.example` file (if available) and adding the necessary API endpoints.
+    ```env
+    VITE_API_BASE_URL=http://localhost:8080/api
+    ```
+
+4.  **Start the development server:**
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
+
+5.  Open your browser and navigate to `http://localhost:5173`.
+
+## 📁 Project Structure
+
+```text
+src/
+├── api/          # Axios interceptors and API services
+├── assets/       # Static files (images, icons)
+├── components/   # Reusable UI components (Layout, Menus, Dialogs)
+├── context/      # React context for global state (Auth, Themes)
+├── hooks/        # Custom React hooks
+├── pages/        # Main route pages (Dashboard, Contract, Quote, Otk, etc.)
+├── router/       # Application routing configuration
+├── types/        # TypeScript interfaces and types
+└── utils/        # Helper functions, formatters, constants
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🔐 Security & Role Rules
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+-   Guest/Unauthorized users are redirected to the Login page.
+-   Access to paths like `/contract/add` or `/otk` are protected by Higher Order Components requiring `ROLE_ADMIN` or specific module permissions. 
+-   JWT tokens are stored securely in memory or HTTPOnly cookies to prevent XSS.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 👥 Contributors
+
+-   **[Your Name / Huy Khoai]** - Fullstack Developer
+
+*This project was developed as a graduation thesis.*
