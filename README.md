@@ -50,7 +50,7 @@ Optic ERP is a comprehensive, enterprise-level Web Application designed to strea
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/vnoptic_fe.git
+    git clone https://github.com/Huykhoai/Eyeglasses.git
     cd vnoptic_fe
     ```
 
@@ -64,7 +64,10 @@ Optic ERP is a comprehensive, enterprise-level Web Application designed to strea
 3.  **Environment Variables:**
     Create a `.env` file in the root directory by copying the `.env.example` file (if available) and adding the necessary API endpoints.
     ```env
-    VITE_API_BASE_URL=http://localhost:8080/api
+    VITE_API_URL = "http://localhost:8080"
+    PORT = 3000
+    VITE_PRIMARY_COLOR='#6366f1'
+    VITE_SECOND_COLOR = '#714B67'
     ```
 
 4.  **Start the development server:**
@@ -74,7 +77,7 @@ Optic ERP is a comprehensive, enterprise-level Web Application designed to strea
     yarn dev
     ```
 
-5.  Open your browser and navigate to `http://localhost:5173`.
+5.  Open your browser and navigate to `http://localhost:3000`.
 
 ## 📁 Project Structure
 
